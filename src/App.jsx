@@ -1,7 +1,7 @@
 import Navbar from "./components/NavBar";
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home.jsx";
+import Home from "./pages/Home.tsx";
 import Brackets from "./pages/Brackets.jsx";
 import Matches from "./pages/Matches.jsx";
 import Teams from "./pages/Teams.jsx";
