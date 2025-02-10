@@ -10,7 +10,7 @@ const Avatar: React.FC<AvatarProps> = ({ src, alt = 'Sponsor logo'}) => {
     <img
       src={src}
       alt={alt}
-      className='h-20 w-20 rounded-full object-cover bg-[#d9d9d9] mx-4 text-center'
+      className='sm:size-16 md:size-24 rounded-full object-cover bg-[#d9d9d9] mx-4 mb-10 text-center'
     />
   );
 };

@@ -16,13 +16,14 @@ export default () => {
       observer={true}
       observeParents={true}
       centeredSlides={true}
+      scrollbar={{ draggable: true }}
       modules={[Pagination, Navigation, EffectCoverflow, A11y]}
       coverflowEffect={{
-        // depth: 90,
-        // rotate: -30,
-        // scale: 3 / 20,
-        slideShadows: true,
-        // stretch: 0,
+        depth: 50,
+        rotate: 0,
+        scale: 0.9,
+        slideShadows: false,
+        stretch: 50,
       }}
       pagination={{
         clickable: true,
@@ -33,12 +34,12 @@ export default () => {
       breakpoints={{
         300: {
           slidesPerView: 1,
-          spaceBetween: 5,
+          spaceBetween: 0,
           effect: "coverflow",
           coverflowEffect: {
-            depth: 90,
-            rotate: 100,
-            scale: 9 / 20,
+            depth: 50,
+            rotate: 0,
+            scale: 0.4,
             slideShadows: false,
           },
         },
@@ -47,8 +48,8 @@ export default () => {
           spaceBetween: -15,
           effect: "coverflow",
           coverflowEffect: {
-            depth: 90,
-            rotate: -30,
+            depth: 50,
+            rotate: 0,
             scale: 14 / 20,
             slideShadows: false,
             stretch: 0,
@@ -56,19 +57,18 @@ export default () => {
         },
         1100: {
           slidesPerView: 3,
-          spaceBetween: -5,
+          spaceBetween: -20,
           effect: "coverflow",
           coverflowEffect: {
-            depth: 90,
-            rotate: -30,
-            scale: 14 / 20,
+            depth: 50,
+            rotate: 0,
             slideShadows: false,
             stretch: 0,
           },
         },
       }}
       loop={true}
-      className="h-86 flex w-11/12 flex-col items-center justify-center rounded-lg"
+      className="h-auto flex w-11/12 flex-col items-center justify-center rounded-lg"
     >
       {Object.entries(games).map(([name, game], index) => (
         <SwiperSlide key={index}>

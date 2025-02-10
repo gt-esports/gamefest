@@ -16,4 +16,14 @@ export const games = {
     pageLink: "",
     discordLink: "",
   },
+  "Amongus4": {
+    image: Amongus,
+    pageLink: "",
+    discordLink: "",
+  },
+  "Amongus5": {
+    image: Amongus,
+    pageLink: "",
+    discordLink: "",
+  },
 };

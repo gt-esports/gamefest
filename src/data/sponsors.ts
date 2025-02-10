@@ -11,4 +11,12 @@ export const sponsors = [
         src: 'Sponsor 3',
         alt: '',
     },
+    {
+        src: 'Sponsor 4',
+        alt: '',
+    },
+    {
+        src: 'Sponsor 5',
+        alt: '',
+    },
 ];

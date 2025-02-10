@@ -9,7 +9,7 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
 }) => {
   return (
     <div
-        className="bg-[#d9d9d9] p-4 rounded-lg shadow-md m-4 w-full items-center justify-center text-center"
+        className="bg-[#d9d9d9] rounded-lg shadow-md mb-8 w-full h-36 text-center align-middle"
     >
       <h2>{title}</h2>
     </div>
