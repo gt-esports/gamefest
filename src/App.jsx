@@ -6,11 +6,12 @@ import Brackets from "./pages/Brackets.jsx";
 import Matches from "./pages/Matches.jsx";
 import Teams from "./pages/Teams.jsx";
 import Sponsor from "./pages/Sponsor.jsx";
+import "./styles/index.css";
 
 function App() {
   return (
     <Router>
-      <Navbar />
+      {/* <Navbar /> */}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/brackets" element={<Brackets />} />
