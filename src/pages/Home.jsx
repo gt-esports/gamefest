@@ -1,4 +1,5 @@
 import Navbar from "../components/NavBar";
+import Footer from "../components/Footer";
 function Home() {
     return (
       <>
@@ -7,6 +8,7 @@ function Home() {
           <main>
             <h class="m-24 text-3xl">This is Home page</h>
           </main>
+          <Footer />
         </div>
       </>
     );

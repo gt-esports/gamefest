@@ -1,4 +1,5 @@
 import Navbar from "../components/NavBar";
+import Footer from "../components/Footer";
 function Sponsor() {
     return (
       <>
@@ -7,6 +8,7 @@ function Sponsor() {
           <main>
             <h class="m-24 text-3xl">SPONSOR</h>
           </main>
+          <Footer />
         </div>
       </>
     );
