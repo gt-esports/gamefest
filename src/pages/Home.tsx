@@ -3,6 +3,8 @@ import Carousel from "../components/Carousel.tsx";
 import Avatar from "../components/Avatar.tsx";
 import TournamentCard from "../components/TournamentCard.tsx";
 import { sponsors } from "../data/sponsors.ts";
+import Navbar from '../components/NavBar.jsx';
+import Footer from '../components/Footer.jsx';
 
 const tournaments = [
     {
@@ -23,6 +25,8 @@ function Home() {
 
     return (
         <div className="w-dvw h-dvh">
+            <Navbar />
+            <main>
             <div className="w-dvw h-dvh bg-primary flex items-center justify-center bg-[#505050] ">
                 <h1 
                     style={{fontFamily: 'Bayon, sans-serif'}} 
@@ -86,6 +90,8 @@ function Home() {
                     ))}
                 </div>
             </div>
+            </main>
+            <Footer/>
         </div>
     );
 }
