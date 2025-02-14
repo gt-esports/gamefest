@@ -27,7 +27,7 @@ function Home() {
         <div className="w-dvw h-dvh">
             <Navbar />
             <main>
-            <div className="w-dvw h-dvh bg-primary flex items-center justify-center bg-[#505050] ">
+            <div className="w-dvw h-dvh flex items-center justify-center bg-[#505050] ">
                 <h1 
                     style={{fontFamily: 'Bayon, sans-serif'}} 
                     className="px-3 py-3 text-9xl font-normal text-tech-gold xs:rounded-lg xs:text-5xl xs:backdrop-blur-lg sm:text-7xl md:text-8xl lg:text-9xl">
