@@ -85,7 +85,7 @@ function Matches() {
 
               
           </main>
-          {/* <Footer /> */}
+          <Footer />
         </div>
       </>
     );
