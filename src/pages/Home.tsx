@@ -128,7 +128,9 @@ function Home() {
                                         .slice(pageIndex * sponsorsPerPage, (pageIndex + 1) * sponsorsPerPage)
                                         .map((sponsor, index) => (
                                             <div key={index} className="m-5">
-                                                <Avatar src={sponsor.src} alt={sponsor.alt} />
+                                                <a href={sponsor.link} target="_blank" rel="noopener noreferrer">
+                                                    <Avatar src={sponsor.src} alt={sponsor.alt} />
+                                                </a>
                                             </div>
                                         ))}
                                 </div>
