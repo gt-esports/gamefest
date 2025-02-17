@@ -31,6 +31,15 @@ module.exports = {
       backgroundColor: {
         "footer-shadow": "rgba(0, 0, 0, 0.6)", // 60% opacity black
       },
+      keyframes: {
+        scroll: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+      },
+      animation: {
+        'scroll-sponsors': 'scroll 40s linear infinite',
+      },
     },
   },
   plugins: [],

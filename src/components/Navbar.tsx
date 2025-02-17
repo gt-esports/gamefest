@@ -52,10 +52,9 @@ function Navbar() {
 
   const links = [
     { name: "HOME", link: "/home" },
-    // { name: "TEAMS", link: "/teams" },
-    { name: "GAMES", link: "/games" },
-    { name: "RECRUITMENT", link: "/recruitment" },
-    // { name: "NEWS & EVENTS", link: "/newsandevents" },
+    { name: "BRACKETS", link: "/brackets" },
+    { name: "TEAMS", link: "/teams" },
+    { name: "SPONSORS", link: "/sponsor" },
     { name: "ABOUT", link: "/about" },
   ];
 
@@ -74,8 +73,8 @@ function Navbar() {
             height={68}
             className="mr-2"
           />
-          <span className="text-2xl md:text-4xl text-tech-gold">GA TECH</span>{" "}
-          <span className="text-2xl ml-1 md:text-4xl md:ml-2 text-white">ESPORTS</span>
+          <span className="text-2xl md:text-4xl text-tech-gold">GAME</span>{" "}
+          <span className="text-2xl ml-1 md:text-4xl md:ml-2 text-white">FEST</span>
         </Link>
       </div>
       <div

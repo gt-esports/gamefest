@@ -1,137 +1,236 @@
 import Carousel from "../components/Carousel";
 import Footer from "../components/Footer";
-// import NECard from "../components/NECard";
-
-// import { games } from "../data/gamesData";
-
-// const testNews = [
-//   [
-//     "news name 1",
-//     games["League of Legends"].image,
-//     "12/31/2023",
-//     "newslink",
-//     "",
-//   ],
-//   [
-//     "news name 2",
-//     games["League of Legends"].image,
-//     "12/31/2023",
-//     "newslink",
-//     "",
-//   ],
-//   [
-//     "news name 3",
-//     games["League of Legends"].image,
-//     "12/31/2023",
-//     "newslink",
-//     "",
-//   ],
-// ];
-
-// const testEvents = [
-//   [
-//     "events name 1",
-//     games["League of Legends"].image,
-//     "12/31/2023",
-//     "newslink",
-//     "Klaus",
-//   ],
-//   [
-//     "events name 2",
-//     games["League of Legends"].image,
-//     "12/31/2023",
-//     "newslink",
-//     "Klaus",
-//   ],
-//   [
-//     "events name 3",
-//     games["League of Legends"].image,
-//     "12/31/2023",
-//     "newslink",
-//     "Klaus",
-//   ],
-// ];
+import TournamentCard from "../components/TournamentCard";
+import { sponsors } from "../data/sponsors";
+import Avatar from "../components/Avatar";
+const tournaments = [
+  {
+      title: 'Tournament 1',
+  },
+  {
+      title: 'Tournament 2',
+  },
+  {
+      title: 'Tournament 3',
+  },
+];
 
 function Home() {
   function handleButtonClick(e: React.MouseEvent<HTMLButtonElement>) {
     window.location.href = (e.target as HTMLButtonElement).value;
   }
 
+  const scrollToTournaments = () => {
+    const startPosition = window.scrollY;
+    const targetPosition = window.innerHeight;
+    const distance = targetPosition - startPosition + 25;
+    const duration = 1500; // Duration in milliseconds (1.5 seconds)
+    let start: number | null = null;
+
+    function animation(currentTime: number) {
+      if (start === null) start = currentTime;
+      const timeElapsed = currentTime - start;
+      const progress = Math.min(timeElapsed / duration, 1);
+
+      // Easing function for a more "dragging" feel
+      const easeInOutCubic = (progress: number) => {
+        return progress < 0.5
+          ? 4 * progress * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      };
+
+      window.scrollTo({
+        top: startPosition + distance * easeInOutCubic(progress),
+      });
+
+      if (timeElapsed < duration) {
+        requestAnimationFrame(animation);
+      }
+    }
+
+    requestAnimationFrame(animation);
+  };
+
   return (
     <div className="flex w-full flex-col bg-streak bg-cover">
       <div className="flex min-h-screen items-center justify-center rounded-sm bg-home-1 bg-cover">
-        <h1 className="px-3 py-3 font-bayon text-9xl font-normal text-tech-gold xs:rounded-lg xs:text-5xl xs:backdrop-blur-lg sm:text-7xl md:text-8xl lg:text-9xl">
-          G<span className="text-white">eorgi</span>a Tech{" "}
-          <span className="text-white">Esports</span>
-        </h1>
-      </div>
-      <div className="flex flex-col items-center justify-center pt-24">
-        <div>
-          <h2 className="flex pb-16 pt-24 text-center font-bayon text-7xl font-normal tracking-wide text-white">
-            CHOOSE YOUR GAME
-          </h2>
-        </div>
-        <div className="mx-auto mt-5 flex w-4/5 max-w-screen-xl flex-col items-center pb-24">
-          <Carousel />
+        <div className="flex flex-col items-center gap-4">
+          <h1 className="px-3 py-3 font-bayon text-9xl font-normal text-tech-gold xs:rounded-lg xs:text-5xl xs:backdrop-blur-lg sm:text-7xl md:text-8xl lg:text-9xl">
+            G<span className="text-white">eorgi</span>a Tech{" "}
+            <span className="text-white">Esports</span>
+          </h1>
           <button
-            onClick={handleButtonClick}
-            value="/games"
-            className="mt-28 h-16 w-48 rounded-md bg-tech-gold font-barlow text-white"
+            onClick={scrollToTournaments}
+            className="rounded-md mt-12 text-4xl bg-tech-gold px-6 py-3 font-bayon text-white hover:bg-tech-gold/90"
           >
-            VIEW ALL
+            ENTER NOW
           </button>
         </div>
-        {/* <div className="flex flex-col items-center">
-          <div className="mb-8 flex w-full flex-row items-center justify-between">
-            <h2 className="font-bayon text-5xl font-normal text-white">NEWS</h2>
-            <button
-              onClick={handleButtonClick}
-              value="/newsandevents"
-              className="h-14 w-40 rounded-md bg-tech-gold font-barlow text-white"
-            >
-              VIEW MORE
-            </button>
+      </div>
+      <div className="flex flex-col items-center justify-center w-full">
+          <div className="flex pt-24 pb-4 flex-row items-center justify-center">
+            <h2 style={{fontFamily: 'Bayon, sans-serif'}} className="font-bayon text-5xl font-normal text-white">
+                TOURNAMENT SCHEDULE
+            </h2>
           </div>
-          <div className="flex">
-            {testNews.map((card) => (
-              <NECard
-                name={card[0]}
-                image={card[1]}
-                time={card[2]}
-                link={card[3]}
-                location={card[4]}
-                type={true}
-              />
+          <div className="w-2/3">
+            {tournaments.map((tournament) => (
+                <TournamentCard 
+                    title={tournament.title} 
+                />
             ))}
+          </div>
+          <button
+            onClick={() => {
+              const gamesSection = document.querySelector('#games-section');
+              if (gamesSection) {
+                const startPosition = window.scrollY;
+                const targetPosition = gamesSection.getBoundingClientRect().top + window.scrollY - 9;
+                const distance = targetPosition - startPosition;
+                const duration = 1500;
+                let start: number | null = null;
+
+                function animation(currentTime: number) {
+                  if (start === null) start = currentTime;
+                  const timeElapsed = currentTime - start;
+                  const progress = Math.min(timeElapsed / duration, 1);
+
+                  const easeInOutCubic = (progress: number) => {
+                    return progress < 0.5
+                      ? 4 * progress * progress * progress
+                      : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+                  };
+
+                  window.scrollTo({
+                    top: startPosition + distance * easeInOutCubic(progress),
+                  });
+
+                  if (timeElapsed < duration) {
+                    requestAnimationFrame(animation);
+                  }
+                }
+
+                requestAnimationFrame(animation);
+              }
+            }}
+            className="mb-12 h-10 w-10 rounded-full bg-tech-gold hover:bg-tech-gold/90 flex items-center justify-center"
+            aria-label="Scroll to games section"
+          >
+            <svg 
+              width="20" 
+              height="20" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+              className="text-white transform rotate-90"
+            >
+              <path 
+                d="M9 18L15 12L9 6" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+      
+      <div id="games-section" className="flex flex-col items-center justify-center pt-4 min-h-screen snap-start">
+          <h2 className="flex pt-8 text-center font-bayon text-5xl font-normal tracking-wide text-white">
+            CURRENT GAMES
+          </h2>
+        <div className="flex w-3/4 max-w-screen-xl flex-col items-center pb-16">
+          <Carousel />
+          <button
+            onClick={() => {
+              const sponsorsSection = document.querySelector('#sponsors-section');
+              if (sponsorsSection) {
+                const startPosition = window.scrollY;
+                const targetPosition = sponsorsSection.getBoundingClientRect().top + window.scrollY - 80;
+                const distance = targetPosition - startPosition;
+                const duration = 1500;
+                let start: number | null = null;
+
+                function animation(currentTime: number) {
+                  if (start === null) start = currentTime;
+                  const timeElapsed = currentTime - start;
+                  const progress = Math.min(timeElapsed / duration, 1);
+
+                  const easeInOutCubic = (progress: number) => {
+                    return progress < 0.5
+                      ? 4 * progress * progress * progress
+                      : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+                  };
+
+                  window.scrollTo({
+                    top: startPosition + distance * easeInOutCubic(progress),
+                  });
+
+                  if (timeElapsed < duration) {
+                    requestAnimationFrame(animation);
+                  }
+                }
+
+                requestAnimationFrame(animation);
+              }
+            }}
+            className="mb-12 h-10 w-10 rounded-full bg-tech-gold hover:bg-tech-gold/90 flex items-center justify-center"
+            aria-label="Scroll to sponsors section"
+          >
+            <svg 
+              width="20" 
+              height="20" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+              className="text-white transform rotate-90"
+            >
+              <path 
+                d="M9 18L15 12L9 6" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div id="sponsors-section">
+        <div className="flex p-16 flex-col items-center justify-center">
+          <h2 className="font-bayon text-5xl font-normal text-white">
+            MESSAGE FROM OUR SPONSORS
+          </h2>
+          <p className="m-8 text-5xl font-normal text-white">
+            "                                                                         "
+          </p>
+        </div>
+
+        {/* Sponsor Carousel */}
+        <div className="relative w-full overflow-hidden">
+          <div className="flex w-max cursor-grab active:cursor-grabbing">
+            {/* First set of sponsors */}
+            <div className="flex animate-scroll-sponsors">
+              {sponsors.map((sponsor, index) => (
+                <div key={`sponsor-1-${index}`} className="mx-8">
+                  <a href={sponsor.link} target="_blank" rel="noopener noreferrer">
+                    <Avatar src={sponsor.src} alt={sponsor.alt} className="w-32 h-32 object-contain" />
+                  </a>
+                </div>
+              ))}
+            </div>
+            {/* Duplicate set for seamless loop */}
+            <div className="flex animate-scroll-sponsors">
+              {sponsors.map((sponsor, index) => (
+                <div key={`sponsor-2-${index}`} className="mx-8">
+                  <a href={sponsor.link} target="_blank" rel="noopener noreferrer">
+                    <Avatar src={sponsor.src} alt={sponsor.alt} className="w-32 h-32 object-contain" />
+                  </a>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-        <div className="pb-18 mt-32 flex flex-col items-center">
-          <div className="mb-8 flex w-full flex-row items-center justify-between">
-            <h2 className="font-bayon text-5xl font-normal text-white">
-              EVENTS
-            </h2>
-            <button
-              onClick={handleButtonClick}
-              value="/newsandevents"
-              className="h-14 w-40 rounded-md bg-tech-gold font-barlow text-white"
-            >
-              VIEW MORE
-            </button>
-          </div>
-          <div className="flex">
-            {testEvents.map((card) => (
-              <NECard
-                name={card[0]}
-                image={card[1]}
-                time={card[2]}
-                link={card[3]}
-                location={card[4]}
-                type={false}
-              />
-            ))}
-          </div>
-        </div> */}
-        {/* depreciated since we don't have enough content for news and events at the moment */}
       </div>
       <Footer />
     </div>
