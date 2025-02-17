@@ -7,12 +7,11 @@ interface AvatarProps {
 
 const Avatar: React.FC<AvatarProps> = ({ src, alt = 'Sponsor logo'}) => {
   return (
-    <img
-      src={src}
-      alt={alt}
-      className='sm:size-16 md:size-24 rounded-full object-cover bg-[#d9d9d9] mx-4 mb-10 text-center'
-    />
+    <div className="flex flex-wrap w-24 h-24 rounded-full overflow-hidden mx-4 mb-10 bg-[#d9d9d9] items-center justify-center">
+      <span className="text-white font-bold">{src}</span>
+    </div>
   );
 };
 
 export default Avatar;
+

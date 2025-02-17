@@ -1,22 +1,58 @@
 export const sponsors = [
     {
         src: 'Sponsor 1',
-        alt: '',
+        alt: 'Sponsor 1',
     },
     {
         src: 'Sponsor 2',
-        alt: '',
+        alt: 'Sponsor 2',
     },
     {
         src: 'Sponsor 3',
-        alt: '',
+        alt: 'Sponsor 3',
     },
     {
         src: 'Sponsor 4',
-        alt: '',
+        alt: 'Sponsor 4',
     },
     {
         src: 'Sponsor 5',
-        alt: '',
+        alt: 'Sponsor 5',
     },
-];
+    {
+        src: 'Sponsor 6',
+        alt: 'Sponsor 6',
+    },
+    {
+        src: 'Sponsor 7',
+        alt: 'Sponsor 7',
+    },
+    {
+        src: 'Sponsor 8',
+        alt: 'Sponsor 8',
+    },
+    {
+        src: 'Sponsor 9',
+        alt: 'Sponsor 9',
+    },
+    {
+        src: 'Sponsor 10',
+        alt: 'Sponsor 10',
+    },
+    {
+        src: 'Sponsor 11',
+        alt: 'Sponsor 11',
+    },
+    {
+        src: 'Sponsor 12',
+        alt: 'Sponsor 12',
+    },
+    {
+        src: 'Sponsor 13',
+        alt: 'Sponsor 13',
+    },
+    {
+        src: 'Sponsor 14',
+        alt: 'Sponsor 14',
+    }
+]
