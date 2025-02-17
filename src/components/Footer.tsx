@@ -12,10 +12,9 @@ function Footer() {
 
   const links = [
     { name: "HOME", link: "/home" },
-    // { name: "TEAMS", link: "/teams" },
-    { name: "GAMES", link: "/games" },
-    { name: "RECRUITMENT", link: "/recruitment" },
-    // { name: "NEWS & EVENTS", link: "/newsandevents" },
+    { name: "BRACKETS", link: "/brackets" },
+    { name: "TEAMS", link: "/teams" },
+    { name: "SPONSORS", link: "/sponsor" },
     { name: "ABOUT", link: "/about" },
   ];
 

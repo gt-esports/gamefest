@@ -4,11 +4,11 @@ import Navbar from "./components/Navbar";
 
 // Pages
 import Home from "./pages/Home";
-import Games from "./pages/Games";
-import Recruitment from "./pages/Recruitment";
-import NewsAndEvents from "./pages/NewsAndEvents";
-import About from "./pages/About";
-import Teams from "./pages/Teams";
+import Brackets from "./pages/Brackets.tsx";
+import Matches from "./pages/Matches.tsx";
+import Teams from "./pages/Teams.tsx";
+import Sponsor from "./pages/Sponsor.tsx";
+import About from "./pages/About.tsx";
 
 function App() {
   return (
@@ -17,12 +17,12 @@ function App() {
       <main>
         <Routes>
           <Route path="/" element={<Navigate to="/home" />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/games" element={<Games />} />
-          <Route path="/recruitment" element={<Recruitment />} />
-          <Route path="/newsandevents" element={<NewsAndEvents />} />
           <Route path="/about" element={<About />} />
-          <Route path="/teams" element={<Teams />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/brackets" element={<Brackets />} />
+        <Route path="/matches" element={<Matches />} />
+        <Route path="/teams" element={<Teams />} />
+        <Route path="/sponsor" element={<Sponsor />} />
           <Route path="*" element={<Navigate to="/home" />} />
         </Routes>
       </main>
