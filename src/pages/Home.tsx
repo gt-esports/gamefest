@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Carousel from "../components/Carousel.tsx";
 import Avatar from "../components/Avatar.tsx";
 import TournamentCard from "../components/TournamentCard.tsx";
 import { sponsors } from "../data/sponsors.ts";
+import Navbar from '../components/NavBar.jsx';
+import Footer from '../components/Footer.jsx';
 
 const tournaments = [
     {
@@ -16,13 +18,45 @@ const tournaments = [
     },
 ];
 
+const sponsorsPerPage = 5;
+
 function Home() {
-    function handleButtonClick(e: React.MouseEvent<HTMLButtonElement>) {
-        window.location.href = (e.target as HTMLButtonElement).value;
-    }
+    const [currentPage, setCurrentPage] = useState(0);
+    const totalPages = Math.ceil(sponsors.length / sponsorsPerPage);
+    const scroll = useRef<HTMLDivElement>(null);
+
+    const handleWheelScroll = (event: WheelEvent) => {
+        event.preventDefault();
+        setCurrentPage((prev) => {
+            if (event.deltaY > 0) {
+                return prev === totalPages - 1 ? 0 : prev + 1; // loop to first page
+            } else {
+                return prev === 0 ? totalPages - 1 : prev - 1; // loop to last
+            }
+        });
+    };
+
+    useEffect(() => {
+        if (scroll.current) {
+            scroll.current.scrollLeft = currentPage * scroll.current.clientWidth;
+        }
+    }, [currentPage]);
+
+    useEffect(() => {
+        const scrollCarousel = scroll.current;
+        if (scrollCarousel) {
+            scrollCarousel.addEventListener("wheel", handleWheelScroll);
+        }
+        return () => {
+            if (scrollCarousel) {
+                scrollCarousel.removeEventListener("wheel", handleWheelScroll);
+            }
+        };
+    }, []);
 
     return (
         <div className="w-dvw h-dvh">
+            <Navbar />
             <div className="w-dvw h-dvh bg-primary flex items-center justify-center bg-[#505050] ">
                 <h1 
                     style={{fontFamily: 'Bayon, sans-serif'}} 
@@ -53,8 +87,6 @@ function Home() {
                 <div className="flex mx-auto mt-5 flex w-4/5 max-w-screen-xl flex-col items-center">
                     <Carousel />
                     <button
-                        onClick={handleButtonClick}
-                        value="/"
                         className="mt-24 h-16 w-48 rounded-md bg-tech-gold font-barlow text-white"
                     >
                         VIEW ALL
@@ -77,15 +109,35 @@ function Home() {
                         SPONSORS
                     </h2>
                 </div>
-                <div className="flex flex-row items-center justify-center">
-                    {sponsors.map((sponsor) => (
-                        <Avatar 
-                            src={sponsor.src} 
-                            alt={sponsor.alt}
-                        />
-                    ))}
+                {/* Sponsor */}
+                <div className="flex flex-wrap w-screen justify-center items-center">
+                    <div
+                        ref={scroll}
+                        className="overflow-x-auto flex w-full pb-40"
+                        style={{ maxWidth: `${sponsors.length * 60, window.innerWidth}px` }}
+                    >
+                        {/* Sponsor Pages */}
+                        {Array.from({length: totalPages}).map((_, pageIndex) => (
+                            <div
+                                key={pageIndex}
+                                className="flex flex-wrap justify-center"
+                                style={{ minWidth: '100%' }}
+                            >
+                                <div className="flex flex-wrap justify-center items-center w-full">
+                                    {sponsors
+                                        .slice(pageIndex * sponsorsPerPage, (pageIndex + 1) * sponsorsPerPage)
+                                        .map((sponsor, index) => (
+                                            <div key={index} className="m-5">
+                                                <Avatar src={sponsor.src} alt={sponsor.alt} />
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 }
