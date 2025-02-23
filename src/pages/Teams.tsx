@@ -4,15 +4,16 @@ import Team from "../components/Team";
 
 function Teams() {
   return (
-    <div className="flex w-screen bg-streak flex-col bg-cover">
-      <div className="h-screen w-full pt-20 text-white text-center">
-        <h1 className="font-bayon tracking-wide text-white mb-20 text-3xl">
+    <div className="flex w-full bg-streak flex-col bg-cover">
+      <div className="w-full text-white text-center pt-20">
+        <h1 className="font-bayon tracking-wider text-white mb-20 text-3xl">
         SCHOOLS AND TEAMS
         </h1>
         <SearchBar />
         <Team />
+        <Footer />
       </div>
-      <Footer />
+
     </div>
   );
 }
