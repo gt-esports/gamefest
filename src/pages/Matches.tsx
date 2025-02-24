@@ -1,10 +1,24 @@
+import Footer from "../components/Footer";
+
 function Matches() {
   return (
-    <div className="h-screen w-full">
-      <div className="flex h-full w-full bg-streak bg-cover pt-20 text-white">
-        <a>This is the Matches page.</a>
+    <>
+      <div className="w-full bg-streak bg-cover pt-36">
+        <div className="flex items-center justify-center">
+          <h1 className="justify-center font-bayon text-6xl text-white">MATCHES</h1>
+        </div>
+        <div className="twitch-container">
+            <iframe
+              src="https://player.twitch.tv/?channel=mooda&parent=localhost"
+              allowFullScreen
+              allow="autoplay *; encrypted-media *;"
+            ></iframe>
+        </div>
+        <div className="pt-80">
+          <Footer />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 export default Matches;
