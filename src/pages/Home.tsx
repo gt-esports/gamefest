@@ -17,9 +17,6 @@ const tournaments = [
 ];
 
 function Home() {
-  function handleButtonClick(e: React.MouseEvent<HTMLButtonElement>) {
-    window.location.href = (e.target as HTMLButtonElement).value;
-  }
   const scrollToSection = (sectionId: string, offset: number = 0) => {
     const targetElement = document.getElementById(sectionId);
     if (!targetElement) return;
