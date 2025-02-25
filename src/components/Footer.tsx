@@ -42,7 +42,7 @@ function Footer() {
     <div className="mt-40 flex w-full flex-col bg-footer-shadow pb-6 pt-6">
       <div className="mb-4 flex w-full flex-wrap items-center justify-between md:flex-nowrap">
         {/* gatech logo */}
-        <div className="py-4 font-bayon text-3xl tracking-wide flex w-full justify-center md:justify-start md:pl-10">
+        <div className="ml-10 py-4 font-bayon text-3xl tracking-wide">
           <Link to="/home" className="flex items-center">
             <img
               src={Logo}
