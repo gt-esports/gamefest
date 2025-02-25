@@ -60,7 +60,7 @@ function Navbar() {
 
   return (
     <div
-      className={`fixed flex z-10 w-full min-h-fit border-0 items-center justify-between bg-transparent md:flex md:px-20 md:py-6 transition-all duration-500 ${
+      className={`fixed flex z-10 w-full h-[--navbar-height] pt-8 border-0 items-center justify-between bg-transparent md:flex md:px-20 md:py-6 transition-all duration-500 ${
         isScrolled ? "bg-opacity-70 backdrop-blur-md" : "bg-transparent"
       }`}
     >
