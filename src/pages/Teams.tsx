@@ -13,7 +13,6 @@ function Teams() {
         <Team />
         <Footer />
       </div>
-
     </div>
   );
 }
