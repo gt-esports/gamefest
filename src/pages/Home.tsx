@@ -55,7 +55,7 @@ function Home() {
 
   return (
     <div className="flex w-full flex-col bg-streak bg-cover">
-      <div className="flex min-h-screen items-center justify-center rounded-sm bg-home-1 bg-cover">
+      <div className="flex min-h-screen items-center justify-center rounded-sm bg-home-1 bg-cover pt-16 pb-16 sm:pt-0 sm:pb-0">
         <div className="flex flex-col items-center gap-4">
           <h1 className="px-3 py-3 font-bayon text-9xl font-normal text-tech-gold xs:rounded-lg xs:text-5xl xs:backdrop-blur-lg sm:text-7xl md:text-8xl lg:text-9xl">
             G<span className="text-white">eorgi</span>a Tech{" "}
