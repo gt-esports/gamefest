@@ -1,6 +1,6 @@
-# gtesports-website
+# gtesports-gamefest
 
-This is the repository for the Georgia Tech Esports Website.
+This is the repository for the Georgia Tech Esports Tournament Management App (for Game Fest)
 
 This app is developed using React, Tailwind, and Vite.
 
@@ -21,8 +21,8 @@ npm run dev
 
 Happy coding! 
 
-Please use the [Project Board](https://github.com/orgs/gt-esports/projects/1/views/1) to see what needs to be done and in general follow the Figma below. Anyone can assign/create any issues just make sure @longxiangchen reviews any pull request before merging.
+Please use the [Project Board](https://github.com/orgs/gt-esports/projects/3) to see what needs to be done and in general follow the Figma below. Anyone can assign/create any issues just make sure @longxiangchen reviews any pull request before merging.
 
-Figma: https://www.figma.com/file/lqyGW7bjN0K86VaIV4JyE4/GA-TECH-ESPORTS?type=design&node-id=0%3A1&mode=design&t=91dz9g2kvXODFPip-1
+Figma: https://www.figma.com/design/TtT5bhCALzVQwCiHiJUfLH/Midfi?node-id=0-1&p=f&t=PtHX77VUp1cWRrY3-0
 
 If you have any suggestions for the Figma feel free to discuss them in the GT Esports administration discord under the development department tab.
