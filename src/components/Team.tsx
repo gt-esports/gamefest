@@ -113,13 +113,13 @@ const Team = () => {
                     spaceBetween={50}
                     slidesPerView={1}
                     loop={true}
-                    className="w-full max-w-[400px] h-screen max-h-[400px] flex flex-col lg:hidden justify-center items-center pb-2"
+                    className="w-full max-w-[400px] h-screen max-h-[400px] flex flex-col lg:hidden justify-center items-center py-6"
                   >
                     <SwiperSlide className="flex justify-center items-center transition-transform duration-1000 ease-in-out">
                       <img src={tab.logo} alt={tab.school} className="w-auto h-auto max-w-[400px] max-h-[300px] rounded-lg" />
                     </SwiperSlide>
                     <SwiperSlide className='transition-transform duration-1000 ease-in-out'>
-                    <div className="w-full h-full text-center bg-gradient-to-br from-[#101010]/80 to-[#472b2b]/80 rounded-lg flex flex-col px-14 py-4 my-2">
+                    <div className="w-full h-full text-center bg-gradient-to-br from-[#101010]/80 to-[#472b2b]/80 rounded-lg flex flex-col px-14 py-4">
                       <span className="mt-4 text-2xl font-bayon text-gray-200">Participating Games</span>
                       <div className="w-full h-screen overflow-y-auto mt-4 p-4">
                         {tab.games.map((game, idx) => (
@@ -132,7 +132,7 @@ const Team = () => {
                     </SwiperSlide>
                     <SwiperSlide className='transition-transform duration-1000 ease-in-out'>
                       <div className="w-full h-full text-center bg-gradient-to-br from-[#233a6d] to-[#101010] 
-                      rounded-lg flex flex-col text-white px-14 py-4 my-2">
+                      rounded-lg flex flex-col px-14 py-4">
                         <span className="mt-4 text-2xl font-bayon text-gray-200">Participating Teams</span>
                         <div className="w-full h-screen overflow-y-auto overflow-x-hidden mt-4 p-4">
                         {tab.teams.map((team, idx) => (
