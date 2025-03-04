@@ -9,7 +9,7 @@ const SearchBar = () => {
   );
 
   return (
-    <div className="relative w-full max-w-xs mx-20">
+    <div className="relative w-full max-w-[335px] mx-20">
       <input
         type="text"
         placeholder="Search..."
