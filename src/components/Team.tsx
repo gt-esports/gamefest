@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FaChevronDown, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import tft from "../assets/game-covers/teamfight-tactics-cover.jpg";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { A11y, EffectCoverflow, Navigation, Pagination } from 'swiper/modules';
+import SearchBar from './SearchBar';
 
 const Team = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const [c_index, setIndex] = useState(0);
 
   const schoolTeam = [
     {
@@ -27,18 +27,79 @@ const Team = () => {
       games: ["1", "2", "3", "4"],
       teams: ["A", "B", "C", "D"],
     },
+    {
+      school: "School D",
+      logo: tft,
+      games: ["1", "2", "3", "4"],
+      teams: ["A", "B", "C", "D"],
+    },
+    {
+      school: "School E",
+      logo: tft,
+      games: ["1", "2", "3", "4"],
+      teams: ["A", "B", "C", "D"],
+    },
+    {
+      school: "School F",
+      logo: tft,
+      games: ["1", "2", "3", "4"],
+      teams: ["A", "B", "C", "D"],
+    },
+    {
+      school: "School G",
+      logo: tft,
+      games: ["1", "2", "3", "4"],
+      teams: ["A", "B", "C", "D"],
+    },
+    {
+      school: "School H",
+      logo: tft,
+      games: ["1", "2", "3", "4"],
+      teams: ["A", "B", "C", "D"],
+    },
+    {
+      school: "School I",
+      logo: tft,
+      games: ["1", "2", "3", "4"],
+      teams: ["A", "B", "C", "D"],
+    },
   ];
 
   const handleToggle = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+  const handleSearch = (name: string) => {
+    const index = schoolTeam.findIndex((s) => s.school.toLowerCase() === name);
+    if (index !== -1) {
+      setOpenIndex(index); // expand school tab when found
+
+      setTimeout(() => { // timer delay to make scrollTo time to position correctly
+        const id = name.replace(/\s+/g, "-").toLowerCase();
+        const schoolElement = document.getElementById(id);
+  
+        if (schoolElement) {
+          const y = -70;
+          const pos = schoolElement.getBoundingClientRect().top + window.scrollY;
+  
+          window.scrollTo({
+            top: pos + y,
+            behavior: "smooth",
+          });
+        }
+      }, 100);
+    }
+  };
 
   return (
     <div className="mx-auto p-8 px-20">
+      <SearchBar 
+        onSearch={handleSearch}
+      />
       <div className="space-y-8">
         {schoolTeam.map((tab, index) => (
           <div
             key={index}
+            id={tab.school.replace(/\s+/g, "-").toLowerCase()}
             className={`rounded-lg border border-white/20 p-4 bg-opacity-25 bg-gradient-to-br ${
               openIndex === index ? 'from-[#2e1d1d] to-[#101c3b]' : 'from-[#241717] to-[#101c3b]'
             } transition-all duration-200 ease-in-out`}
@@ -66,7 +127,7 @@ const Team = () => {
                   <div className="flex space-x-8 w-full">
                     
                     {/* Participating Games */}
-                    <div className="w-full max-h-[400px] bg-gradient-to-br from-[#101010]/80 to-[#472b2b]/80 rounded-lg flex flex-col text-white p-4">
+                    <div className="w-full max-h-[400px] bg-gradient-to-br from-[#101010]/20 to-[#472b2b]/80 rounded-lg flex flex-col text-white p-4">
                       <span className="font-bayon text-2xl text-center">
                         Participating Games
                       </span>
@@ -80,7 +141,7 @@ const Team = () => {
                     </div>
 
                     {/* Participating Teams */}
-                    <div className="w-full max-h-[400px] bg-gradient-to-tl from-[#101010] to-[#233a6d] rounded-lg flex flex-col text-white p-4">
+                    <div className="w-full max-h-[400px] bg-gradient-to-tl from-[#101010]/20 to-[#233a6d]/80 rounded-lg flex flex-col text-white p-4">
                       <span className="font-bayon text-2xl text-center">
                         Participating Teams
                       </span>
