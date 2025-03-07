@@ -9,17 +9,20 @@ interface AvatarProps {
 
 const Avatar: React.FC<AvatarProps> = ({ src, alt = "Sponsor logo", link="/", className }) => {
   return (
-    <a href={link}>
-      <div className={`flex items-center justify-center w-20 h-20 rounded-full overflow-hidden mx-4 mb-10 bg-[#d9d9d9] ${className || ''}`}>
+    
+      <div className={`flex items-center justify-center w-32 h-32 rounded-full overflow-hidden mx-auto mb-10 bg-[#d9d9d9] cursor-pointer ${className || ''}`}>
         
         {src ? (
+          <a href={link} target="_blank" rel="noopener noreferrer">
           <img src={src} alt={alt} className="w-full h-full object-cover" />
+          </a>
         ) : (
+          <a href={link} target="_blank" rel="noopener noreferrer">
           <span className="text-center font-medium">{alt}</span>
+          </a>
         )}
         
       </div>
-    </a>
   );
 };
 

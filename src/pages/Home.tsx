@@ -150,19 +150,25 @@ function Home() {
             <div className="flex animate-scroll-sponsors">
               {sponsors.map((sponsor, index) => (
                 <div key={`sponsor-1-${index}`} className="mx-8">
-                  <a href={sponsor.link} target="_blank" rel="noopener noreferrer">
-                    <Avatar src={sponsor.src} alt={sponsor.alt} className="w-32 h-32 object-contain" />
-                  </a>
+                    <Avatar 
+                      src={sponsor.src} 
+                      alt={sponsor.alt} 
+                      link={sponsor.link || ""} 
+                      className="w-32 h-32 object-contain" 
+                    />
                 </div>
               ))}
             </div>
 
             <div className="flex animate-scroll-sponsors">
               {sponsors.map((sponsor, index) => (
-                <div key={`sponsor-2-${index}`} className="mx-8">
-                  <a href={sponsor.link} target="_blank" rel="noopener noreferrer">
-                    <Avatar src={sponsor.src} alt={sponsor.alt} className="w-32 h-32 object-contain" />
-                  </a>
+                <div key={`sponsor-1-${index}`} className="mx-8">
+                    <Avatar 
+                      src={sponsor.src} 
+                      alt={sponsor.alt} 
+                      link={sponsor.link || ""} 
+                      className="w-32 h-32 object-contain" 
+                    />
                 </div>
               ))}
             </div>
