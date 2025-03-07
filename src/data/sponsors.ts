@@ -1,11 +1,12 @@
+import gamerPng from '../assets/gamer.png';
+
 export const sponsors = [
     {
         src: 'A',
         alt: 'A',
-        link: 'https://www.example.com'
     },
     {
-        src: 'B',
+        src: gamerPng, // placeholder
         alt: 'B',
         link: 'https://www.example.com'
     },

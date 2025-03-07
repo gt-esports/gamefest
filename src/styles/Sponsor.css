@@ -1,0 +1,35 @@
+.sponsorcard {
+    display: flex;
+    flex-direction: column;
+    /* justify-content: stretch; */
+    width: 75%;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 2rem 1rem;
+    margin: 6rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.sponsorgrid {
+    display: grid;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.sponsorpage h1 {
+    font-family: 'Bayon', sans-serif;
+    font-size: 3rem;
+    padding: 1rem;
+    text-align: center;
+}
+
+.sponsorpage h2 {
+    font-family: 'Bayon', sans-serif;
+    color: #ffffff;
+    font-size: 2rem;
+    padding: 0.8rem;
+    text-align: center;
+}
