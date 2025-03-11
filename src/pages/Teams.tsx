@@ -9,7 +9,6 @@ function Teams() {
         <h1 className="font-bayon tracking-wider text-white mb-20 text-3xl">
         SCHOOLS AND TEAMS
         </h1>
-        <SearchBar />
         <Team />
         <Footer />
       </div>

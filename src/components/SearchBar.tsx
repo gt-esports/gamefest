@@ -1,6 +1,10 @@
 import { useState } from "react";
 
-const SearchBar = () => {
+interface SearchProps {
+  onSearch: (query: string) => void;
+}
+
+const SearchBar: React.FC<SearchProps> = ({ onSearch }) => {
   const [search, setSearch] = useState("");
   const schools = ["School A", "School B", "School C", "School D", "School E", "School F", "School G"];
 
@@ -8,19 +12,30 @@ const SearchBar = () => {
     school.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleSearch = (school: string) => {
+    onSearch(school.toLowerCase());
+    setSearch("");
+  };
+
   return (
-    <div className="relative w-full max-w-xs mx-20">
+    <div className="relative w-full max-w-[335px] mb-8">
       <input
         type="text"
         placeholder="Search..."
-        className="w-full p-3 border border-gray-300 rounded-lg bg-transparent font-bayon text-2xl"
+        className="w-full p-3 border border-white rounded-lg bg-transparent font-bayon text-2xl"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
+        onKeyDown={e => e.key ==='Enter' ? handleSearch(search) : null}
+
       />
-      {search && (
-        <ul className="relative mt-2 bg-gray-500 border border-gray-500 rounded-lg shadow-lg">
+      {search && filterSchool.length > 0 && (
+        <ul className="relative mt-2 bg-gradient-to-br from-[#233a6d]/80 to-[#472b2b]/80 border border-gray-500 rounded-lg shadow-lg">
           {filterSchool.map((school, index) => (
-            <li key={index} className="p-2 text-white font-bayon text-2xl hover:bg-gray-700">
+            <li
+              key={index}
+              className="p-2 text-white font-bayon text-2xl hover:bg-gray-700 cursor-pointer"
+              onClick={() => handleSearch(school)}
+            >
               {school}
             </li>
           ))}
