@@ -1,4 +1,5 @@
 import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
+import Autosuggest from 'react-autosuggest';
 
 interface Participant {
   userId: string;
@@ -10,6 +11,8 @@ const AdminPanel: React.FC = () => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [points, setPoints] = useState<number>(0);
+  const [suggestions, setSuggestions] = useState<Participant[]>([]);
+  const [value, setValue] = useState<string>('');
   const adminId = 'admin123'; // Ideally, this comes from your authentication mechanism
 
   // Fetch participants on component mount.
@@ -22,7 +25,7 @@ const AdminPanel: React.FC = () => {
 
   // Function to update points (positive to add, negative to remove)
   const updatePoints = (userId: string, points: number) => {
-    fetch(`http://localhost:3000/admin/participants/${userId}/points`, {
+    fetch(`http://localhost:3000/participants/admin/${userId}/points`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -52,45 +55,97 @@ const AdminPanel: React.FC = () => {
     updatePoints(selectedUserId, points);
     setSelectedUserId('');
     setPoints(0);
+    setValue('');
   };
 
   // Handlers for input changes
-  const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedUserId(e.target.value);
-  };
-
   const handlePointsChange = (e: ChangeEvent<HTMLInputElement>) => {
     setPoints(Number(e.target.value));
   };
 
-  return (
+  // Autosuggest handlers
+  const onSuggestionsFetchRequested = ({ value }: { value: string }) => {
+    setSuggestions(getSuggestions(value));
+  };
+
+  const onSuggestionsClearRequested = () => {
+    setSuggestions([]);
+  };
+
+  const getSuggestions = (value: string) => {
+    const inputValue = value.trim().toLowerCase();
+    const inputLength = inputValue.length;
+
+    return inputLength === 0
+      ? []
+      : participants.filter(
+          participant =>
+            participant.name.toLowerCase().slice(0, inputLength) === inputValue
+        );
+  };
+
+  const getSuggestionValue = (suggestion: Participant) => suggestion.name;
+
+  const renderSuggestion = (suggestion: Participant) => (
     <div>
-      <h1>Admin Panel</h1>
-      <h2>Participants</h2>
-      <ul>
+      {suggestion.name}
+    </div>
+  );
+
+  const onChange = (event: FormEvent<HTMLElement>, { newValue }: { newValue: string }) => {
+    setValue(newValue);
+  };
+
+  const onSuggestionSelected = (event: React.FormEvent<any>, { suggestion }: { suggestion: Participant }) => {
+    setSelectedUserId(suggestion.userId);
+  };
+
+  const inputProps = {
+    placeholder: 'Type a participant name / Must click name from dropdown',
+    value,
+    onChange,
+    className: 'w-full border border-gray-300 rounded-md p-2',
+  };
+
+  return (
+    <div className='flex flex-col w-full mt-24 bg-white p-4'>
+      <h1 className='text-center text-2xl font-bold mb-4'>Admin Panel</h1>
+      <h2 className='text-xl font-semibold mb-2'>Participants List:</h2>
+      <ul className='mb-8'>
         {participants.map((p) => (
-          <li key={p.userId}>
-            {p.name} - Points: {p.participationPoints}
+          <li key={p.userId} className='mb-1'>
+            - {p.name} - Points: {p.participationPoints}
           </li>
         ))}
       </ul>
-      <h2>Update Participant Points</h2>
-      <form onSubmit={handleSubmit}>
-        <select value={selectedUserId} onChange={handleSelectChange}>
-          <option value="">Select Participant</option>
-          {participants.map((p) => (
-            <option key={p.userId} value={p.userId}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-        <input
-          type="number"
-          value={points}
-          onChange={handlePointsChange}
-          placeholder="Points (positive to add, negative to remove)"
+      <h2 className='text-xl font-semibold mb-4'>Update Participant Points</h2>
+      <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
+        <Autosuggest
+          suggestions={suggestions}
+          onSuggestionsFetchRequested={onSuggestionsFetchRequested}
+          onSuggestionsClearRequested={onSuggestionsClearRequested}
+          getSuggestionValue={getSuggestionValue}
+          renderSuggestion={renderSuggestion}
+          inputProps={inputProps}
+          onSuggestionSelected={onSuggestionSelected}
+          theme={{
+            container: 'relative',
+            suggestionsContainer: 'absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1',
+            suggestion: 'p-2',
+            suggestionHighlighted: 'bg-gray-200'
+          }}
         />
-        <button className='bg-white ml-4' type="submit">Update Points</button>
+        <div className='flex flex-row'>
+        <p className='text-center'>Points to Update</p>
+          <input
+            type="number"
+            value={points}
+            onChange={handlePointsChange}
+            placeholder="Points (positive to add, negative to remove)"
+            className='w-full p-2 border border-gray-300 rounded-md'
+          />
+        </div>
+        <button className='bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600' type="submit">Update Points</button>
       </form>
     </div>
   );
