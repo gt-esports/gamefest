@@ -9,6 +9,7 @@ import Matches from "./pages/Matches.js";
 import Teams from "./pages/Teams.tsx";
 import Sponsor from "./pages/Sponsor.tsx";
 import About from "./pages/About.tsx";
+import UserProfilePage from "./pages/UserProfilePage.tsx";
 
 const scrollbarStyles = `
   ::-webkit-scrollbar {
@@ -45,6 +46,7 @@ function App() {
             <Route path="/teams" element={<Teams />} />
             <Route path="/sponsor" element={<Sponsor />} />
             <Route path="*" element={<Navigate to="/home" />} />
+            <Route path="/profile" element={<UserProfilePage />} />
           </Routes>
         </main>
       </div>
