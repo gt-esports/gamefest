@@ -102,22 +102,24 @@ const QRScanner = ({ scan, setMessage }: { scan: (data: string) => void, setMess
   useEffect(() => {
     const scanner = new Html5QrcodeScanner("reader", { fps: 1, qrbox: 250 }, false);
     scanner.render(
-      (decodedText: string) => {
-        setTimeout(() => {
-          setMessage(`Scanned: ${decodedText}`);
-        }, 1000);
+      (e: string) => {
+        if (e) {
+          scan(e);
+          setMessage(`Scanned: ${e}`);
+        } else {
+          setMessage('Please try again.');
+        }
       },
       () => {
         setTimeout(() => {
-          setMessage('Please try again.');
-        }, 3000);
+          setMessage('');
+        }, 5000);
       }
-      
     );
     return () => {
       scanner.clear();
     };
-  }, [scan, setMessage]);
+  }, []);
 
   return <div id="reader"></div>;
 };
