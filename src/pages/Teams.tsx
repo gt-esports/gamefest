@@ -10,8 +10,8 @@ function Teams() {
         SCHOOLS AND TEAMS
         </h1>
         <Team />
-        <Footer />
       </div>
+      <Footer />
     </div>
   );
 }
