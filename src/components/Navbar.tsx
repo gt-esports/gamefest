@@ -1,15 +1,17 @@
 import { useEffect, useState, useRef } from "react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { TfiClose } from "react-icons/tfi";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import Logo from "../assets/gt-esports-logo1.png";
+import { SignedOut, SignInButton, SignedIn, UserButton, UserProfile } from "@clerk/clerk-react";
 
 function Navbar() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const menuRef = useRef<HTMLUListElement | null>(null);;
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleResize = () => {
@@ -88,14 +90,29 @@ function Navbar() {
       {/* Mobile Menu */}
       <ul
         ref={menuRef}
-        className={`fixed md:hidden right-0 top-0 z-[1] w-2/5 h-screen bg-black/90 pt-14 transition-all duration-300 ease-in ${
+        className={`fixed md:hidden right-0 top-0 z-[1] w-2/6 h-screen bg-black/90 pt-14 transition-all duration-300 ease-in ${
           open ? "px-4 translate-x-0" : "opacity-0 translate-x-full"
         }`}
       >
+        {/* LOGIN button */}
+        <li className={`text-white hover:text-bright-buzz text-md py-4 text-right w-full transition-all duration-700 ease-in-out ${
+          open ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
+          }`}
+        >
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button>LOGIN</button>
+            </SignInButton>
+          </SignedOut>
+
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </li>
         {links.map((link, index) => (
           <li
             key={link.name}
-            style={{ transitionDelay: `${index * 100}ms` }}
+            style={{ transitionDelay: `${index * 50}ms` }}
             className={`text-md py-4 text-right w-full transition-all duration-700 ease-in-out ${
               open ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
             }`}
@@ -136,6 +153,20 @@ function Navbar() {
             </NavLink>
           </li>
         ))}
+        {/* LOGIN button */}
+        <li className="text-white hover:text-bright-buzz duration-500">
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button>LOGIN</button>
+            </SignInButton>
+          </SignedOut>
+
+          <SignedIn>
+            <div className="mt-2">
+                <UserButton userProfileMode="navigation" userProfileUrl="/profile"/>
+            </div>
+          </SignedIn>
+        </li>
       </ul>
     </div>
   );
