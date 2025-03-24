@@ -1,5 +1,5 @@
 import Participant from '../models/participant.js';
-import Booth from '../models/booth.js';
+import QRCode from '../models/qrcode.js';
 
 // Dummy data (replace with database later)
 let participants = {
@@ -7,14 +7,6 @@ let participants = {
   'user456': new Participant('user456', 'Bob'),
   'user789': new Participant('user789', 'Charlie'),
 };
-
-const booths = [
-  new Booth('booth1', 'Booth 1', 10),
-  new Booth('booth2', 'Booth 2', 20),
-  new Booth('booth3', 'Booth 3', 30),
-  new Booth('booth4', 'Booth 4', 40),
-  new Booth('booth5', 'Booth 5', 50),
-];
 
 const admins = ['admin123', 'admin456'];
 
@@ -28,31 +20,89 @@ const isAdmin = (req, res, next) => {
 
 const addPoints = (req, res) => {
   const userId = req.params.userId;
-  const boothId = req.body.boothId;
-  // const qrCode = req.body.qrCode; // Uncomment this line if you want to use QR code
+  const { qrCode } = req.body; // Expecting game, achievement, or qrCode
 
   if (!participants[userId]) {
     return res.status(404).json({ error: 'Participant not found' });
   }
 
-  // if (!qrCode) {
-  //   return res.status(400).json({ error: 'Invalid QR Code' }); // Uncomment this block if you want to use QR code
-  // }
+  let pointsToAdd = 0;
+  let awardedFor = '';
+  let qrCodeFound = false;
 
-  const booth = booths.find((b) => b.id === boothId);
-  if (!booth) {
-    return res.status(404).json({ error: 'Booth not found' });
+  // For production we need real database
+  const qrCodeDatabase = [
+    new QRCode('unique_qr_123', 'Minecraft', 'Participation'),
+    new QRCode('special_qr_456', 'Apex Legends', 'Winning Team'),
+    new QRCode('another_qr_789', 'Group Round Robin', 'Second Place Group'),
+  ];
+
+  if (qrCode) {
+    const foundQrCode = qrCodeDatabase.find(qr => qr.code === qrCode);
+    if (foundQrCode) {
+      qrCodeFound = true;
+      const { game: qrGame, achievement: qrAchievement } = foundQrCode; // Extract game and achievement from QR code object
+      switch (qrGame) {
+        case 'Minecraft':
+          if (qrAchievement === 'Ender Dragon Kill') {
+            pointsToAdd = 100;
+          } else if (qrAchievement === 'Participation') {
+            pointsToAdd = 20;
+          } else {
+            return res.status(400).json({ error: 'Invalid Minecraft achievement from QR code' });
+          }
+          break;
+        case 'Fortnite':
+          if (qrAchievement === 'Battle Royale Win') {
+            pointsToAdd = 100;
+          } else if (qrAchievement === 'Participation') {
+            pointsToAdd = 20;
+          } else {
+            return res.status(400).json({ error: 'Invalid Fortnite achievement from QR code' });
+          }
+          break;
+        case 'Group Round Robin':
+          if (qrAchievement === 'Finals Winner') {
+            pointsToAdd = 200;
+          } else if (qrAchievement === 'Finals Loser') {
+            pointsToAdd = 150;
+          } else if (qrAchievement === 'Second Place Group') {
+            pointsToAdd = 100;
+          } else if (qrAchievement === 'Third Place Group') {
+            pointsToAdd = 50;
+          } else if (qrAchievement === 'Fourth Place Group') {
+            pointsToAdd = 25;
+          } else {
+            return res.status(400).json({ error: 'Invalid Group Round Robin achievement from QR code' });
+          }
+          break;
+        case 'Apex Legends':
+          if (qrAchievement === 'Winning Team') {
+            pointsToAdd = 200;
+          } else if (qrAchievement === 'Second Place') {
+            pointsToAdd = 100;
+          } else if (qrAchievement === 'Third Place') {
+            pointsToAdd = 50;
+          } else if (qrAchievement === 'Participation') {
+            pointsToAdd = 25;
+          } else {
+            return res.status(400).json({ error: 'Invalid Apex Legends achievement from QR code' });
+          }
+          break;
+        default:
+          return res.status(400).json({ error: 'Invalid game from QR code' });
+      }
+      awardedFor = `scanning QR code for ${qrGame}: ${qrAchievement}`;
+    }
+    if (!foundQrCode) {
+      return res.status(400).json({ error: 'Invalid QR Code' });
+    }
   }
 
-  if (participants[userId].visitedBooths.includes(boothId)) {
-    return res.status(400).json({ error: 'Participant has already visited this booth' });
-  }
-
-  participants[userId].participationPoints += booth.points;
-  participants[userId].visitedBooths.push(boothId);
+  participants[userId].participationPoints += pointsToAdd;
 
   res.json({
-    message: `Added ${booth.points} points to ${participants[userId].name}.`,
+    message: `Added ${pointsToAdd} points to ${participants[userId].name} for ${awardedFor}.`,
     updatedPoints: participants[userId].participationPoints,
   });
 };
