@@ -1,3 +1,5 @@
+import gamerPng from '../assets/gamer.png';
+
 export const sponsors = [
   {
     src: "https://coingate.com/app/uploads/2023/11/Logo_NordVPN_grey.png",
