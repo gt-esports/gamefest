@@ -1,63 +1,32 @@
 export const sponsors = [
-    {
-        src: 'A',
-        alt: 'A',
-        link: 'https://www.example.com'
-    },
-    {
-        src: 'B',
-        alt: 'B',
-        link: 'https://www.example.com'
-    },
-    {
-        src: 'C',
-        alt: 'C',
-        link: 'https://www.example.com'
-    },
-    {
-        src: 'D',
-        alt: 'D',
-        link: 'https://www.example.com'
-    },
-    {
-        src: 'E',
-        alt: 'E',
-        link: 'https://www.example.com'
-    },
-    {
-        src: 'F',
-        alt: 'F',
-    },
-    {
-        src: 'G',
-        alt: 'G',
-    },
-    {
-        src: 'H',
-        alt: 'H',
-    },
-    {
-        src: 'I',
-        alt: 'I',
-    },
-    {
-        src: 'J',
-        alt: 'J',
-    },
-    {
-        src: 'K',
-        alt: 'K',
-    },
-    {
-        src: 'L',
-        alt: 'L',
-    },
-    {
-        src: 'M',
-        alt: 'M',
-    },
-    {
-        src: 'N',
-        alt: 'N',
-    }
-]
+  {
+    src: "https://coingate.com/app/uploads/2023/11/Logo_NordVPN_grey.png",
+    alt: "A",
+    link: "htps://www.example.com",
+  },
+  {
+    src: "https://coingate.com/app/uploads/2023/11/Logo_Hostinger_grey.png",
+    alt: "B",
+    link: "https://www.example.com",
+  },
+  {
+    src: "https://coingate.com/app/uploads/2023/11/Logo_Cherry-servers_grey.png",
+    alt: "C",
+    link: "https://www.example.com",
+  },
+  {
+    src: "https://coingate.com/app/uploads/2024/07/Coinzilla_image-1.png",
+    alt: "D",
+    link: "https://www.example.com",
+  },
+  {
+    src: "https://coingate.com/app/uploads/2023/11/Logo_Surfshark_grey.png",
+    alt: "E",
+    link: "https://www.example.com",
+  },
+  {
+    src: "https://coingate.com/app/uploads/2023/11/Logo_Alternative-Airlines_grey.png",
+    alt: "E",
+    link: "https://www.example.com",
+  },
+];
