@@ -256,21 +256,21 @@ const Team = () => {
                   <div className="flex space-x-8 w-full">
                     
                     {/* Participating Games */}
-                    <div className="w-full max-h-[400px] bg-gradient-to-br from-[#101010]/20 to-[#472b2b]/80 rounded-lg flex flex-col text-white p-4">
+                    {/* <div className="w-full max-h-[400px] bg-gradient-to-br from-[#101010]/20 to-[#472b2b]/80 rounded-lg flex flex-col text-white p-4">
                       <span className="font-bayon text-2xl text-center">
                         Participating Games
                       </span>
                       <div className="w-full max-h-screen overflow-y-auto mt-4 p-4">
                         {tab.games.map((game, idx) => (
                           <div key={idx} className="items-center px-4 py-2 border rounded-lg mt-4 border-tech-gold/50 border-b-4 text-center">
-                            <span className="text-lg font-bold">{game}</span>
+                            <span className="text-lg font-bold">{tab.game}</span>
                           </div>
                         ))}
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* Participating Teams */}
-                    <div className="w-full max-h-[400px] bg-gradient-to-tl from-[#101010]/20 to-[#233a6d]/80 rounded-lg flex flex-col text-white p-4">
+                    {/* <div className="w-full max-h-[400px] bg-gradient-to-tl from-[#101010]/20 to-[#233a6d]/80 rounded-lg flex flex-col text-white p-4">
                       <span className="font-bayon text-2xl text-center">
                         Participating Teams
                       </span>
@@ -288,12 +288,12 @@ const Team = () => {
                           </div>
                         ))}
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 
                 {/* One card carousel format */}
-                <Swiper
+                {/* <Swiper
                     modules={[Pagination, Navigation]}
                     pagination={{ 
                       clickable: true,
@@ -334,7 +334,7 @@ const Team = () => {
                         </div>
                       </div>
                     </SwiperSlide>
-                  </Swiper>
+                  </Swiper> */}
               </div>
             )}
           </div>
