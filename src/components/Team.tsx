@@ -226,11 +226,8 @@ const Team = () => {
             </button>
             {openIndex === index && (
               <div className="mt-4 flex flex-col items-center">
-                <div className="hidden lg:flex justify-between space-x-8 w-full">
-                  
-                  <div>
-                    <img src={tft} className={`w-48 rounded-lg`} alt="" />
-                  </div>
+                <div className="hidden lg:flex justify-between items-start space-x-8 w-full">
+                  <img src={tft} className='w-48 rounded-lg object-contain' alt="" />
 
                   {/* Leaderboard */}
                   <div className="w-full max-h-screen overflow-y-auto">
