@@ -4,6 +4,7 @@ import tft from "../assets/game-covers/teamfight-tactics-cover.jpg";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { A11y, EffectCoverflow, Navigation, Pagination } from 'swiper/modules';
 import SearchBar from './SearchBar';
+import DropDownList from './DropDownList';
 
 const Team = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -65,21 +66,143 @@ const Team = () => {
     },
   ];
 
+  const leaderboard = [
+    {
+      game: " Counter Strike",
+      teams: [
+        {
+          name: "Team A",
+          points: 100,
+        },
+        {
+          name: "Team B",
+          points: 90,
+        },
+        {
+          name: "Team C",
+          points: 80,
+        },
+      ],
+    },
+    {
+      game: "League of Legends",
+      teams: [
+        {
+          name: "Team A",
+          points: 100,
+        },
+        {
+          name: "Team B",
+          points: 90,
+        },
+        {
+          name: "Team C",
+          points: 80,
+        },
+      ],
+    },
+    {
+      game: "Valorant",
+      teams: [
+        {
+          name: "Team A",
+          points: 100,
+        },
+        {
+          name: "Team B",
+          points: 90,
+        },
+        {
+          name: "Team C",
+          points: 80,
+        },
+      ],
+    },
+    {
+      game: "Dota 2",
+      teams: [
+        {
+          name: "Team A",
+          points: 100,
+        },
+        {
+          name: "Team B",
+          points: 90,
+        },
+        {
+          name: "Team C",
+          points: 80,
+        },
+      ],
+    },
+    {
+      game: "Fortnite",
+      teams: [
+        {
+          name: "Team A",
+          points: 100,
+        },
+        {
+          name: "Team B",
+          points: 90,
+        },
+        {
+          name: "Team C",
+          points: 80,
+        },
+      ],
+    },
+    {
+      game: "Overwatch",
+      teams: [
+        {
+          name: "Team A",
+          points: 100,
+        },
+        {
+          name: "Team B",
+          points: 90,
+        },
+        {
+          name: "Team C",
+          points: 80,
+        },
+      ],
+    },
+    {
+      game: "Brawl Stars",
+      teams: [
+        {
+          name: "Team A",
+          points: 100,
+        },
+        {
+          name: "Team B",
+          points: 90,
+        },
+        {
+          name: "Team C",
+          points: 80,
+        },
+      ],
+    },
+  ];
+
   const handleToggle = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
-  const handleSearch = (name: string) => {
-    const index = schoolTeam.findIndex((s) => s.school.toLowerCase() === name);
+  const handleSearch = (gameName: string) => {
+    const index = leaderboard.findIndex((l) => l.game.toLowerCase() === gameName);
     if (index !== -1) {
       setOpenIndex(index); // expand school tab when found
 
       setTimeout(() => { // timer delay to make scrollTo time to position correctly
-        const id = name.replace(/\s+/g, "-").toLowerCase();
-        const schoolElement = document.getElementById(id);
+        const id = gameName.replace(/\s+/g, "-").toLowerCase();
+        const leaderBoardElement = document.getElementById(id);
   
-        if (schoolElement) {
+        if (leaderBoardElement) {
           const y = -70;
-          const pos = schoolElement.getBoundingClientRect().top + window.scrollY;
+          const pos = leaderBoardElement.getBoundingClientRect().top + window.scrollY;
   
           window.scrollTo({
             top: pos + y,
@@ -92,9 +215,15 @@ const Team = () => {
 
   return (
     <div className="mx-auto p-8 px-20">
+      <div className="flex flex-row justify-between items-center">
       <SearchBar 
         onSearch={handleSearch}
       />
+      <DropDownList 
+        items={leaderboard.map((leaderboard) => leaderboard.game)}
+        onSelect={handleSearch}
+      />
+      </div>
       <div className="space-y-8">
         {schoolTeam.map((tab, index) => (
           <div
