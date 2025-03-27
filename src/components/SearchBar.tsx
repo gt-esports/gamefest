@@ -18,11 +18,11 @@ const SearchBar: React.FC<SearchProps> = ({ onSearch }) => {
   };
 
   return (
-    <div className="relative w-full max-w-[335px] mb-8">
+    <div className="relative hidden lg:block w-full max-w-[335px] mb-8">
       <input
       type="text"
       placeholder="Search..."
-      className="w-full p-3 border border-white rounded-lg bg-transparent font-bayon text-2xl"
+      className="p-3 border border-white rounded-lg bg-transparent font-bayon text-2xl w-full"
       value={search}
       onChange={(e) => setSearch(e.target.value)}
       onKeyDown={(e) => (e.key === "Enter" ? handleSearch(search) : null)}

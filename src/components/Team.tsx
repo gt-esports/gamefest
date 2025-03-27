@@ -194,18 +194,17 @@ const Team = () => {
   };
 
   return (
-    <div className="mx-auto p-8 px-20">
+    <div className="mx-auto p-8 px-10 lg:px-20">
       <div className="flex flex-row justify-between items-center">
         <SearchBar 
           onSearch={handleSearch}
         />
-        <div className="min-w-12"/>
         <DropDownList 
           items={leaderboard.map((leaderboard) => leaderboard.game)}
           onSelect={handleSearch}
         />
       </div>
-      <div className="space-y-8">
+      <div className="space-y-4">
         {leaderboard.map((tab, index) => (
           <div
             key={index}
@@ -218,7 +217,7 @@ const Team = () => {
               onClick={() => handleToggle(index)}
               className="w-full flex justify-between items-center text-left font-semibold text-white hover:text-tech-gold focus:outline-none"
             >
-              <span className="text-lg tracking-wider font-bayon">{tab.game}</span>
+              <span className="text-lg tracking-wider">{tab.game}</span>
               <FaChevronDown
                 className={`transition-transform duration-200 ${
                   openIndex === index ? 'transform rotate-180' : ''
