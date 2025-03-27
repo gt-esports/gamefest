@@ -225,10 +225,10 @@ const Team = () => {
       />
       </div>
       <div className="space-y-8">
-        {schoolTeam.map((tab, index) => (
+        {leaderboard.map((tab, index) => (
           <div
             key={index}
-            id={tab.school.replace(/\s+/g, "-").toLowerCase()}
+            id={tab.game.replace(/\s+/g, "-").toLowerCase()}
             className={`rounded-lg border border-white/20 p-4 bg-opacity-25 bg-gradient-to-br ${
               openIndex === index ? 'from-[#2e1d1d] to-[#101c3b]' : 'from-[#241717] to-[#101c3b]'
             } transition-all duration-200 ease-in-out`}
@@ -237,7 +237,7 @@ const Team = () => {
               onClick={() => handleToggle(index)}
               className="w-full flex justify-between items-center text-left font-semibold text-white hover:text-tech-gold focus:outline-none"
             >
-              <span className="text-lg tracking-wider">{tab.school}</span>
+              <span className="text-lg tracking-wider">{tab.game}</span>
               <FaChevronDown
                 className={`transition-transform duration-200 ${
                   openIndex === index ? 'transform rotate-180' : ''

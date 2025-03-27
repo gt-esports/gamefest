@@ -19,7 +19,11 @@ function DropDownList({ items, onSelect }) {
         onClick={() => setIsOpen(!isOpen)}
       >
         {selectedItem || 'Select an item'}
-        {isOpen ? <FaChevronUp/> : <FaChevronDown/>}
+        <FaChevronDown
+            className={`transition-transform duration-200 ${
+                isOpen ? 'transform rotate-180' : ''
+            }`}
+        />
       </button>
       {isOpen && (
         <ul className="absolute top-full left-0 mt-2 w-full z-50 bg-gradient-to-br from-[#233a6d]/80 to-[#472b2b]/80 border border-gray-500 rounded-lg shadow-lg max-h-[300px] overflow-auto">
