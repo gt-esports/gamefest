@@ -18,7 +18,7 @@ function DropDownList({ items, onSelect }) {
         className="w-full p-3 border border-white rounded-lg bg-transparent font-bayon text-2xl justify-between flex items-center"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {selectedItem || 'Select an item'}
+        {selectedItem || 'Select a game'}
         <FaChevronDown
             className={`transition-transform duration-200 ${
                 isOpen ? 'transform rotate-180' : ''
