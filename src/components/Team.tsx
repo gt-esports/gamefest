@@ -9,66 +9,10 @@ import DropDownList from './DropDownList';
 const Team = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const schoolTeam = [
-    {
-      school: "School A",
-      logo: tft,
-      games: ["Fortnite", "Marvel Rival", "Overwatch", "Brawl Stars", "Mineeeeeeeeeeeeeeeeecraft", "Minecraft", "Minecraft", "Minecraft"],
-      teams: ["Aaaaaaaaaaaaaaaaaaaaaa", "Bbbbbbb", "C", "D", "E"],
-    },
-    {
-      school: "School B",
-      logo: tft,
-      games: ["1", "2"],
-      teams: ["A", "B"],
-    },
-    {
-      school: "School C",
-      logo: tft,
-      games: ["1", "2", "3", "4"],
-      teams: ["A", "B", "C", "D"],
-    },
-    {
-      school: "School D",
-      logo: tft,
-      games: ["1", "2", "3", "4"],
-      teams: ["A", "B", "C", "D"],
-    },
-    {
-      school: "School E",
-      logo: tft,
-      games: ["1", "2", "3", "4"],
-      teams: ["A", "B", "C", "D"],
-    },
-    {
-      school: "School F",
-      logo: tft,
-      games: ["1", "2", "3", "4"],
-      teams: ["A", "B", "C", "D"],
-    },
-    {
-      school: "School G",
-      logo: tft,
-      games: ["1", "2", "3", "4"],
-      teams: ["A", "B", "C", "D"],
-    },
-    {
-      school: "School H",
-      logo: tft,
-      games: ["1", "2", "3", "4"],
-      teams: ["A", "B", "C", "D"],
-    },
-    {
-      school: "School I",
-      logo: tft,
-      games: ["1", "2", "3", "4"],
-      teams: ["A", "B", "C", "D"],
-    },
-  ];
-
   const leaderboard = [
     {
       game: " Counter Strike",
+      image: tft,
       teams: [
         {
           name: "Team A",
@@ -86,6 +30,7 @@ const Team = () => {
     },
     {
       game: "League of Legends",
+      image: tft,
       teams: [
         {
           name: "Team A",
@@ -103,6 +48,7 @@ const Team = () => {
     },
     {
       game: "Valorant",
+      image: tft,
       teams: [
         {
           name: "Team A",
@@ -120,6 +66,7 @@ const Team = () => {
     },
     {
       game: "Dota 2",
+      image: tft,
       teams: [
         {
           name: "Team A",
@@ -137,6 +84,7 @@ const Team = () => {
     },
     {
       game: "Fortnite",
+      image: tft,
       teams: [
         {
           name: "Team A",
@@ -154,6 +102,7 @@ const Team = () => {
     },
     {
       game: "Overwatch",
+      image: tft,
       teams: [
         {
           name: "Team A",
@@ -171,6 +120,7 @@ const Team = () => {
     },
     {
       game: "Brawl Stars",
+      image: tft,
       teams: [
         {
           name: "Team A",
@@ -184,6 +134,34 @@ const Team = () => {
           name: "Team C",
           points: 80,
         },
+        {
+          name: "Team D",
+          points: 70,
+        },
+        {
+          name: "Team E",
+          points: 60,
+        },
+        {
+          name: "Team F",
+          points: 50,
+        },
+        {
+          name: "Team G",
+          points: 40,
+        },
+        {
+          name: "Team H",
+          points: 30,
+        },
+        {
+          name: "Team I",
+          points: 20,
+        },
+        {
+          name: "Team J",
+          points: 10,
+        },
       ],
     },
   ];
@@ -192,12 +170,14 @@ const Team = () => {
     setOpenIndex(openIndex === index ? null : index);
   };
   const handleSearch = (gameName: string) => {
-    const index = leaderboard.findIndex((l) => l.game.toLowerCase() === gameName);
+    const trimmedGameName = gameName.trim().toLowerCase();
+    const index = leaderboard.findIndex((l) => l.game.trim().toLowerCase() === trimmedGameName);
+    
     if (index !== -1) {
-      setOpenIndex(index); // expand school tab when found
+      setOpenIndex(index); // expand game tab when found
 
       setTimeout(() => { // timer delay to make scrollTo time to position correctly
-        const id = gameName.replace(/\s+/g, "-").toLowerCase();
+        const id = leaderboard[index].game.trim().replace(/\s+/g, "-").toLowerCase();
         const leaderBoardElement = document.getElementById(id);
   
         if (leaderBoardElement) {
@@ -216,13 +196,14 @@ const Team = () => {
   return (
     <div className="mx-auto p-8 px-20">
       <div className="flex flex-row justify-between items-center">
-      <SearchBar 
-        onSearch={handleSearch}
-      />
-      <DropDownList 
-        items={leaderboard.map((leaderboard) => leaderboard.game)}
-        onSelect={handleSearch}
-      />
+        <SearchBar 
+          onSearch={handleSearch}
+        />
+        <div className="min-w-12"/>
+        <DropDownList 
+          items={leaderboard.map((leaderboard) => leaderboard.game)}
+          onSelect={handleSearch}
+        />
       </div>
       <div className="space-y-8">
         {leaderboard.map((tab, index) => (
@@ -237,7 +218,7 @@ const Team = () => {
               onClick={() => handleToggle(index)}
               className="w-full flex justify-between items-center text-left font-semibold text-white hover:text-tech-gold focus:outline-none"
             >
-              <span className="text-lg tracking-wider">{tab.game}</span>
+              <span className="text-lg tracking-wider font-bayon">{tab.game}</span>
               <FaChevronDown
                 className={`transition-transform duration-200 ${
                   openIndex === index ? 'transform rotate-180' : ''
@@ -249,92 +230,45 @@ const Team = () => {
                 <div className="hidden lg:flex justify-between space-x-8 w-full">
                   
                   <div>
-                    {/* School Logo here*/}
                     <img src={tft} className={`w-48 rounded-lg`} alt="" />
                   </div>
 
-                  <div className="flex space-x-8 w-full">
-                    
-                    {/* Participating Games */}
-                    {/* <div className="w-full max-h-[400px] bg-gradient-to-br from-[#101010]/20 to-[#472b2b]/80 rounded-lg flex flex-col text-white p-4">
-                      <span className="font-bayon text-2xl text-center">
-                        Participating Games
-                      </span>
-                      <div className="w-full max-h-screen overflow-y-auto mt-4 p-4">
-                        {tab.games.map((game, idx) => (
-                          <div key={idx} className="items-center px-4 py-2 border rounded-lg mt-4 border-tech-gold/50 border-b-4 text-center">
-                            <span className="text-lg font-bold">{tab.game}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div> */}
-
-                    {/* Participating Teams */}
-                    {/* <div className="w-full max-h-[400px] bg-gradient-to-tl from-[#101010]/20 to-[#233a6d]/80 rounded-lg flex flex-col text-white p-4">
-                      <span className="font-bayon text-2xl text-center">
-                        Participating Teams
-                      </span>
-                      <div className="w-full max-h-[400px] overflow-y-auto mt-4 p-4">
-                        {tab.teams.map((team, idx) => (
-                          <div key={idx} className="flex items-center px-4 py-2 border rounded-lg mt-4 border-tech-gold/50 border-b-4 truncate">
-                            <span className="font-bold text-lg w-full">{team}</span>
-                            <a href="/matches">
-                              <button className="relative font-bayon bg-gradient-to-br from-tech-gold to-tech-gold/30 text-gray-200 
-                                                text-sm px-2 py-1 rounded-md hover:from-tech-gold/40 ml-2">
-                                View Team
-                              </button>
-                            </a>
-
-                          </div>
-                        ))}
-                      </div>
-                    </div> */}
+                  {/* Leaderboard */}
+                  <div className="w-full max-h-screen overflow-y-auto">
+                      {tab.teams.map((team, idx) => (
+                        <div key={idx} className="flex items-start justify-between px-4 py-2 border rounded-lg mb-2 border-tech-gold/50 border-b-4 text-center">
+                        <span className="text-lg font-bold">{team.name}</span>
+                        <span className="text-lg">{team.points}</span>
+                        </div>
+                      ))}
                   </div>
                 </div>
 
                 {/* One card carousel format */}
-                {/* <Swiper
-                    modules={[Pagination, Navigation]}
+                <Swiper
+                    modules={[Pagination]}
                     pagination={{ 
                       clickable: true,
                       type: "bullets",
                     }}
-                    navigation
                     spaceBetween={50}
                     slidesPerView={1}
-                    loop={true}
                     className="w-full max-w-[400px] h-screen max-h-[400px] flex flex-col lg:hidden justify-center items-center py-6"
                   >
                     <SwiperSlide className="flex justify-center items-center transition-transform duration-1000 ease-in-out">
-                      <img src={tab.logo} alt={tab.school} className="w-auto h-auto max-w-[400px] max-h-[300px] rounded-lg" />
+                      <img src={tab.image} alt="Leaderboard" className="w-auto h-auto max-w-[400px] max-h-[300px] rounded-lg" />
                     </SwiperSlide>
                     <SwiperSlide className='transition-transform duration-1000 ease-in-out'>
-                    <div className="w-full h-full text-center bg-gradient-to-br from-[#101010]/80 to-[#472b2b]/80 rounded-lg flex flex-col px-14 py-4">
-                      <span className="mt-4 text-2xl font-bayon text-gray-200">Participating Games</span>
-                      <div className="w-full h-screen overflow-y-auto mt-4 p-4">
-                        {tab.games.map((game, idx) => (
-                          <div key={idx} className="flex flex-wrap overflow-hidden text-center items-center justify-center py-2 
-                          border border-tech-gold/50 border-b-4 rounded-lg mt-4 p-4">{game}</div>
-                        ))}
-                      </div>
-                    </div>
-
-                    </SwiperSlide>
-                    <SwiperSlide className='transition-transform duration-1000 ease-in-out'>
-                      <div className="w-full h-full text-center bg-gradient-to-br from-[#233a6d] to-[#101010] 
-                      rounded-lg flex flex-col px-14 py-4">
-                        <span className="mt-4 text-2xl font-bayon text-gray-200">Participating Teams</span>
-                        <div className="w-full h-screen overflow-y-auto overflow-x-hidden mt-4 p-4">
+                      <div className="w-full max-h-screen overflow-y-auto">
                         {tab.teams.map((team, idx) => (
-                          <a href={`/matches`} key={idx}>
-                            <div className="flex flex-wrap overflow-hidden text-center items-center justify-center py-2
-                             border border-tech-gold/50 border-b-4 rounded-lg mt-4 p-4 hover:border-tech-gold">{team}</div>
-                          </a>
+                          <div key={idx} className="flex items-start justify-between px-4 py-2 border rounded-lg mb-4 border-tech-gold/50 border-b-4 text-center">
+                          <span className="text-lg font-bold">{team.name}</span>
+                          <span className="text-lg">{team.points}</span>
+                          </div>
                         ))}
-                        </div>
                       </div>
                     </SwiperSlide>
-                  </Swiper> */}
+                  </Swiper>
               </div>
             )}
           </div>
