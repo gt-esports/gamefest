@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { FaChevronDown, FaChevronUp} from 'react-icons/fa';
 
 
-function DropDownList({ items, onSelect }) {
+function DropDownList({ items, onSelect }: { items: string[], onSelect: (item: string) => void }) {
   const [selectedItem, setSelectedItem] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleSelect = (item) => {
+  const handleSelect = (item: any) => {
     setSelectedItem(item);
     onSelect(item);
     setIsOpen(false);
