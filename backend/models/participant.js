@@ -3,7 +3,8 @@ class Participant {
       this.userId = userId;
       this.name = name;
       this.participationPoints = participationPoints;
-      this.visitedBooths = visitedBooths;
+      this.teams = {};
+      this.scannedQRCodes = new Set(); // To track scanned QR codes
     }
   }
   

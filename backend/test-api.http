@@ -1,0 +1,30 @@
+### Get Participant Info
+GET http://localhost:3000/participant/user123
+Content-Type: application/json
+
+###
+
+### Add Points with QR Code
+POST http://localhost:3000/participant/add/user123
+Content-Type: application/json
+
+{
+  "qrCode": "special_qr_456"
+}
+
+###
+
+### Get All Participants (Admin Only)
+GET http://localhost:3000/admin/participants
+admin-id: admin123
+
+###
+
+### Modify Points (Admin Only)
+POST http://localhost:3000/admin/modify/user123
+Content-Type: application/json
+admin-id: admin123
+
+{
+  "points": -100
+}
