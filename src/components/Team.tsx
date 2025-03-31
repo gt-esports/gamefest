@@ -1,168 +1,41 @@
-import { useRef, useState } from 'react';
-import { FaChevronDown, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import tft from "../assets/game-covers/teamfight-tactics-cover.jpg";
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { A11y, EffectCoverflow, Navigation, Pagination } from 'swiper/modules';
+import { useState } from 'react';
+import { FaChevronDown } from 'react-icons/fa';
 import SearchBar from './SearchBar';
 import DropDownList from './DropDownList';
 
 const Team = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const leaderboard = [
+  const teams = [
     {
-      game: " Counter Strike",
-      image: tft,
-      teams: [
-        {
-          name: "Team A",
-          points: 100,
-        },
-        {
-          name: "Team B",
-          points: 90,
-        },
-        {
-          name: "Team C",
-          points: 80,
-        },
-      ],
+      name: "Team A",
+      players: ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5'],
+      points: 100,
     },
     {
-      game: "League of Legends",
-      image: tft,
-      teams: [
-        {
-          name: "Team A",
-          points: 100,
-        },
-        {
-          name: "Team B",
-          points: 90,
-        },
-        {
-          name: "Team C",
-          points: 80,
-        },
-      ],
+      name: "Team B",
+      players: ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5'],
+      points: 90,
     },
     {
-      game: "Valorant",
-      image: tft,
-      teams: [
-        {
-          name: "Team A",
-          points: 100,
-        },
-        {
-          name: "Team B",
-          points: 90,
-        },
-        {
-          name: "Team C",
-          points: 80,
-        },
-      ],
+      name: "Team C",
+      players: ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5'],
+      points: 80,
     },
     {
-      game: "Dota 2",
-      image: tft,
-      teams: [
-        {
-          name: "Team A",
-          points: 100,
-        },
-        {
-          name: "Team B",
-          points: 90,
-        },
-        {
-          name: "Team C",
-          points: 80,
-        },
-      ],
+      name: "Team D",
+      players: ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5'],
+      points: 70,
     },
     {
-      game: "Fortnite",
-      image: tft,
-      teams: [
-        {
-          name: "Team A",
-          points: 100,
-        },
-        {
-          name: "Team B",
-          points: 90,
-        },
-        {
-          name: "Team C",
-          points: 80,
-        },
-      ],
+      name: "Team E",
+      players: ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5'],
+      points: 60,
     },
     {
-      game: "Overwatch",
-      image: tft,
-      teams: [
-        {
-          name: "Team A",
-          points: 100,
-        },
-        {
-          name: "Team B",
-          points: 90,
-        },
-        {
-          name: "Team C",
-          points: 80,
-        },
-      ],
-    },
-    {
-      game: "Brawl Stars",
-      image: tft,
-      teams: [
-        {
-          name: "Team A",
-          points: 100,
-        },
-        {
-          name: "Team B",
-          points: 90,
-        },
-        {
-          name: "Team C",
-          points: 80,
-        },
-        {
-          name: "Team D",
-          points: 70,
-        },
-        {
-          name: "Team E",
-          points: 60,
-        },
-        {
-          name: "Team F",
-          points: 50,
-        },
-        {
-          name: "Team G",
-          points: 40,
-        },
-        {
-          name: "Team H",
-          points: 30,
-        },
-        {
-          name: "Team I",
-          points: 20,
-        },
-        {
-          name: "Team J",
-          points: 10,
-        },
-      ],
+      name: "Team F",
+      players: ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5'],
+      points: 50,
     },
   ];
 
@@ -171,18 +44,18 @@ const Team = () => {
   };
   const handleSearch = (gameName: string) => {
     const trimmedGameName = gameName.trim().toLowerCase();
-    const index = leaderboard.findIndex((l) => l.game.trim().toLowerCase() === trimmedGameName);
+    const index = teams.findIndex((t) => t.name.trim().toLowerCase() === trimmedGameName);
     
     if (index !== -1) {
       setOpenIndex(index); // expand game tab when found
 
       setTimeout(() => { // timer delay to make scrollTo time to position correctly
-        const id = leaderboard[index].game.trim().replace(/\s+/g, "-").toLowerCase();
-        const leaderBoardElement = document.getElementById(id);
+        const id = teams[index].name.trim().replace(/\s+/g, "-").toLowerCase();
+        const teamsElement = document.getElementById(id);
   
-        if (leaderBoardElement) {
+        if (teamsElement) {
           const y = -70;
-          const pos = leaderBoardElement.getBoundingClientRect().top + window.scrollY;
+          const pos = teamsElement.getBoundingClientRect().top + window.scrollY;
   
           window.scrollTo({
             top: pos + y,
@@ -198,17 +71,18 @@ const Team = () => {
       <div className="flex flex-row justify-between items-center">
         <SearchBar 
           onSearch={handleSearch}
+          items={teams.map((teams) => teams.name)}
         />
         <DropDownList 
-          items={leaderboard.map((leaderboard) => leaderboard.game)}
+          items={teams.map((teams) => teams.name)}
           onSelect={handleSearch}
         />
       </div>
       <div className="space-y-4">
-        {leaderboard.map((tab, index) => (
+        {teams.map((tab, index) => (
           <div
             key={index}
-            id={tab.game.replace(/\s+/g, "-").toLowerCase()}
+            id={tab.name.replace(/\s+/g, "-").toLowerCase()}
             className={`rounded-lg border border-white/20 p-4 bg-opacity-25 bg-gradient-to-br ${
               openIndex === index ? 'from-[#2e1d1d] to-[#101c3b]' : 'from-[#241717] to-[#101c3b]'
             } transition-all duration-200 ease-in-out`}
@@ -217,7 +91,7 @@ const Team = () => {
               onClick={() => handleToggle(index)}
               className="w-full flex justify-between items-center text-left font-semibold text-white hover:text-tech-gold focus:outline-none"
             >
-              <span className="text-lg tracking-wider">{tab.game}</span>
+              <span className="text-lg tracking-wider">{tab.name}</span>
               <FaChevronDown
                 className={`transition-transform duration-200 ${
                   openIndex === index ? 'transform rotate-180' : ''
@@ -227,44 +101,30 @@ const Team = () => {
             {openIndex === index && (
               <div className="mt-4 flex flex-col items-center">
                 <div className="hidden lg:flex justify-between items-start space-x-8 w-full">
-                  <img src={tft} className='w-48 rounded-lg object-contain' alt="" />
+                  <div className="flex flex-col">
+                    <h1 className='font-bayon text-9xl'>{tab.points}</h1>
+                    <span className='font-quicksand text-xl'>points</span>
+                  </div>
 
-                  {/* Leaderboard */}
+                  {/* Player Roster */}
                   <div className="w-full max-h-screen overflow-y-auto">
-                      {tab.teams.map((team, idx) => (
-                        <div key={idx} className="flex items-start justify-between px-4 py-2 border rounded-lg mb-2 border-tech-gold/50 border-b-4 text-center">
-                        <span className="text-lg font-bold">{team.name}</span>
-                        <span className="text-lg">{team.points}</span>
+                      {tab.players.map((player, idx) => (
+                        <div key={idx} className="flex items-start justify-between px-4 py-2 border rounded-lg mb-2 border-tech-gold/50 hover:border-tech-gold border-b-4 text-center">
+                        <span className="text-lg font-bold">{player}</span>
                         </div>
                       ))}
                   </div>
                 </div>
 
                 {/* One card carousel format */}
-                <Swiper
-                    modules={[Pagination]}
-                    pagination={{ 
-                      clickable: true,
-                      type: "bullets",
-                    }}
-                    spaceBetween={50}
-                    slidesPerView={1}
-                    className="w-full max-w-[400px] h-screen max-h-[400px] flex flex-col lg:hidden justify-center items-center py-6"
-                  >
-                    <SwiperSlide className="flex justify-center items-center transition-transform duration-1000 ease-in-out">
-                      <img src={tab.image} alt="Leaderboard" className="w-auto h-auto max-w-[400px] max-h-[300px] rounded-lg" />
-                    </SwiperSlide>
-                    <SwiperSlide className='transition-transform duration-1000 ease-in-out'>
-                      <div className="w-full max-h-screen overflow-y-auto">
-                        {tab.teams.map((team, idx) => (
-                          <div key={idx} className="flex items-start justify-between px-4 py-2 border rounded-lg mb-4 border-tech-gold/50 border-b-4 text-center">
-                          <span className="text-lg font-bold">{team.name}</span>
-                          <span className="text-lg">{team.points}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </SwiperSlide>
-                  </Swiper>
+                <div className="lg:hidden flex flex-col overflow-y-auto w-full px-1">
+                  <h1 className='font-bayon text-9xl'>{tab.points}<span className='font-quicksand text-lg'>pts</span></h1>
+                  {tab.players.map((player, idx) => (
+                    <div key={idx} className="flex items-start justify-between px-4 py-2 border rounded-lg mb-2 border-tech-gold/50 hover:border-tech-gold border-b-4 text-center">
+                    <span className="text-lg font-bold">{player}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

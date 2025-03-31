@@ -7,6 +7,8 @@ import Home from "./pages/Home";
 import Brackets from "./pages/Brackets.tsx";
 import Matches from "./pages/Matches.tsx";
 import Teams from "./pages/Teams.tsx";
+import Schools from "./pages/Schools.tsx";
+import Leaderboard from "./pages/Leaderboard.tsx";
 import Sponsor from "./pages/Sponsor.tsx";
 import About from "./pages/About.tsx";
 import UserProfilePage from "./pages/UserProfilePage.tsx";
@@ -44,7 +46,9 @@ function App() {
             <Route path="/brackets" element={<Brackets />} />
             <Route path="/matches" element={<Matches />} />
             <Route path="/teams" element={<Teams />} />
+            <Route path="/schools" element={<Schools />} />
             <Route path="/sponsor" element={<Sponsor />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="*" element={<Navigate to="/home" />} />
             <Route path="/profile" element={<UserProfilePage />} />
           </Routes>

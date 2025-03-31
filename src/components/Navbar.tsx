@@ -57,8 +57,11 @@ function Navbar() {
     { name: "BRACKETS", link: "/brackets" },
     { name: "MATCHES", link: "/matches" },
     { name: "TEAMS", link: "/teams" },
+    { name: "SCHOOLS", link: "/schools" },
+    { name: "LEADERBOARD", link: "/leaderboard" },
     { name: "SPONSORS", link: "/sponsor" },
     { name: "ABOUT", link: "/about" },
+    
   ];
 
   return (
