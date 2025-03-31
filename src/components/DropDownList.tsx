@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaChevronDown, FaChevronUp} from 'react-icons/fa';
+import { FaChevronDown } from 'react-icons/fa';
 
 
 function DropDownList({ items, onSelect }: { items: string[], onSelect: (item: string) => void }) {
@@ -18,7 +18,7 @@ function DropDownList({ items, onSelect }: { items: string[], onSelect: (item: s
         className="w-full p-3 border border-white rounded-lg bg-transparent font-bayon text-2xl justify-between flex items-center"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {selectedItem || 'Select a game'}
+        {selectedItem || 'Select a team'}
         <FaChevronDown
             className={`transition-transform duration-200 ${
                 isOpen ? 'transform rotate-180' : ''
