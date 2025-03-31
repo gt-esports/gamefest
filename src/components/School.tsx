@@ -91,12 +91,12 @@ const School = () => {
   };
 
   return (
-    <div className="mx-auto p-8 px-20">
+    <div className="mx-auto p-8 px-10 lg:px-20">
       <SearchBar 
         onSearch={handleSearch}
         items={schoolTeam.map((team) => team.school)}
       />
-      <div className="space-y-8">
+      <div className="space-y-4">
         {schoolTeam.map((tab, index) => (
           <div
             key={index}
