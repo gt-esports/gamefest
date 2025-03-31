@@ -36,6 +36,7 @@ const SearchBar: React.FC<SearchProps> = ({ onSearch, items, placeholder = "Sear
               className="p-2 text-white text-left font-bayon text-2xl hover:bg-gray-700 cursor-pointer"
               onClick={() => handleSearch(item)}
             >
+              {item}
             </li>
           ))}
         </ul>
