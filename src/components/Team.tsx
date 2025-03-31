@@ -68,7 +68,7 @@ const Team = () => {
 
   return (
     <div className="mx-auto p-8 px-10 lg:px-20">
-      <div className="flex flex-row justify-between items-center">
+      <div className="flex flex-col justify-between items-center">
         <SearchBar 
           onSearch={handleSearch}
           items={teams.map((teams) => teams.name)}

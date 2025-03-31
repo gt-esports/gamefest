@@ -19,7 +19,7 @@ const SearchBar: React.FC<SearchProps> = ({ onSearch, items, placeholder = "Sear
   };
 
   return (
-    <div className="relative hidden lg:block w-full max-w-[335px] mb-8">
+    <div className="relative w-full max-w-[335px] mb-8">
       <input
         type="text"
         placeholder={placeholder}
