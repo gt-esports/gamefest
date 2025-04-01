@@ -10,14 +10,20 @@ interface Participant {
 const AdminPanel: React.FC = () => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
-  const [points, setPoints] = useState<number>(0);
+  const [points, setPoints] = useState<string>('');
   const [suggestions, setSuggestions] = useState<Participant[]>([]);
   const [value, setValue] = useState<string>('');
   const adminId = 'admin123'; // Ideally, this comes from your authentication mechanism
 
   // Fetch participants on component mount.
   useEffect(() => {
-    fetch('http://localhost:3000/participants')
+    fetch('http://localhost:3000/admin/participants', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'admin-id': adminId, // This header is used by your Express middleware to verify admin access
+      },
+    })
       .then(response => response.json())
       .then((data: Participant[]) => setParticipants(data))
       .catch(error => console.error('Error fetching participants:', error));
@@ -25,7 +31,7 @@ const AdminPanel: React.FC = () => {
 
   // Function to update points (positive to add, negative to remove)
   const updatePoints = (userId: string, points: number) => {
-    fetch(`http://localhost:3000/participants/admin/${userId}/points`, {
+    fetch(`http://localhost:3000/admin/modify/${userId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -46,21 +52,22 @@ const AdminPanel: React.FC = () => {
         );
       })
       .catch(error => console.error('Error updating points:', error));
+      console.log(`Updated points for ${userId}: ${points}`);
   };
 
   // Handler for form submission
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedUserId) return;
-    updatePoints(selectedUserId, points);
+    updatePoints(selectedUserId, Number(points));
     setSelectedUserId('');
-    setPoints(0);
+    setPoints('');
     setValue('');
   };
 
   // Handlers for input changes
   const handlePointsChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setPoints(Number(e.target.value));
+    setPoints(e.target.value);
   };
 
   // Autosuggest handlers

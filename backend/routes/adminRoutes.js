@@ -7,7 +7,7 @@ const router = express.Router();
 router.use(isAdmin); // Apply admin middleware
 
 router.get('/participants', getAllParticipants);
-router.post('/modify/:userId', modifyPoints);
+router.put('/modify/:userId', modifyPoints);
 router.post('/set-admin', setAdmin);
 router.delete('/remove-admin/:adminId', (req, res) => {
   const { adminId } = req.params;
