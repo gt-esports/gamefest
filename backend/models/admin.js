@@ -1,6 +1,8 @@
 export default class Admin {
-    constructor(adminId) {
+    constructor(adminId, name = '', booth = '') {
       this.adminId = adminId;
+      this.name = name;
+      this.booth = booth;
     }
   }
   

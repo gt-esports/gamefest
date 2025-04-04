@@ -13,6 +13,7 @@ export const getAllParticipants = (req, res) => {
 
 export const modifyPoints = (req, res) => {
   const { userId } = req.params;
+  const adminId = req.headers['admin-id'];
   const { points } = req.body;
 
   const user = participants[userId];
@@ -20,7 +21,14 @@ export const modifyPoints = (req, res) => {
 
   if (typeof points !== 'number') return res.status(400).json({ error: 'Invalid points value.' });
 
+  const admin = admins.find(a => a.adminId === adminId);
+  if (!admin) return res.status(403).json({ error: 'Admin access only.' });
+
   user.participationPoints += points;
+
+  // Log the update
+  const logMessage = `${admin.name}[${admin.booth}] added ${points} points to ${user.name}`;
+  console.log(logMessage);
   res.json({ message: `Points updated`, updatedPoints: user.participationPoints });
 };
 
