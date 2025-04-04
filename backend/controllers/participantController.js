@@ -1,5 +1,5 @@
 import participants from '../store/participants.js';
-import QRCode from '../models/qrcode.js';
+// import QRCode from '../models/qrcode.js';
 
 const gamePoints = {
   'Minecraft': { 'Ender Dragon Kill': 100, 'Participation': 20 },
@@ -20,42 +20,42 @@ const gamePoints = {
 };
 
 // For production we need real database
-const qrCodeDatabase = [
-  new QRCode('unique_qr_123', 'Minecraft', 'Participation'),
-  new QRCode('special_qr_456', 'Apex Legends', 'Winning Team'),
-  new QRCode('another_qr_789', 'Group Round Robin', 'Second Place Group'),
-];
+// const qrCodeDatabase = [
+//   new QRCode('unique_qr_123', 'Minecraft', 'Participation'),
+//   new QRCode('special_qr_456', 'Apex Legends', 'Winning Team'),
+//   new QRCode('another_qr_789', 'Group Round Robin', 'Second Place Group'),
+// ];
 
-export const addPoints = (req, res) => {
-  const userId = req.params.userId;
-  const { qrCode } = req.body;
+// export const addPoints = (req, res) => {
+//   const userId = req.params.userId;
+//   const { qrCode } = req.body;
 
-  const user = participants[userId];
-  if (!user) return res.status(404).json({ error: 'Participant not found' });
+//   const user = participants[userId];
+//   if (!user) return res.status(404).json({ error: 'Participant not found' });
 
-  const foundQr = qrCodeDatabase.find(qr => qr.code === qrCode);
-  if (!foundQr) return res.status(400).json({ error: 'Invalid QR Code' });
+//   const foundQr = qrCodeDatabase.find(qr => qr.code === qrCode);
+//   if (!foundQr) return res.status(400).json({ error: 'Invalid QR Code' });
 
-   // Check for duplicate scan
-   if (user.scannedQRCodes.has(qrCode)) {
-    return res.status(400).json({ error: 'QR Code already scanned by this user' });
-  }
+//    // Check for duplicate scan
+//    if (user.scannedQRCodes.has(qrCode)) {
+//     return res.status(400).json({ error: 'QR Code already scanned by this user' });
+//   }
 
-  const { game, achievement } = foundQr;
-  const pointsToAdd = gamePoints[game]?.[achievement];
+//   const { game, achievement } = foundQr;
+//   const pointsToAdd = gamePoints[game]?.[achievement];
 
-  if (pointsToAdd === undefined) {
-    return res.status(400).json({ error: 'Invalid achievement' });
-  }
+//   if (pointsToAdd === undefined) {
+//     return res.status(400).json({ error: 'Invalid achievement' });
+//   }
 
-  user.participationPoints += pointsToAdd;
-  user.scannedQRCodes.add(qrCode); // Mark as scanned
+//   user.participationPoints += pointsToAdd;
+//   user.scannedQRCodes.add(qrCode); // Mark as scanned
 
-  res.json({
-    message: `Added ${pointsToAdd} points to ${user.name} for ${game}: ${achievement}`,
-    updatedPoints: user.participationPoints,
-  });
-};
+//   res.json({
+//     message: `Added ${pointsToAdd} points to ${user.name} for ${game}: ${achievement}`,
+//     updatedPoints: user.participationPoints,
+//   });
+// };
 
 export const getParticipantPoints = (req, res) => {
   const userId = req.params.userId;

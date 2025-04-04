@@ -4,7 +4,7 @@ class Participant {
       this.name = name;
       this.participationPoints = participationPoints;
       this.teams = {};
-      this.scannedQRCodes = new Set(); // To track scanned QR codes
+      // this.scannedQRCodes = new Set(); // To track scanned QR codes
     }
   }
   

@@ -58,12 +58,31 @@ const AdminPanel: React.FC = () => {
   // Handler for form submission
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!selectedUserId) return;
-    updatePoints(selectedUserId, Number(points));
-    setSelectedUserId('');
-    setPoints('');
+  
+    const names = value
+      .split(',')
+      .map(n => n.trim().toLowerCase())
+      .filter(n => n.length > 0);
+  
+    if (names.length === 0 || !points) return;
+  
+    const matched = participants.filter(p =>
+      names.includes(p.name.toLowerCase())
+    );
+  
+    if (matched.length === 0) {
+      console.error('No matching participants found.');
+      return;
+    }
+  
+    matched.forEach(participant => {
+      updatePoints(participant.userId, Number(points));
+    });
+  
     setValue('');
+    setPoints('');
   };
+  
 
   // Handlers for input changes
   const handlePointsChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -79,16 +98,13 @@ const AdminPanel: React.FC = () => {
     setSuggestions([]);
   };
 
-  const getSuggestions = (value: string) => {
-    const inputValue = value.trim().toLowerCase();
-    const inputLength = inputValue.length;
-
-    return inputLength === 0
-      ? []
-      : participants.filter(
-          participant =>
-            participant.name.toLowerCase().slice(0, inputLength) === inputValue
-        );
+  const getSuggestions = (input: string) => {
+    const lastWord = input.split(',').pop()?.trim().toLowerCase() || '';
+    if (lastWord.length === 0) return [];
+  
+    return participants.filter(p =>
+      p.name.toLowerCase().startsWith(lastWord)
+    );
   };
 
   const getSuggestionValue = (suggestion: Participant) => suggestion.name;
@@ -99,12 +115,18 @@ const AdminPanel: React.FC = () => {
     </div>
   );
 
-  const onChange = (event: FormEvent<HTMLElement>, { newValue }: { newValue: string }) => {
+  const onChange = (_event: FormEvent<HTMLElement>, { newValue }: { newValue: string }) => {
     setValue(newValue);
   };
 
-  const onSuggestionSelected = (event: React.FormEvent<any>, { suggestion }: { suggestion: Participant }) => {
-    setSelectedUserId(suggestion.userId);
+  const onSuggestionSelected = (
+    _event: React.FormEvent<any>,
+    { suggestion }: { suggestion: Participant }
+  ) => {
+    const parts = value.split(',');
+    parts[parts.length - 1] = suggestion.name; // Replace the last part
+    const newValue = parts.join(', ').replace(/\s+,/g, ','); // Clean up space/comma formatting
+    setValue(newValue);
   };
 
   const inputProps = {
