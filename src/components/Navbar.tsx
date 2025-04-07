@@ -1,17 +1,16 @@
 import { useEffect, useState, useRef } from "react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { TfiClose } from "react-icons/tfi";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 
 import Logo from "../assets/gt-esports-logo1.png";
-import { SignedOut, SignInButton, SignedIn, UserButton, UserProfile } from "@clerk/clerk-react";
+import { SignedOut, SignInButton, SignedIn, UserButton } from "@clerk/clerk-react";
 
 function Navbar() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const menuRef = useRef<HTMLUListElement | null>(null);;
-  const navigate = useNavigate();
 
   useEffect(() => {
     const handleResize = () => {
@@ -109,7 +108,9 @@ function Navbar() {
           </SignedOut>
 
           <SignedIn>
-            <UserButton />
+            <div className="mt-2">
+                <UserButton userProfileMode="navigation" userProfileUrl="/profile"/>
+            </div>
           </SignedIn>
         </li>
         {links.map((link, index) => (
