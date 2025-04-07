@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { UserProfile, useUser } from "@clerk/clerk-react";
-import { FaCalendar, FaCamera, FaTicketAlt } from "react-icons/fa";
+import { useOrganization, UserProfile } from "@clerk/clerk-react";
+import { FaCalendar, FaTicketAlt, FaUserLock } from "react-icons/fa";
 import { QRCodeCanvas } from "qrcode.react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import Footer from "../components/Footer";
+import AdminPanel from "./AdminPanel";
 
 const DotIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" width="16" height="16">
@@ -12,7 +13,7 @@ const DotIcon = () => (
 );
 
 const UserProfilePage = () => {
-  const { user } = useUser();
+  const { organization } = useOrganization();
   const [booth, setBooth] = useState<string[]>([]);
   const [message, setMessage] = useState<string>("");
   const name = ["A", "B", "C", "D", "E"];
@@ -31,7 +32,7 @@ const UserProfilePage = () => {
   };
 
   // check staff role
-  const userRoles = user?.publicMetadata?.roles;
+  const userRoles = organization?.publicMetadata?.roles;
   const isStaff = Array.isArray(userRoles) ? userRoles.includes("staff") : userRoles === "staff";
 
   return (
@@ -64,11 +65,11 @@ const UserProfilePage = () => {
             </div>
           </UserProfile.Page>
 
-          {/* QR Scanner Tab */}
-          <UserProfile.Page label="QR Scanner" url="scanner" labelIcon={<FaCamera />}>
+          {/* Admin Tab */}
+          <UserProfile.Page label="Admin" url="admin" labelIcon={<FaUserLock />}>
             {isStaff ? (
               <div>
-                <h1>QR Scan</h1>
+                {/* <h1>QR Scan</h1>
                 <hr className="mb-4"/>
                 <div className="flex flex-col my-2 gap-2 font-bold">
                   <p>Click 'Request Camera Permissions' to scan.</p>
@@ -80,7 +81,8 @@ const UserProfilePage = () => {
                   <p className={`mt-4 ${message.includes("try again") ? "text-red-500" : "text-green-500"}`}>
                     {message}
                   </p>
-                )}
+                )} */}
+                <AdminPanel />
               </div>
             ) : (
               <div className="p-4 bg-yellow-100 rounded-md">
@@ -92,7 +94,7 @@ const UserProfilePage = () => {
 
           {/* QR Codes Tab */}
           <UserProfile.Page label="QR Code" url="code" labelIcon={<FaTicketAlt />}>
-            {isStaff ? (
+            {(
               <div className="mt-10 text-center">
                 <h1 className="mb-4 text-black">Scan QR Code</h1>
                 <hr className="mb-4" />
@@ -105,11 +107,11 @@ const UserProfilePage = () => {
                   ))}
                 </div>
               </div>
-            ) : (
-              <div className="p-4 bg-yellow-100 rounded-md">
-                <h2 className="flex justify-center text-lg font-bold text-black">Staff Access Required</h2>
-                <p className="flex text-black justify-center">You need staff permissions to use this.</p>
-              </div>
+            // ) : (
+            //   <div className="p-4 bg-yellow-100 rounded-md">
+            //     <h2 className="flex justify-center text-lg font-bold text-black">Staff Access Required</h2>
+            //     <p className="flex text-black justify-center">You need staff permissions to use this.</p>
+            //   </div>
             )}
           </UserProfile.Page>
         </UserProfile>
@@ -119,30 +121,30 @@ const UserProfilePage = () => {
   );
 };
 
-const QRScanner = ({ scan, setMessage }: { scan: (data: string) => void, setMessage: (msg: string) => void }) => {
-  useEffect(() => {
-    const scanner = new Html5QrcodeScanner("reader", { fps: 1, qrbox: 250 }, false);
-    scanner.render(
-      (e: string) => {
-        if (e) {
-          scan(e);
-          setMessage(`Scanned: ${e}`);
-        } else {
-          setMessage('Please try again.');
-        }
-      },
-      () => {
-        setTimeout(() => {
-          setMessage('');
-        }, 5000);
-      }
-    );
-    return () => {
-      scanner.clear();
-    };
-  }, []);
+// const QRScanner = ({ scan, setMessage }: { scan: (data: string) => void, setMessage: (msg: string) => void }) => {
+//   useEffect(() => {
+//     const scanner = new Html5QrcodeScanner("reader", { fps: 1, qrbox: 250 }, false);
+//     scanner.render(
+//       (e: string) => {
+//         if (e) {
+//           scan(e);
+//           setMessage(`Scanned: ${e}`);
+//         } else {
+//           setMessage('Please try again.');
+//         }
+//       },
+//       () => {
+//         setTimeout(() => {
+//           setMessage('');
+//         }, 5000);
+//       }
+//     );
+//     return () => {
+//       scanner.clear();
+//     };
+//   }, []);
 
-  return <div id="reader"></div>;
-};
+//   return <div id="reader"></div>;
+// };
 
 export default UserProfilePage;
