@@ -57,8 +57,11 @@ function Navbar() {
     { name: "BRACKETS", link: "/brackets" },
     { name: "MATCHES", link: "/matches" },
     { name: "TEAMS", link: "/teams" },
+    { name: "SCHOOLS", link: "/schools" },
+    { name: "LEADERBOARD", link: "/leaderboard" },
     { name: "SPONSORS", link: "/sponsor" },
     { name: "ABOUT", link: "/about" },
+    
   ];
 
   return (
@@ -90,7 +93,7 @@ function Navbar() {
       {/* Mobile Menu */}
       <ul
         ref={menuRef}
-        className={`fixed md:hidden right-0 top-0 z-[1] w-2/6 h-screen bg-black/90 pt-14 transition-all duration-300 ease-in ${
+        className={`fixed md:hidden right-0 top-0 z-[1] w-2/5 h-screen bg-black/90 pt-14 transition-all duration-300 ease-in ${
           open ? "px-4 translate-x-0" : "opacity-0 translate-x-full"
         }`}
       >
