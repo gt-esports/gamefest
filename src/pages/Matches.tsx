@@ -65,16 +65,18 @@ function Matches() {
               </div>
             </div>
           {/* Live Score Statistics */}
-            <div className="w-full flex flex-col items-center justify-center pt-16">
-              <h2 className="text-5xl text-center py-6" style={{ fontFamily: 'Bayon, sans-serif' }}>
-                LIVE SCORE
-              </h2>
-              <div className="flex flex-col from-[#F1CCFF]/[0.17] to-[#101010]/[0.28] px-10 w-3/4 items-center justify-center mx-auto rounded-lg mt-8 py-10 mb-20">
-                <LiveScoreStatistics stats={fakeStats} />
-              </div>
+            {/* Twitch Live Stream Embed 1 */}
+            <h2 className="text-5xl text-center py-6" style={{ fontFamily: 'Bayon, sans-serif' }}>LIVESTREAM 1</h2>
+            <div className="twitch-container mb-40">
+              <iframe
+                src="https://player.twitch.tv/?channel=mooda&parent=localhost"
+                allowFullScreen
+                allow="autoplay *; encrypted-media *;"
+              ></iframe>
             </div>
-            {/* Twitch Live Stream Embed */}
-            <h2 className="text-5xl text-center py-6" style={{ fontFamily: 'Bayon, sans-serif' }}>LIVESTREAM</h2>
+
+            {/* Twitch Live Stream Embed 2*/}
+            <h2 className="text-5xl text-center py-6" style={{ fontFamily: 'Bayon, sans-serif' }}>LIVESTREAM 2</h2>
             <div className="twitch-container mb-40">
               <iframe
                 src="https://player.twitch.tv/?channel=mooda&parent=localhost"
