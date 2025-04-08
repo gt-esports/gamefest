@@ -18,3 +18,5 @@ const playerSchema = new mongoose.Schema({
 
 const Player = mongoose.model("Player", playerSchema);
 export default Player;
+
+// {game: "valorant", team: "team a"}
