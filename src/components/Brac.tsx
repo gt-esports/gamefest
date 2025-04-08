@@ -13,7 +13,7 @@ function Brac({ game, user }: { game: string; user: { role: string } }) {
   const teamNames = teamData ? Object.keys(teamData) : [];
   const isBracketGame = teamNames.length >= 2;
 
-  useEffect(() => {
+  useEffect(() => { //for user role check
     if (user && user.role !== "Staff") {
       router("/");
     }
