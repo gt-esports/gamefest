@@ -1,9 +1,54 @@
-import admins from '../store/admins.js';
+import { ClerkExpressWithAuth, clerkClient } from "@clerk/clerk-sdk-node";
 
-export const isAdmin = (req, res, next) => {
-  const adminId = req.headers['admin-id'];
-  if (!admins.find(admin => admin.adminId === adminId)) {
-    return res.status(403).json({ error: 'Admin access only.' });
+export const requireClerkAuth = ClerkExpressWithAuth();
+
+const auth = true; // auth toggle for testing
+
+export const requireAdmin = async (req, res, next) => {
+  try {
+    const userId = req.auth?.userId;
+    // console.log(req.auth);
+    // const token = await req.auth?.getToken();
+    // console.log("Token:", token);
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const user = await clerkClient.users.getUser(userId);
+    const role = user.publicMetadata?.role;
+    console.log("User Role:", role);
+
+    if (role !== "admin" && auth) {
+      return res.status(403).json({ message: "Admins only" });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Auth Error:", error);
+    res.status(500).json({ message: "Internal auth error" });
   }
-  next();
+};
+
+export const requireStaffOrAdmin = async (req, res, next) => {
+  try {
+    const userId = req.auth?.userId;
+    console.log(req.auth);
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const user = await clerkClient.users.getUser(userId);
+    const role = user.publicMetadata?.role;
+    console.log("User Role:", role);
+
+    if (role !== "staff" && role !== "admin" && auth) {
+      return res.status(403).json({ message: "Staff or Admin only" });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Auth Error:", error);
+    res.status(500).json({ message: "Internal auth error" });
+  }
 };
