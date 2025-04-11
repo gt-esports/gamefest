@@ -1,12 +1,3 @@
-import CS from '../assets/game-icons/cs.png'
-import RL from '../assets/game-icons/rl.png'
-import R6S from '../assets/game-icons/r6s.png'
-import OW2 from '../assets/game-icons/ow2.png'
-import VAL from '../assets/game-icons/val.png'
-import RIVALS from '../assets/game-icons/rivals.png'
-import LOL from '../assets/game-icons/lol.png'
-import APEX from '../assets/game-icons/apex.png'
-
 export default function Info() {
     return (
         <div className="flex flex-col pt-10 w-[90%] gap-12">
