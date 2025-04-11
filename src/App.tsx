@@ -14,6 +14,7 @@ import About from "./pages/About.tsx";
 import AdminPanel from "./pages/AdminPanel.tsx";
 import UserProfilePage from "./pages/UserProfilePage.tsx";
 import RootAdminPanel from "./components/adminPanel/RootAdminPanel.tsx";
+import PlayerCard from "./pages/PlayerCard.tsx";
 // import { Root } from "postcss";
 
 const scrollbarStyles = `
@@ -56,6 +57,7 @@ function App() {
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/profile" element={<UserProfilePage />} />
             <Route path="/rootAdmin" element={<RootAdminPanel />} />
+            <Route path="/playercard" element={<PlayerCard />} />
           </Routes>
         </main>
       </div>
