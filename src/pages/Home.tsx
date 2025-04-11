@@ -3,6 +3,14 @@ import Footer from "../components/Footer";
 import TournamentCard from "../components/TournamentCard";
 import { sponsors } from "../data/sponsors";
 import Avatar from "../components/Avatar";
+import CS from '../assets/game-icons/cs.png'
+import RL from '../assets/game-icons/rl.png'
+import R6S from '../assets/game-icons/r6s.png'
+import OW2 from '../assets/game-icons/ow2.png'
+import VAL from '../assets/game-icons/val.png'
+import RIVALS from '../assets/game-icons/rivals.png'
+import LOL from '../assets/game-icons/lol.png'
+import APEX from '../assets/game-icons/apex.png'
 
 const tournaments = [
   {
@@ -79,14 +87,48 @@ function Home() {
             TOURNAMENT SCHEDULE
           </h2>
         </div>
-        <div className="w-2/3">
-          {tournaments.map((tournament) => (
-            <TournamentCard title={tournament.title} />
-          ))}
+
+        <div className='grid grid-cols-4 gap-2 w-4/5'>
+          <div className='col-span-1'>
+            <div className='bg-gray-800/80 rounded-lg pt-4 my-4 text-2xl h-full'>
+              <h3 className='font-bayon text-tech-gold text-center'>HEADLINER</h3>
+            </div>
+            <p className='text-white text-lg text-center'>9:30AM - 10:00AM</p>
+          </div>
+          <div className='col-span-1'>
+            <div className='bg-gray-800/80 rounded-lg pt-4 my-4 text-2xl h-full'>
+              <h3 className='font-bayon text-tech-gold text-center'>PC BLOCK 1</h3>
+              <div className='flex flex-col items-center mt-6'>
+                <img src={CS} className='w-[6rem] my-2'/>
+                <img src={RL} className='w-[6rem] my-2'/>
+                <img src={R6S} className='w-[6rem] my-2'/>
+                <img src={OW2} className='w-[6rem] my-2'/>
+              </div>
+            </div>
+                <p className='text-white text-lg text-center'>10:00AM - 2:30PM</p>
+          </div>
+          <div className='col-span-1'>
+            <div className='bg-gray-800/80 rounded-lg pt-4 my-4 text-2xl h-full'>
+              <h3 className='font-bayon text-tech-gold text-center'>HEADLINER</h3>
+            </div>
+              <p className='text-white text-lg text-center'>2:30PM - 3:00PM</p>
+          </div>
+          <div className='col-span-1'>
+              <div className='bg-gray-800/80 rounded-lg pt-4 my-4 text-2xl h-full'>
+                <h3 className='font-bayon text-tech-gold text-center'>PC BLOCK 2</h3>
+                <div className='flex flex-col items-center mt-6'>
+                  <img src={VAL} className='w-[6rem] my-2'/>
+                  <img src={RIVALS} className='w-[6rem] my-2'/>
+                  <img src={LOL} className='w-[6rem] my-2'/>
+                  <img src={APEX} className='w-[6rem] my-2'/>
+                </div>
+              </div>
+              <p className='text-white text-lg text-center'>3:00PM - 7:30PM</p>
+          </div>
         </div>
         <button
           onClick={() => scrollToSection("games-section", -80)}
-          className="mb-8 flex h-8 w-8 items-center justify-center rounded-full bg-tech-gold hover:bg-tech-gold/90 sm:mb-12 sm:h-10 sm:w-10"
+          className="mt-16 mb-8 flex h-8 w-8 items-center justify-center rounded-full bg-tech-gold hover:bg-tech-gold/90 sm:mb-12 sm:h-10 sm:w-10"
           aria-label="Scroll to games section"
         >
           <svg
