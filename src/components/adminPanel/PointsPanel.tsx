@@ -23,6 +23,9 @@ const PointsPanel: React.FC = () => {
     new Set()
   );
   const [pointsToAdd, setPointsToAdd] = useState<string>("");
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<Player[]>([]);
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,45 +67,127 @@ const PointsPanel: React.FC = () => {
       },
       body: JSON.stringify(updated),
     });
+
+    setPlayers((prev) =>
+      prev.map((p) => (p.name === player.name ? { ...p, ...updated } : p))
+    );
   };
 
-  const applyPointsToSelected = () => {
+  const applyPointsToSelected = async () => {
     const value = parseInt(pointsToAdd);
-    if (!value || selectedPlayers.size === 0) return;
-    players.forEach((p) => {
-      if (selectedPlayers.has(p.name)) {
-        updatePoints(p, value);
-      }
-    });
+    if (isNaN(value) || selectedPlayers.size === 0) return;
+
+    // find all selected player objects
+    const toUpdate = players.filter((p) => selectedPlayers.has(p.name));
+
+    // call updatePoints for each
+    await Promise.all(toUpdate.map((p) => updatePoints(p, value)));
+
     setPointsToAdd("");
+
   };
 
   return (
     <div>
       <h2 className="mb-4 text-xl font-bold">Award or Remove Points</h2>
 
-      <ul className="mb-4">
-        {players.map((player) => (
-          <li key={player.name} className="mb-2">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={selectedPlayers.has(player.name)}
-                onChange={(e) => {
-                  const updated = new Set(selectedPlayers);
-                  if (e.target.checked) updated.add(player.name);
-                  else updated.delete(player.name);
-                  setSelectedPlayers(updated);
-                }}
-                className="mr-2"
-              />
-              <strong>{player.name}</strong> — {player.points} pts
-            </label>
-          </li>
-        ))}
-      </ul>
+      <div className="overflow-x-auto whitespace-nowrap py-2 border-b mb-4">
+        {players.map((player) => {
+          const isSelected = selectedPlayers.has(player.name);
+          return (
+            <button
+              key={player.name}
+              onClick={() => {
+                setSelectedPlayers((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(player.name)) {
+                    next.delete(player.name);
+                  } else {
+                    next.add(player.name);
+                  }
+                  return next;
+                });
+              }}
+              className={`inline-block px-4 py-2 mr-2 rounded shadow-sm ${
+                isSelected ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300"
+              }`}
+            >
+              {player.name}
+            </button>
+          );
+        })}
+      </div>
 
-      <div className="mb-4 flex items-center gap-2">
+      <input
+        type="text"
+        placeholder="Search player..."
+        value={query}
+        onChange={(e) => {
+          const val = e.target.value;
+          setQuery(val);
+          if (val.length > 0) {
+            setSuggestions(
+              players.filter(
+                (p) =>
+                  p.name.toLowerCase().includes(val.toLowerCase()) &&
+                  !selectedPlayers.has(p.name)
+              )
+            );
+          } else {
+            setSuggestions([]);
+          }
+        }}
+        className="rounded border p-2 mb-2 w-full"
+      />
+
+      {suggestions.map((player) => (
+        <li
+          key={player.name}
+          onClick={() => {
+            setSelectedPlayers((prev) => new Set([...prev, player.name]));
+            setQuery("");
+            setSuggestions([]);
+          }}
+          className="cursor-pointer hover:bg-gray-100 p-2"
+        >
+          {player.name}
+        </li>
+      ))}
+
+      {players
+        .filter((player) => selectedPlayers.has(player.name))
+        .map((player) => (
+          <div key={player.name} className="border-t pt-4 mt-4">
+            <h3 className="text-lg font-bold">{player.name}</h3>
+            <p className="mb-2">Points: {player.points}</p>
+
+
+            <div>
+              <h4 className="font-medium">Logs</h4>
+              {player.log.map((entry, idx) => (
+                <div key={idx} className="flex justify-between items-center text-sm mb-2">
+                  <span>{entry}</span>
+                  <button
+                    onClick={() => {
+                      const updatedLog = player.log.filter((_, i) => i !== idx);
+                      const updated = { ...player, log: updatedLog };
+
+                      // update players list with new log
+                      setPlayers((prev) =>
+                        prev.map((p) => (p.name === player.name ? updated : p))
+                      );
+                    }}
+                    className="text-red-500 text-xs hover:underline"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+      ))}
+
+      <div className="mb-4 mt-4 flex items-center gap-2">
         <input
           type="number"
           placeholder="Points to add/remove"
