@@ -1,3 +1,22 @@
+import MC from '../assets/game-icons/mc.png';
+import FORTNITE from '../assets/game-icons/fortnite.png';
+import CS from '../assets/game-icons/cs.png';
+import RL from '../assets/game-icons/rl.png';
+import R6S from '../assets/game-icons/r6s.png';
+import OW2 from '../assets/game-icons/ow2.png';
+import VAL from '../assets/game-icons/val2.png'
+import RIVALS from '../assets/game-icons/rivals2.png';
+import LOL from '../assets/game-icons/lol.png';
+import APEX from '../assets/game-icons/apex.png';
+import SMASH from '../assets/game-icons/smash.jpg';
+import MARIOKART from '../assets/game-icons/mariokart.png';
+import TFT from '../assets/game-icons/tft.png';
+import OSU from '../assets/game-icons/osu.png';
+import TETRIS from '../assets/game-icons/tetris.png';
+import GEO from '../assets/game-icons/geoguessr.png';
+import SUPERCELL from '../assets/game-icons/supercell.png';
+import VGDEV from '../assets/game-icons/vgdev.png';
+
 export default function Info() {
     return (
         <div className="flex flex-col pt-10 w-[90%] gap-12">
@@ -33,15 +52,29 @@ export default function Info() {
                     </div>
 
                     <div className='col-span-2 lg:col-span-1'>
-                        <div className='bg-gray-800/80 rounded-lg py-4 mb-4 text-2xl text-tech-gold'>
+                        <div className='bg-gray-800/80 rounded-lg p-4 mb-4 text-2xl text-tech-gold'>
                             <h3 className='font-bayon'>HEADLINERS</h3>
                             <p className='text-sm'>Events for everyone to compete in</p>
                         </div>
+                        <div className='flex flex-wrap justify-center'>
+                            <img src={MC} className='h-[3rem] m-2 rounded-lg'/>
+                            <img src={FORTNITE} className='h-[3rem] m-2 rounded-lg'/>
+                        </div>
                     </div>
                     <div className='col-span-2 lg:col-span-1'>
-                        <div className='bg-gray-800/80 rounded-lg py-4 mb-4 text-2xl text-tech-gold'>
+                        <div className='bg-gray-800/80 rounded-lg p-4 mb-4 text-2xl text-tech-gold'>
                             <h3 className='font-bayon'>PC GAMES</h3>
                             <p className='text-sm'>Events split into Block A and Block B</p>
+                        </div>
+                        <div className='flex flex-wrap justify-center'>
+                            <img src={CS} className='h-[3rem] m-2 rounded-lg'/>
+                            <img src={OW2} className='h-[3rem] m-2 rounded-lg'/>
+                            <img src={R6S} className='h-[3rem] m-2 rounded-lg'/>
+                            <img src={RL} className='h-[3rem] m-2 rounded-lg'/>
+                            <img src={VAL} className='h-[3rem] m-2 rounded-lg'/>
+                            <img src={RIVALS} className='h-[3rem] m-2 rounded-lg'/>
+                            <img src={LOL} className='h-[3rem] m-2 rounded-lg'/>
+                            <img src={APEX} className='h-[3rem] m-2 rounded-lg'/>
                         </div>
                     </div>
                     <div className='col-span-2 lg:col-span-1'>
@@ -49,11 +82,23 @@ export default function Info() {
                             <h3 className='font-bayon'>CONSOLE GAMES</h3>
                             <p className='text-sm'>Tournaments running throughout the day</p>
                         </div>
+                        <div className='flex flex-wrap justify-center'>
+                            <img src={SMASH} className='h-[3rem] m-2 rounded-lg'/>
+                            <img src={MARIOKART} className='h-[3rem] m-2 rounded-lg'/>
+                        </div>
                     </div>
                     <div className='col-span-2 lg:col-span-1'>
-                        <div className='bg-gray-800/80 rounded-lg py-4 mb-4 text-2xl text-tech-gold'>
+                        <div className='bg-gray-800/80 rounded-lg p-4 mb-4 text-2xl text-tech-gold'>
                             <h3 className='font-bayon'>CHALLENGER</h3>
                             <p className='text-sm'>Booths running all day</p>
+                        </div>
+                        <div className='flex flex-wrap justify-center'>
+                            <img src={TFT} className='h-[3rem] m-2 rounded-lg'/>
+                            <img src={OSU} className='h-[3rem] m-2 rounded-lg'/>
+                            <img src={TETRIS} className='h-[3rem] m-2 rounded-lg'/>
+                            <img src={GEO} className='h-[3rem] m-2 rounded-lg'/>
+                            <img src={SUPERCELL} className='h-[3rem] m-2 rounded-lg'/>
+                            <img src={VGDEV} className='h-[3rem] m-2 rounded-lg'/>
                         </div>
                     </div>
                 </div>
