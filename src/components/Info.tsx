@@ -2,7 +2,7 @@ export default function Info() {
     return (
         <div className="flex flex-col pt-10 w-[90%] gap-12">
             {/* Overview */}
-            <div className="ml-20 items-start flex flex-col">
+            <div className="items-start flex flex-col">
                 <h3 className="text-3xl font-bayon tracking-wide text-tech-gold mb-4">
                     OVERVIEW
                 </h3>
@@ -17,7 +17,7 @@ export default function Info() {
 
     
             {/* Event Format */}    
-            <div className="ml-20 items-start flex flex-col">
+            <div className="items-start flex flex-col text-center">
                 <h3 className="text-3xl font-bayon tracking-wide text-tech-gold mb-4">
                     EVENT FORMAT
                 </h3>
@@ -27,30 +27,30 @@ export default function Info() {
                 </p>
                 <div className='grid grid-cols-4 gap-2 w-full'>
                     <div className='col-span-4'>
-                        <h3 className='text-4xl font-bayon tracking-wide m-8'>
+                        <h3 className='text-4xl font-bayon tracking-wide m-8 text-white'>
                             4 GAME CATEGORIES
                         </h3>
                     </div>
 
-                    <div className='col-span-1'>
+                    <div className='col-span-2 lg:col-span-1'>
                         <div className='bg-gray-800/80 rounded-lg py-4 mb-4 text-2xl text-tech-gold'>
                             <h3 className='font-bayon'>HEADLINERS</h3>
                             <p className='text-sm'>Events for everyone to compete in</p>
                         </div>
                     </div>
-                    <div className='col-span-1'>
+                    <div className='col-span-2 lg:col-span-1'>
                         <div className='bg-gray-800/80 rounded-lg py-4 mb-4 text-2xl text-tech-gold'>
                             <h3 className='font-bayon'>PC GAMES</h3>
                             <p className='text-sm'>Events split into Block A and Block B</p>
                         </div>
                     </div>
-                    <div className='col-span-1'>
-                        <div className='bg-gray-800/80 rounded-lg py-4 mb-4 text-2xl text-tech-gold'>
+                    <div className='col-span-2 lg:col-span-1'>
+                        <div className='bg-gray-800/80 rounded-lg p-4 mb-4 text-2xl text-tech-gold'>
                             <h3 className='font-bayon'>CONSOLE GAMES</h3>
                             <p className='text-sm'>Tournaments running throughout the day</p>
                         </div>
                     </div>
-                    <div className='col-span-1'>
+                    <div className='col-span-2 lg:col-span-1'>
                         <div className='bg-gray-800/80 rounded-lg py-4 mb-4 text-2xl text-tech-gold'>
                             <h3 className='font-bayon'>CHALLENGER</h3>
                             <p className='text-sm'>Booths running all day</p>
@@ -61,7 +61,7 @@ export default function Info() {
 
             {/* Event Details and Streams*/}
             <div className='flex flex-row justify-between'>
-                <div className="ml-20 items-start flex flex-col w-1/2">
+                <div className="items-start flex flex-col w-1/2">
                     <h3 className="text-3xl font-bayon tracking-wide text-tech-gold mb-4">
                         EVENT DETAILS
                     </h3>

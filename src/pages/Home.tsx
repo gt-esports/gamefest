@@ -82,20 +82,20 @@ function Home() {
         <div className="flex flex-row items-center justify-center pb-4 pt-24">
           <h2
             style={{ fontFamily: "Bayon, sans-serif" }}
-            className="font-bayon text-5xl font-normal text-white"
+            className="font-bayon text-5xl font-normal text-white text-center"
           >
             TOURNAMENT SCHEDULE
           </h2>
         </div>
 
         <div className='grid grid-cols-4 gap-2 w-4/5'>
-          <div className='col-span-1'>
+          <div className='col-span-4 lg:col-span-1 mb-12'>
             <div className='bg-gray-800/80 rounded-lg pt-4 my-4 text-2xl h-full'>
               <h3 className='font-bayon text-tech-gold text-center'>HEADLINER</h3>
             </div>
             <p className='text-white text-lg text-center'>9:30AM - 10:00AM</p>
           </div>
-          <div className='col-span-1'>
+          <div className='col-span-4 lg:col-span-1 mb-12'>
             <div className='bg-gray-800/80 rounded-lg pt-4 my-4 text-2xl h-full'>
               <h3 className='font-bayon text-tech-gold text-center'>PC BLOCK 1</h3>
               <div className='flex flex-col items-center mt-6'>
@@ -107,13 +107,13 @@ function Home() {
             </div>
                 <p className='text-white text-lg text-center'>10:00AM - 2:30PM</p>
           </div>
-          <div className='col-span-1'>
+          <div className='col-span-4 lg:col-span-1 mb-12'>
             <div className='bg-gray-800/80 rounded-lg pt-4 my-4 text-2xl h-full'>
               <h3 className='font-bayon text-tech-gold text-center'>HEADLINER</h3>
             </div>
               <p className='text-white text-lg text-center'>2:30PM - 3:00PM</p>
           </div>
-          <div className='col-span-1'>
+          <div className='col-span-4 lg:col-span-1 mb-12'>
               <div className='bg-gray-800/80 rounded-lg pt-4 my-4 text-2xl h-full'>
                 <h3 className='font-bayon text-tech-gold text-center'>PC BLOCK 2</h3>
                 <div className='flex flex-col items-center mt-6'>
@@ -128,7 +128,7 @@ function Home() {
         </div>
         <button
           onClick={() => scrollToSection("games-section", -80)}
-          className="mt-16 mb-8 flex h-8 w-8 items-center justify-center rounded-full bg-tech-gold hover:bg-tech-gold/90 sm:mb-12 sm:h-10 sm:w-10"
+          className="my-8 flex h-8 w-8 items-center justify-center rounded-full bg-tech-gold hover:bg-tech-gold/90 sm:mb-12 sm:h-10 sm:w-10"
           aria-label="Scroll to games section"
         >
           <svg
