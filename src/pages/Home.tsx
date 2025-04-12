@@ -190,7 +190,7 @@ function Home() {
           </h2>
           <p className="m-8 pt-12 text-center font-bayon text-2xl text-[#b3a369]">
             "Fueling the next generation of gamers. Play hard, compete harder.
-            Proud sponsors of Georgia Tech Esports" - antonline
+            Proud sponsors of Georgia Tech Esports" - Alienware
           </p>
         </div>
 
