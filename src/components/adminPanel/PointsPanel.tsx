@@ -50,8 +50,21 @@ const PointsPanel: React.FC = () => {
     fetchData();
   }, [getToken, user]);
 
-  const updatePoints = async (player: Player, amount: number) => {
+  const updatePoints = async (player: Player, amount: number, override: boolean = false) => {
     const token = await getToken();
+
+    const res = await fetch(`/api/players/${player.name}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const freshPlayer: Player = await res.json();
+
+    if (!override && freshPlayer.participation.includes(staffRole)) {
+    alert(
+      `This player has already received points from the '${staffRole}' role.`
+    );
+    return;
+  }
+
     const now = new Date();
     const timestamp = now.toLocaleString(undefined, {
       dateStyle: "medium",
@@ -62,8 +75,11 @@ const PointsPanel: React.FC = () => {
     const updated = {
       points: player.points + amount,
       log: [...player.log, logEntry],
-      participation: Array.from(new Set([...player.participation, staffRole])),
+      participation: override
+        ? player.participation.filter((r) => r !== staffRole) // remove if revoking
+        : Array.from(new Set([...player.participation, staffRole])), // add if giving
     };
+    
 
     await fetch(`/api/players/${player.name}`, {
       method: "PUT",
@@ -82,7 +98,7 @@ const PointsPanel: React.FC = () => {
   const applyPointsToSelected = async () => {
     const value = parseInt(pointsToAdd);
     if (isNaN(value) || selectedPlayers.size === 0) return;
-
+    
     // find all selected player objects
     const toUpdate = players.filter((p) => selectedPlayers.has(p.name));
 
@@ -163,6 +179,7 @@ const PointsPanel: React.FC = () => {
       {players
         .filter((player) => selectedPlayers.has(player.name))
         .map((player) => (
+          
           <div key={player.name} className="border-t pt-4 mt-4">
             <h3 className="text-lg font-bold">{player.name}</h3>
             <p className="mb-2">Points: {player.points}</p>
@@ -190,6 +207,55 @@ const PointsPanel: React.FC = () => {
                 </div>
               ))}
             </div>
+
+            {staffRole &&
+              player.participation.includes(staffRole) && // must have role
+              player.log.some((log) => log.includes(`[${staffRole}] gave ${player.name}`)) && (
+                (() => {
+                  // Gather logs from this staff role
+                  const logsFromRole = player.log.filter((log) =>
+                    log.includes(`[${staffRole}] gave ${player.name}`)
+                  );
+
+                  // Sum how many points were given in those logs
+                  const pointsToRevoke = logsFromRole.reduce((sum, log) => {
+                    const match = log.match(/gave .*? (\d+) points/);
+                    return match ? sum + parseInt(match[1]) : sum;
+                  }, 0);
+
+                  return (
+                    <button
+                      onClick={async () => {
+                        const updatedPlayer = {
+                          ...player,
+                          log: player.log.filter((log) => !logsFromRole.includes(log)),
+                          participation: player.participation.filter((r) => r !== staffRole),
+                        };
+
+                        await updatePoints(updatedPlayer, -pointsToRevoke, true);
+
+                        // Update local player state
+                        setPlayers((prev) =>
+                          prev.map((p) =>
+                            p.name === player.name
+                              ? {
+                                  ...p,
+                                  participation: updatedPlayer.participation,
+                                  log: updatedPlayer.log,
+                                  points: player.points - pointsToRevoke,
+                                }
+                              : p
+                          )
+                        );
+
+                      }}
+                      className="mt-2 text-sm text-red-600 underline"
+                    >
+                      🔁 Revoke {pointsToRevoke} pts from {staffRole}
+                    </button>
+                  );
+                })()
+            )}
           </div>
       ))}
 
