@@ -52,7 +52,6 @@ const updatePlayer = async (req, res) => {
       updateFields.teamAssignments = req.body.teamAssignments;
     if ("participation" in req.body)
       updateFields.participation = req.body.participation;
-    
   } else {
     return res
       .status(403)
@@ -74,12 +73,14 @@ const updatePlayer = async (req, res) => {
 const createPlayer = async (req, res) => {
   const player = new Player(req.body);
   await player.save();
+  await syncTeamRosters();
   res.status(201).json(player);
 };
 
 const deletePlayer = async (req, res) => {
   const result = await Player.findOneAndDelete({ name: req.params.name });
   if (!result) return res.status(404).json({ message: "Player not found" });
+  await syncTeamRosters();
   res.json({ message: "Player deleted" });
 };
 
