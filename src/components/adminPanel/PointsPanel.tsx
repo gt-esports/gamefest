@@ -17,6 +17,7 @@ const PointsPanel: React.FC = () => {
   const { getToken } = useAuth();
   const { user } = useUser();
   const [players, setPlayers] = useState<Player[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [staffRole, setStaffRole] = useState<string>("");
   const [staffName, setStaffName] = useState<string>("");
   const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(
@@ -45,6 +46,7 @@ const PointsPanel: React.FC = () => {
       const current = staffData.find((s) => s.name === currentUser);
       setStaffRole(current?.role || "");
       setStaffName(current?.name || "");
+      setIsAdmin(current?.role === "admin");
     };
 
     fetchData();
@@ -190,20 +192,22 @@ const PointsPanel: React.FC = () => {
               {player.log.map((entry, idx) => (
                 <div key={idx} className="flex justify-between items-center text-sm mb-2">
                   <span>{entry}</span>
-                  <button
-                    onClick={() => {
-                      const updatedLog = player.log.filter((_, i) => i !== idx);
-                      const updated = { ...player, log: updatedLog };
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        const updatedLog = player.log.filter((_, i) => i !== idx);
+                        const updated = { ...player, log: updatedLog };
 
-                      // update players list with new log
-                      setPlayers((prev) =>
-                        prev.map((p) => (p.name === player.name ? updated : p))
-                      );
-                    }}
-                    className="text-red-500 text-xs hover:underline"
-                  >
-                    Remove
-                  </button>
+                        // update players list with new log
+                        setPlayers((prev) =>
+                          prev.map((p) => (p.name === player.name ? updated : p))
+                        );
+                      }}
+                      className="text-red-500 text-xs hover:underline"
+                    >
+                      Remove
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
