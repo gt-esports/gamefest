@@ -51,6 +51,11 @@ const StaffPanel: React.FC = () => {
   };
 
   const addStaff = async () => {
+    if (!newStaff.trim() || !newRole.trim()) {
+      alert("Please fill in both name and role.");
+      return;
+    }
+    
     const token = await getToken();
     const res = await fetch("/api/staff", {
       method: "POST",
@@ -60,6 +65,13 @@ const StaffPanel: React.FC = () => {
       },
       body: JSON.stringify({ name: newStaff, role: newRole }),
     });
+
+    if (!res.ok) {
+      const error = await res.json();
+      alert(error?.message || "Failed to add staff.");
+      return;
+    }
+    
     const created = await res.json();
     setStaffList((prev) => [...prev, created]);
     setNewStaff("");
