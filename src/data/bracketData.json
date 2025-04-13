@@ -1,0 +1,241 @@
+{
+    "GAMES": {
+      "pc_block": {
+        "counter_strike_2": {
+          "teamA": [
+            "opaline",
+            "pajko",
+            "severin",
+            "imabee",
+            "side#faith"
+          ],
+          "teamB": [
+            "opalD",
+            "wahoo",
+            "pearson",
+            "furiousss",
+            "bumblebee"
+          ],
+          "teamC": [
+            "cs_1",
+            "cs_2",
+            "cs_3",
+            "cs_4",
+            "cs_5"
+          ],
+          "teamD": [
+            "csa_1",
+            "csa_2",
+            "csa_3",
+            "csa_4",
+            "csa_5"
+          ],
+          "teamE": [
+            "p1",
+            "p2",
+            "p3",
+            "p4",
+            "p5"
+          ]
+        },
+        "rocket_league": {
+          "teamA": [
+            "rl_player1",
+            "rl_player2",
+            "rl_player3"
+          ],
+          "teamB": [
+            "rl_player4",
+            "rl_player5",
+            "rl_player6"
+          ],
+          "teamC": [
+            "p1",
+            "p2",
+            "p3"
+          ],
+          "teamD": [
+            "c1",
+            "c2",
+            "c3"
+          ]
+        },
+        "rainbow_six_seige": {
+          "teamA": [
+            "r6_1",
+            "r6_2",
+            "r6_3",
+            "r6_4",
+            "r6_5"
+          ],
+          "teamB": [
+            "r6_6",
+            "r6_7",
+            "r6_8",
+            "r6_9",
+            "r6_10"
+          ]
+        },
+        "overwatch_2": {
+          "teamA": [
+            "ow1",
+            "ow2",
+            "ow3",
+            "ow4",
+            "ow5"
+          ],
+          "teamB": [
+            "ow6",
+            "ow7",
+            "ow8",
+            "ow9",
+            "ow10"
+          ]
+        },
+        "valorant": {
+          "teamA": [
+            "v1",
+            "v2",
+            "v3",
+            "v4",
+            "v5"
+          ],
+          "teamB": [
+            "v6",
+            "v7",
+            "v8",
+            "v9",
+            "v10"
+          ]
+        },
+        "marvel_rivals": {
+          "teamA": [
+            "mr1",
+            "mr2",
+            "mr3"
+          ],
+          "teamB": [
+            "mr4",
+            "mr5",
+            "mr6"
+          ]
+        },
+        "league_of_legends": {
+          "teamA": [
+            "lol1",
+            "lol2",
+            "lol3",
+            "lol4",
+            "lol5"
+          ],
+          "teamB": [
+            "lol6",
+            "lol7",
+            "lol8",
+            "lol9",
+            "lol10"
+          ]
+        },
+        "apex_legends": {
+          "teamA": [
+            "apex1",
+            "apex2",
+            "apex3"
+          ],
+          "teamB": [
+            "apex4",
+            "apex5",
+            "apex6"
+          ]
+        }
+      },
+      "booths": [
+        "tetris",
+        "osu",
+        "geoguessr",
+        "supercell",
+        "fgc",
+        "mario_kart"
+      ]
+    },
+    "PLAYERS": {
+      "c1": {
+        "POINTS": "100",
+        "PARTICIPATION": [
+          "geoguessr",
+          "supercell",
+          "osu",
+          "cs2"
+        ],
+        "LOG": [
+          "+10 points from geoguessr [jim]",
+          "+X points from game[staff_name]",
+          "+30 points from supercell[staff_2]"
+        ]
+      },
+      "c2": {
+        "POINTS": "70",
+        "PARTICIPATION": [
+          "tetris",
+          "fgc",
+          "cs2"
+        ],
+        "LOG": [
+          "+15 points from tetris [s5]",
+          "+20 points from fgc [s6]",
+          "+35 points from cs2 [staff_cs]"
+        ]
+      },
+      "c3": {
+        "POINTS": "80",
+        "PARTICIPATION": [
+          "osu",
+          "mario_kart",
+          "valorant"
+        ],
+        "LOG": [
+          "+25 points from osu [s7]",
+          "+20 points from mario_kart [s8]",
+          "+35 points from valorant [s3]"
+        ]
+      },
+      "c4": {
+        "POINTS": "60",
+        "PARTICIPATION": [
+          "supercell",
+          "league_of_legends"
+        ],
+        "LOG": [
+          "+30 points from supercell [s2]",
+          "+30 points from league_of_legends [s9]"
+        ]
+      },
+      "c5": {
+        "POINTS": "90",
+        "PARTICIPATION": [
+          "geoguessr",
+          "apex_legends",
+          "rocket_league"
+        ],
+        "LOG": [
+          "+40 points from geoguessr [jim]",
+          "+20 points from apex_legends [s10]",
+          "+30 points from rocket_league [s11]"
+        ]
+      }
+    },
+    "STAFF": {
+      "s1": "minecraft",
+      "s2": "minecraft",
+      "s3": "valorant",
+      "s4": "valorant",
+      "s5": "tetris",
+      "s6": "fgc",
+      "s7": "osu",
+      "s8": "mario_kart",
+      "s9": "league_of_legends",
+      "s10": "apex_legends",
+      "s11": "rocket_league"
+    }
+  }
+  
