@@ -15,36 +15,49 @@ const PlayerCheckinPanel: React.FC = () => {
   const [newPlayer, setNewPlayer] = useState("");
   // const [assignments, setAssignments] = useState<
   //   { game: string; team: string }[]
-  // >([]);  
+  // >([]);
   const [newPlayerTeam, setNewPlayerTeam] = useState("");
   const [newPlayerGame, setNewPlayerGame] = useState("");
   const [query, setQuery] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [suggestions, setSuggestions] = useState<Player[]>([]);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [games, setGames] = useState<string[]>([]);
+
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
+    "idle"
+  );
   const { user } = useUser();
 
   useEffect(() => {
-    const fetchPlayers = async () => {
+    const fetchData = async () => {
       const token = await getToken();
-      console.log("token: ", token);
-      const res = await fetch("/api/players", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      console.log(data);
-      setPlayers(data);
+
+      const [playerRes, gamesRes] = await Promise.all([
+        fetch("/api/players", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch("/api/games", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      const playersData = await playerRes.json();
+      const gamesData = await gamesRes.json(); // should be an array of game names
+
+      setPlayers(playersData);
+      setGames(gamesData.map((g: { name: string }) => g.name)); // adapt this based on your Game model
     };
-    fetchPlayers();
+
+    fetchData();
   }, [getToken]);
 
   const addPlayer = async () => {
     const token = await getToken();
 
     const teamAssignments =
-    newPlayerGame && newPlayerTeam
-      ? [{ game: newPlayerGame, team: newPlayerTeam }]
-      : [];
+      newPlayerGame && newPlayerTeam
+        ? [{ game: newPlayerGame, team: newPlayerTeam }]
+        : [];
 
     const res = await fetch("/api/players", {
       method: "POST",
@@ -52,7 +65,10 @@ const PlayerCheckinPanel: React.FC = () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ name: newPlayer, teamAssignments: teamAssignments }),
+      body: JSON.stringify({
+        name: newPlayer,
+        teamAssignments: teamAssignments,
+      }),
     });
     const data = await res.json();
     setPlayers((prev) => [...prev, data]);
@@ -65,7 +81,7 @@ const PlayerCheckinPanel: React.FC = () => {
   const updatePlayer = async (player: Player) => {
     setSaveStatus("saving");
     const token = await getToken();
-  
+
     // Clone player and update log
     const now = new Date();
     const formattedTime = now.toLocaleString(undefined, {
@@ -84,7 +100,7 @@ const PlayerCheckinPanel: React.FC = () => {
       participation: player.participation,
       teamAssignments: player.teamAssignments,
     };
-  
+
     try {
       const res = await fetch(`/api/players/${player.name}`, {
         method: "PUT",
@@ -94,35 +110,72 @@ const PlayerCheckinPanel: React.FC = () => {
         },
         body: JSON.stringify(updatedPlayer),
       });
-    
+
       const data = await res.json();
 
       if (!res.ok || !data || !data.name) {
         throw new Error(data?.message || "Failed to update player.");
       }
-    
+
       console.log("✅ Player updated:", data);
-    
+
       setSelectedPlayer(data);
-      setPlayers((prev) =>
-        prev.map((p) => (p.name === data.name ? data : p))
-      );
+      setPlayers((prev) => prev.map((p) => (p.name === data.name ? data : p)));
       setSaveStatus("saved");
     } catch (err) {
       console.error("❌ Failed to update player:", err);
       alert("There was an error saving the player.");
       setSaveStatus("idle");
     }
-    
+
     setTimeout(() => setSaveStatus("idle"), 3000);
-    
   };
-  
 
   return (
     <div>
+      <div className="my-6 pb-2">
+        <h3 className="pb-4 text-xl font-semibold">Add New Player</h3>
+        <div className="flex items-center gap-4">
+          <input
+            type="text"
+            placeholder="Player Name"
+            value={newPlayer}
+            onChange={(e) => setNewPlayer(e.target.value)}
+            className=" rounded border p-2"
+          />
+
+          <select
+            value={newPlayerGame}
+            onChange={(e) => setNewPlayerGame(e.target.value)}
+            className="rounded border p-2"
+          >
+            <option value="">Select Game (optional)</option>
+            {games.map((game) => (
+              <option key={game} value={game}>
+                {game}
+              </option>
+            ))}
+          </select>
+
+          <input
+            type="text"
+            placeholder="Team Name (optional)"
+            value={newPlayerTeam}
+            onChange={(e) => setNewPlayerTeam(e.target.value)}
+            className="rounded border p-2"
+          />
+
+          <button
+            onClick={addPlayer}
+            className="rounded bg-green-500 p-2 text-white hover:bg-green-600"
+          >
+            Add Player
+          </button>
+        </div>
+      </div>
+
       <h2 className="mb-4 text-xl font-bold">Modify Players</h2>
-      
+
       <input
         type="text"
         placeholder="Search player..."
@@ -147,17 +200,19 @@ const PlayerCheckinPanel: React.FC = () => {
                     (!selectedPlayer || p.name !== selectedPlayer.name)
                 )
               : players
-                  .filter((p) => !selectedPlayer || p.name !== selectedPlayer.name)
+                  .filter(
+                    (p) => !selectedPlayer || p.name !== selectedPlayer.name
+                  )
                   .sort((a, b) => b.points - a.points)
                   .slice(0, 5);
 
           setSuggestions(filtered);
         }}
-        className="rounded border p-2 mb-2 w-full"
+        className="mb-2 w-full rounded border p-2"
       />
 
       {suggestions.length > 0 && (
-        <ul className="border rounded bg-white max-h-60 overflow-y-auto shadow-md">
+        <ul className="max-h-60 overflow-y-auto rounded border bg-white shadow-md">
           {suggestions.map((player) => (
             <li
               key={player.name}
@@ -166,7 +221,7 @@ const PlayerCheckinPanel: React.FC = () => {
                 setQuery("");
                 setSuggestions([]);
               }}
-              className="cursor-pointer hover:bg-gray-100 p-2"
+              className="cursor-pointer p-2 hover:bg-gray-100"
             >
               {player.name}
             </li>
@@ -180,13 +235,14 @@ const PlayerCheckinPanel: React.FC = () => {
 
           <button
             onClick={() => setSelectedPlayer(null)}
-            className="text-sm text-blue-600 underline mt-1"
+            className="mt-1 text-sm text-blue-600 underline"
           >
             ← Back to Search
           </button>
 
-
-          <p className="mt-2"><strong>Points:</strong> {selectedPlayer.points}</p>
+          <p className="mt-2">
+            <strong>Points:</strong> {selectedPlayer.points}
+          </p>
 
           <div className="mt-3">
             <h4 className="font-medium">Logs</h4>
@@ -194,14 +250,16 @@ const PlayerCheckinPanel: React.FC = () => {
               <p className="text-sm text-gray-500">No logs</p>
             )}
             {selectedPlayer.log.map((entry, idx) => (
-              <div key={idx} className="flex items-center justify-between mb-2">
+              <div key={idx} className="mb-2 flex items-center justify-between">
                 <span className="text-sm">{entry}</span>
                 <button
                   onClick={() => {
-                    const newLogs = selectedPlayer.log.filter((_, i) => i !== idx);
+                    const newLogs = selectedPlayer.log.filter(
+                      (_, i) => i !== idx
+                    );
                     setSelectedPlayer({ ...selectedPlayer, log: newLogs });
                   }}
-                  className="text-red-500 text-sm hover:underline"
+                  className="text-sm text-red-500 hover:underline"
                 >
                   Remove
                 </button>
@@ -209,26 +267,33 @@ const PlayerCheckinPanel: React.FC = () => {
             ))}
           </div>
 
-
           <div className="mt-3">
             <h4 className="font-medium">Participation</h4>
             {selectedPlayer.participation.map((entry, idx) => (
-              <div key={idx} className="flex items-center gap-2 mb-2">
+              <div key={idx} className="mb-2 flex items-center gap-2">
                 <input
                   value={entry}
                   onChange={(e) => {
                     const newPart = [...selectedPlayer.participation];
                     newPart[idx] = e.target.value;
-                    setSelectedPlayer({ ...selectedPlayer, participation: newPart });
+                    setSelectedPlayer({
+                      ...selectedPlayer,
+                      participation: newPart,
+                    });
                   }}
                   className="flex-1 rounded border p-1"
                 />
                 <button
                   onClick={() => {
-                    const newPart = selectedPlayer.participation.filter((_, i) => i !== idx);
-                    setSelectedPlayer({ ...selectedPlayer, participation: newPart });
+                    const newPart = selectedPlayer.participation.filter(
+                      (_, i) => i !== idx
+                    );
+                    setSelectedPlayer({
+                      ...selectedPlayer,
+                      participation: newPart,
+                    });
                   }}
-                  className="text-red-500 text-sm hover:underline"
+                  className="text-sm text-red-500 hover:underline"
                 >
                   Remove
                 </button>
@@ -250,34 +315,45 @@ const PlayerCheckinPanel: React.FC = () => {
           <div className="mt-3">
             <h4 className="font-medium">Team Assignments</h4>
             {selectedPlayer.teamAssignments.map((ta, idx) => (
-              <div key={idx} className="flex items-center gap-2 mb-2">
+              <div key={idx} className="mb-2 flex items-center gap-2">
                 <input
                   value={ta.game}
                   onChange={(e) => {
                     const updated = [...selectedPlayer.teamAssignments];
                     updated[idx].game = e.target.value;
-                    setSelectedPlayer({ ...selectedPlayer, teamAssignments: updated });
+                    setSelectedPlayer({
+                      ...selectedPlayer,
+                      teamAssignments: updated,
+                    });
                   }}
                   placeholder="Game (e.g., Valorant)"
-                  className="flex-1 rounded border p-1 w-full"
+                  className="w-full flex-1 rounded border p-1"
                 />
                 <input
                   value={ta.team}
                   onChange={(e) => {
                     const updated = [...selectedPlayer.teamAssignments];
                     updated[idx].team = e.target.value;
-                    setSelectedPlayer({ ...selectedPlayer, teamAssignments: updated });
+                    setSelectedPlayer({
+                      ...selectedPlayer,
+                      teamAssignments: updated,
+                    });
                   }}
                   placeholder="Team (e.g., Red)"
-                  className="flex-1 rounded border p-1 w-full"
+                  className="w-full flex-1 rounded border p-1"
                 />
 
                 <button
                   onClick={() => {
-                    const newTeams = selectedPlayer.teamAssignments.filter((_, i) => i !== idx);
-                    setSelectedPlayer({ ...selectedPlayer, teamAssignments: newTeams });
+                    const newTeams = selectedPlayer.teamAssignments.filter(
+                      (_, i) => i !== idx
+                    );
+                    setSelectedPlayer({
+                      ...selectedPlayer,
+                      teamAssignments: newTeams,
+                    });
                   }}
-                  className="text-red-500 text-sm hover:underline"
+                  className="text-sm text-red-500 hover:underline"
                 >
                   Remove
                 </button>
@@ -287,7 +363,10 @@ const PlayerCheckinPanel: React.FC = () => {
               onClick={() =>
                 setSelectedPlayer({
                   ...selectedPlayer,
-                  teamAssignments: [...selectedPlayer.teamAssignments, { game: "", team: "" }],
+                  teamAssignments: [
+                    ...selectedPlayer.teamAssignments,
+                    { game: "", team: "" },
+                  ],
                 })
               }
               className="text-sm text-blue-500 underline"
@@ -296,10 +375,9 @@ const PlayerCheckinPanel: React.FC = () => {
             </button>
           </div>
 
-
           <button
             onClick={() => updatePlayer(selectedPlayer)}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="mt-4 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
             Save Changes
           </button>
@@ -309,44 +387,8 @@ const PlayerCheckinPanel: React.FC = () => {
           {saveStatus === "saved" && (
             <p className="mt-2 text-sm text-green-600">Changes saved ✅</p>
           )}
-
         </div>
       )}
-      
-      <div className="mt-6">
-        <h3 className="font-semibold">Add New Player</h3>
-        <div className="flex items-center gap-4">
-          <input
-            type="text"
-            placeholder="Player Name"
-            value={newPlayer}
-            onChange={(e) => setNewPlayer(e.target.value)}
-            className=" rounded border p-2"
-          />
-          
-          <input
-            type="text"
-            placeholder="Game (optional)"
-            value={newPlayerGame}
-            onChange={(e) => setNewPlayerGame(e.target.value)}
-            className="rounded border p-2"
-          />
-          <input
-            type="text"
-            placeholder="Team Name (optional)"
-            value={newPlayerTeam}
-            onChange={(e) => setNewPlayerTeam(e.target.value)}
-            className="rounded border p-2"
-          />
-
-          <button
-            onClick={addPlayer}
-            className="rounded bg-green-500 p-2 text-white hover:bg-green-600"
-          >
-            Add Player
-          </button>
-        </div>
-      </div>
     </div>
   );
 };
