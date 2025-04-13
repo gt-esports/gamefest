@@ -1,11 +1,11 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: ["./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       screens: {
-        xs: "350px",
-        md: "750px",
+        xs: "300px",
+        md: "700px",
         lg: "1200px",
       },
       fontFamily: {
@@ -24,7 +24,7 @@ export default {
         "home-1": "url('./assets/home-1.jpg')",
         "normal-streak": "url('./assets/streaks.jpg')",
         streak:
-          "linear-gradient(0deg, rgba(22, 34, 57, 0.52) 0%, rgba(0, 0, 0, 0.92) 100%), url('./assets/streaks.jpg')",
+          "linear-gradient(0deg, rgba(22, 34, 57, 0.52) 0%, rgba(0, 0, 0, 0.92) 100%), url('./assets/streaks_4k.png')",
         necard:
           "linear-gradient(180deg, #545454 6.25%, rgba(174, 174, 174, 0.72) 96.87%)",
       },
@@ -33,12 +33,12 @@ export default {
       },
       keyframes: {
         scroll: {
-          '0%': { transform: 'translateX(0)' },
-          '100%': { transform: 'translateX(-50%)' },
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
         },
       },
       animation: {
-        'scroll-sponsors': 'scroll 40s linear infinite',
+        "scroll-sponsors": "scroll 40s linear infinite",
       },
     },
   },

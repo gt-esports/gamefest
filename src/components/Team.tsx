@@ -1,141 +1,148 @@
 import { useState } from 'react';
-import { FaChevronDown, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import tft from "../assets/game-covers/teamfight-tactics-cover.jpg";
+import { FaChevronDown } from 'react-icons/fa';
+import SearchBar from './SearchBar';
+import DropDownList from './DropDownList';
 
 const Team = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const [c_index, setIndex] = useState(0);
+  const [selectedGame, setSelectedGame] = useState<string>("");
 
-  const schoolTeam = [
+  const teams = [
     {
-      school: "School A",
-      logo: tft,
-      games: ["Fortnite", "Marvel Rival", "Overwatch", "Brawl Stars", "Minecraft"],
-      teams: ["Aaaaaaaaaaaaaaa", "Bbbbbbb", "C", "D", "E"],
+      name: "Team A",
+      players: ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5'],
+      points: 100,
+      game: "Game A",
     },
     {
-      school: "School B",
-      logo: tft,
-      games: ["1", "2"],
-      teams: ["A", "B"],
+      name: "Team B",
+      players: ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5'],
+      points: 90,
+      game: "Game A",
     },
     {
-      school: "School C",
-      logo: tft,
-      games: ["1", "2", "3", "4"],
-      teams: ["A", "B", "C", "D"],
+      name: "Team C",
+      players: ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5'],
+      points: 80,
+      game: "Game A",
     },
+    {
+      name: "Team D",
+      players: ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5'],
+      points: 70,
+      game: "Game B",
+    },
+    {
+      name: "Team E",
+      players: ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5'],
+      points: 60,
+      game: "Game B",
+    },
+    {
+      name: "Team F",
+      players: ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5'],
+      points: 50,
+      game: "Game B",
+    },
+  ];
+
+  const games = [
+    "Select a game",
+    "Game A",
+    "Game B",
+    "Game C",
   ];
 
   const handleToggle = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
-  const handleNext = () => {
-    setIndex((prev) => (prev + 1) % 3);
+  const handleTeamSearch = (teamName: string) => {
+    const trimmedName = teamName.trim().toLowerCase();
+    const index = teams.findIndex((t) => t.name.trim().toLowerCase() === trimmedName);
+
+    if (index !== -1) {
+      setOpenIndex(index);
+
+      setTimeout(() => {
+        const id = teams[index].name.trim().replace(/\s+/g, "-").toLowerCase();
+        const teamsElement = document.getElementById(id);
+
+        if (teamsElement) {
+          const y = -70;
+          const pos = teamsElement.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({
+            top: pos + y,
+            behavior: "smooth",
+          });
+        }
+      }, 100);
+    }
   };
 
-  const handlePrev = () => {
-    setIndex((prev) => (prev - 1 + 3) % 3);
+  const handleGameSelect = (gameName: string) => {
+    setSelectedGame(gameName);
+    setOpenIndex(null);
   };
+
+  const filteredTeams = selectedGame && selectedGame !== "Select a game"
+    ? teams.filter((team) => team.game.toLowerCase() === selectedGame.toLowerCase())
+    : teams;
 
   return (
-    <div className="mx-auto p-8 px-20">
-      <div className="space-y-8">
-        {schoolTeam.map((tab, index) => (
+    <div className="mx-auto p-8 px-10 lg:px-20">
+      <div className="flex flex-col lg:flex-row justify-between items-center">
+        <SearchBar 
+          onSearch={handleTeamSearch}
+          items={teams.map((team) => team.name)}
+        />
+        <DropDownList 
+          items={games}
+          onSelect={handleGameSelect}
+        />
+      </div>
+      <div className="space-y-4">
+        {filteredTeams.map((tab, index) => (
           <div
             key={index}
-            className={`border border-gray-300 rounded-lg p-4 bg-transparent text-white ${
-              openIndex === index ? 'bg-opacity-80' : 'bg-opacity-60'
+            id={tab.name.replace(/\s+/g, "-").toLowerCase()}
+            className={`rounded-lg border border-white/20 p-4 bg-opacity-25 bg-gradient-to-br ${
+              openIndex === index ? 'from-[#2e1d1d] to-[#101c3b]' : 'from-[#241717] to-[#101c3b]'
             } transition-all duration-200 ease-in-out`}
           >
             <button
               onClick={() => handleToggle(index)}
               className="w-full flex justify-between items-center text-left font-semibold text-white hover:text-tech-gold focus:outline-none"
             >
-              <span className="text-lg tracking-wider">{tab.school}</span>
+              <span className="text-lg tracking-wider">{tab.name}</span>
               <FaChevronDown
-                className={`transition-transform duration-200 ${
-                  openIndex === index ? 'transform rotate-180' : ''
-                }`}
+                className={`transition-transform duration-200 ${ openIndex === index ? 'transform rotate-180' : '' }`}
               />
             </button>
             {openIndex === index && (
               <div className="mt-4 flex flex-col items-center">
-                <div className="hidden md:flex justify-between space-x-8 w-full">
-                  
-                  <div>
-                    {/* School Logo here*/}
-                    <img src={tft} className={`w-48 rounded-lg`} alt="" />
+                <div className="hidden lg:flex justify-between items-start space-x-8 w-full">
+                  <div className="flex flex-col">
+                    <h1 className='font-bayon text-9xl'>{tab.points}</h1>
+                    <span className='font-quicksand text-xl'>points</span>
                   </div>
-
-                  <div className="flex space-x-8 w-full">
-                    
-                    {/* Participating Games */}
-                    <div className="w-full bg-purple-800 bg-opacity-40 rounded-lg flex flex-col text-white p-4">
-                      <span className="font-bayon text-2xl text-center">
-                        Participating Games
-                      </span>
-                      <div className="mt-4 w-full">
-                        {tab.games.map((game, idx) => (
-                          <div key={idx} className="items-center px-4 py-2 border rounded-lg mt-4 border-gray-300 text-center">
-                            <span className="text-sm">{game}</span>
-                          </div>
-                        ))}
+                  {/* Player Roster */}
+                  <div className="w-full max-h-screen overflow-y-auto">
+                    {tab.players.map((player, idx) => (
+                      <div key={idx} className="flex items-start justify-between px-4 py-2 border rounded-lg mb-2 border-tech-gold/50 hover:border-tech-gold border-b-4 text-center">
+                        <span className="text-lg font-bold">{player}</span>
                       </div>
-                    </div>
-
-                    {/* Participating Teams */}
-                    <div className="w-full bg-blue-500 bg-opacity-40 rounded-lg flex flex-col text-white p-4">
-                      <span className="font-bayon text-2xl text-center">
-                        Participating Teams
-                      </span>
-                      <div className="mt-4 w-full">
-                        {tab.teams.map((team, idx) => (
-                          <div key={idx} className="flex items-center px-4 py-2 border rounded-lg mt-4 border-gray=300">
-                            <span className="text-sm flex-grow">{team}</span>
-                            <button className="relative bg-tech-gold text-white text-xs px-2 py-1 rounded-md hover:bg-gray-600 ml-2">
-                              View Team
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
-
-                {/* One card carousel format */}
-                <div className="flex flex-wrap">
-                  <div className="flex md:hidden w-fit relative p-4">
-                    <button onClick={handlePrev} className="relative -left-2 top-1/2 -translate-y-1/2">
-                      <FaChevronLeft className="text-white text-xl hover:text-tech-gold" />
-                    </button>
-
-                  {c_index === 0 && (
-                    <img src={tab.logo} alt={tab.school} className="h-48 w-36 rounded-lg bg-gray-400" />
-                  )}
-                  {c_index === 1 && (
-                    <div className="text-center bg-purple-800 bg-opacity-50 rounded-lg flex flex-col px-8 py-4">
-                      <span className="text-2xl font-bayon text-gray-200">Participating Games</span>
-                      {tab.games.map((game, idx) => (
-                        <div key={idx} className="py-2 border rounded-lg mt-4 p-4">{game}</div>
-                      ))}
+                {/* Mobile view */}
+                <div className="lg:hidden flex flex-col overflow-y-auto w-full px-1">
+                  <h1 className='font-bayon text-9xl'>{tab.points}<span className='font-quicksand text-lg'>pts</span></h1>
+                  {tab.players.map((player, idx) => (
+                    <div key={idx} className="flex items-start justify-between px-4 py-2 border rounded-lg mb-2 border-tech-gold/50 hover:border-tech-gold border-b-4 text-center">
+                      <span className="text-lg font-bold">{player}</span>
                     </div>
-                  )}
-                  {c_index === 2 && (
-                    <div className="w-fit text-center bg-blue-500 bg-opacity-40 rounded-lg flex flex-col text-white px-8 py-4">
-                      <span className="text-2xl font-bayon text-gray-200">Participating Teams</span>
-                      {tab.teams.map((team, idx) => (
-                        /* Add clickable team link */
-                        <div key={idx} className="py-2 border rounded-lg mt-4 p-4">{team}</div>
-                      ))}
-                    </div>
-                  )}
-
-                  <button onClick={handleNext} className="relative -right-2 top-1/2 -translate-y-1/2">
-                    <FaChevronRight className="text-white text-xl hover:text-tech-gold" />
-                  </button>
-                  </div>
+                  ))}
                 </div>
               </div>
             )}
