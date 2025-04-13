@@ -75,28 +75,47 @@ const PlayerCheckinPanel: React.FC = () => {
 
     const editor = user?.username || user?.fullName || "Unknown User";
 
-    const updatedPlayer = {
+    const updatedPlayer: Player = {
       ...player,
       log: [
         ...(player.log || []),
         `Player profile updated by ${editor} on ${formattedTime}`,
       ],
+      participation: player.participation,
+      teamAssignments: player.teamAssignments,
     };
   
-    await fetch(`/api/players/${player.name}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(updatedPlayer),
-    });
-  
-    console.log("✅ Player updated:", updatedPlayer);
-    setSelectedPlayer(updatedPlayer); // update UI with latest log
-    setSaveStatus("saved");
-  
+    try {
+      const res = await fetch(`/api/players/${player.name}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updatedPlayer),
+      });
+    
+      const data = await res.json();
+
+      if (!res.ok || !data || !data.name) {
+        throw new Error(data?.message || "Failed to update player.");
+      }
+    
+      console.log("✅ Player updated:", data);
+    
+      setSelectedPlayer(data);
+      setPlayers((prev) =>
+        prev.map((p) => (p.name === data.name ? data : p))
+      );
+      setSaveStatus("saved");
+    } catch (err) {
+      console.error("❌ Failed to update player:", err);
+      alert("There was an error saving the player.");
+      setSaveStatus("idle");
+    }
+    
     setTimeout(() => setSaveStatus("idle"), 3000);
+    
   };
   
 
@@ -108,20 +127,37 @@ const PlayerCheckinPanel: React.FC = () => {
         type="text"
         placeholder="Search player..."
         value={query}
+        onFocus={() => {
+          const top = players
+            .filter((p) => !selectedPlayer || p.name !== selectedPlayer.name)
+            .sort((a, b) => b.points - a.points)
+            .slice(0, 5);
+
+          setSuggestions(top);
+        }}
         onChange={(e) => {
           const val = e.target.value;
           setQuery(val);
-          if (val.length > 0) {
-            setSuggestions(players.filter((p) => p.name.toLowerCase().includes(val.toLowerCase())));
-          } else {
-            setSuggestions([]);
-          }
+
+          const filtered =
+            val.length > 0
+              ? players.filter(
+                  (p) =>
+                    p.name.toLowerCase().includes(val.toLowerCase()) &&
+                    (!selectedPlayer || p.name !== selectedPlayer.name)
+                )
+              : players
+                  .filter((p) => !selectedPlayer || p.name !== selectedPlayer.name)
+                  .sort((a, b) => b.points - a.points)
+                  .slice(0, 5);
+
+          setSuggestions(filtered);
         }}
         className="rounded border p-2 mb-2 w-full"
       />
 
       {suggestions.length > 0 && (
-        <ul className="border rounded bg-white">
+        <ul className="border rounded bg-white max-h-60 overflow-y-auto shadow-md">
           {suggestions.map((player) => (
             <li
               key={player.name}

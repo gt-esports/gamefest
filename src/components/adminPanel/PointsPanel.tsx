@@ -52,7 +52,13 @@ const PointsPanel: React.FC = () => {
 
   const updatePoints = async (player: Player, amount: number) => {
     const token = await getToken();
-    const logEntry = `${staffName}[${staffRole}] gave ${player.name} ${amount} tokens`;
+    const now = new Date();
+    const timestamp = now.toLocaleString(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+    const logEntry = `${staffName}[${staffRole}] gave ${player.name} ${amount} points on ${timestamp}`;
+
     const updated = {
       points: player.points + amount,
       log: [...player.log, logEntry],
