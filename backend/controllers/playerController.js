@@ -32,8 +32,8 @@ const getPlayerByName = async (req, res) => {
 };
 
 const updatePlayer = async (req, res) => {
-  // const role = req.auth?.user?.publicMetadata?.role;
-  const role = "admin";
+  const role = req.auth?.user?.publicMetadata?.role;
+  // const role = "admin";
   const updateFields = {};
 
   if (role === "admin") {

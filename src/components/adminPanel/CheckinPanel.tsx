@@ -103,45 +103,7 @@ const PlayerCheckinPanel: React.FC = () => {
   return (
     <div>
       <h2 className="mb-4 text-xl font-bold">Modify Players</h2>
-      {/* <ul className="mb-4">
-        {players.map((player) => (
-          <li key={player.name} className="mb-3">
-            <strong>{player.name}</strong> — Points: {player.points}
-            <br />
-            Teams:
-            {player.teamAssignments.map((ta, idx) => (
-              <div key={idx}>
-                {ta.game}:{" "}
-                <input
-                  value={ta.team}
-                  onChange={(e) => {
-                    const newTeam = e.target.value;
-                    setPlayers((prev) =>
-                      prev.map((p) =>
-                        p.name === player.name
-                          ? {
-                              ...p,
-                              teamAssignments: p.teamAssignments.map((t, i) =>
-                                i === idx ? { ...t, team: newTeam } : t
-                              ),
-                            }
-                          : p
-                      )
-                    );
-                  }}
-                  className="rounded border p-1"
-                />
-              </div>
-            ))}
-            <button
-              onClick={() => updatePlayer(player)}
-              className="mt-1 text-sm text-blue-600 underline"
-            >
-              Save
-            </button>
-          </li>
-        ))}
-      </ul> */}
+      
       <input
         type="text"
         placeholder="Search player..."
@@ -179,6 +141,14 @@ const PlayerCheckinPanel: React.FC = () => {
       {selectedPlayer && (
         <div className="mt-4 border-t pt-4">
           <h3 className="text-lg font-semibold">{selectedPlayer.name}</h3>
+
+          <button
+            onClick={() => setSelectedPlayer(null)}
+            className="text-sm text-blue-600 underline mt-1"
+          >
+            ← Back to Search
+          </button>
+
 
           <p className="mt-2"><strong>Points:</strong> {selectedPlayer.points}</p>
 
@@ -246,14 +216,26 @@ const PlayerCheckinPanel: React.FC = () => {
             {selectedPlayer.teamAssignments.map((ta, idx) => (
               <div key={idx} className="flex items-center gap-2 mb-2">
                 <input
+                  value={ta.game}
+                  onChange={(e) => {
+                    const updated = [...selectedPlayer.teamAssignments];
+                    updated[idx].game = e.target.value;
+                    setSelectedPlayer({ ...selectedPlayer, teamAssignments: updated });
+                  }}
+                  placeholder="Game (e.g., Valorant)"
+                  className="flex-1 rounded border p-1 w-full"
+                />
+                <input
                   value={ta.team}
                   onChange={(e) => {
-                    const newTeams = [...selectedPlayer.teamAssignments];
-                    newTeams[idx].team = e.target.value;
-                    setSelectedPlayer({ ...selectedPlayer, teamAssignments: newTeams });
+                    const updated = [...selectedPlayer.teamAssignments];
+                    updated[idx].team = e.target.value;
+                    setSelectedPlayer({ ...selectedPlayer, teamAssignments: updated });
                   }}
-                  className="flex-1 rounded border p-1"
+                  placeholder="Team (e.g., Red)"
+                  className="flex-1 rounded border p-1 w-full"
                 />
+
                 <button
                   onClick={() => {
                     const newTeams = selectedPlayer.teamAssignments.filter((_, i) => i !== idx);
