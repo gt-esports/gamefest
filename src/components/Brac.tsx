@@ -3,24 +3,57 @@ import { SingleEliminationBracket, SVGViewer, createTheme} from "@g-loot/react-t
 import DropDownList from "../components/DropDownList";
 import { useNavigate } from "react-router-dom";
 import eventMap from "../assets/event_map.png";
-import data from "../data/bracketData.json"; // change to databose fetch later
-function getPlayersForTeam(
-  game: string,
-  teamName: string
-): string[] {
-  const teams = data.GAMES.pc_block[game as keyof typeof data.GAMES.pc_block];
-  return teams?.[teamName as keyof typeof teams] || [];
-}
+import { useAuth } from "@clerk/clerk-react";
 
 function Brac({ game, user }: { game: string; user: { role: string } }) {
-  const [selectedGame, setSelectedGame] = useState(game);
+  const [gameData, setGameData] = useState<any[]>([]);
+  const { getToken } = useAuth();
+
+  useEffect(() => {
+    const fetchGameData = async () => {
+      try {
+        const token = await getToken();
+        const res = await fetch("/api/games", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        setGameData(data);
+        console.log("Game data fetched:", data);
+      } catch (err) {
+        console.error("Failed to fetch game data:", err);
+      }
+    };
+
+    fetchGameData();
+  }, []);
+
+  async function getPlayersForTeam(game: string, teamName: string): Promise<string[]> {
+    const token = await getToken();
+    const res = await fetch("/api/games", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    const gameEntry = data.find((g: any) => g.name === game);
+    const teamData = gameEntry?.teams?.[0];
+    return teamData?.[teamName] || [];
+  }  
+
+  const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [winners, setWinners] = useState<{ [matchId: string]: string }>({});
-  const isBoothGame = data.GAMES.booths.includes(selectedGame);
-  const teamData = data.GAMES.pc_block[selectedGame as keyof typeof data.GAMES.pc_block]; //selectedGame is a key in pc_block
-  const teamNames = teamData ? Object.keys(teamData) : [];
-  const isBracketGame = teamNames.length >= 2;
+  const teamData = Array.isArray(gameData)
+  ? gameData.find((g: any) => g.name === selectedGame)?.teams?.[0]
+  : undefined;
+  const teamNames = teamData
+  ? Object.keys(teamData).filter((key) => key !== "players")
+  : [];
+  const isBracketGame = selectedGame && teamNames.length >= 2;
+  const isBoothGame = selectedGame && !isBracketGame; //need change
   const router = useNavigate();
-  
+
   const generateMatches = () => {
     type Team = { name: string };
     type Participant = { id: string; name: string; isWinner: boolean | undefined };
@@ -34,45 +67,44 @@ function Brac({ game, user }: { game: string; user: { role: string } }) {
       participants: Participant[];
       onClick?: () => void;
     };
-  
+
     const localWinners: { [matchId: string]: string } = {};
     const matches: Match[] = [];
     let idCounter = 1;
-  
-    // Pad to the next power of two with BYEs in round 1
+
     const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(teamNames.length)));
     const paddedTeams: Team[] = [...teamNames.map((t) => ({ name: t }))];
     while (paddedTeams.length < nextPowerOfTwo) {
       paddedTeams.push({ name: "BYE" });
     }
-  
+
     let currentRoundTeams: Team[] = paddedTeams;
     let round = 1;
-  
+
     const matchMap: { [round: number]: Match[] } = {};
-  
+
     while (currentRoundTeams.length > 1) {
       const roundMatches: Match[] = [];
       const nextRoundTeams: Team[] = [];
-  
+
       for (let i = 0; i < currentRoundTeams.length; i += 2) {
         const team1 = currentRoundTeams[i];
         const team2 = currentRoundTeams[i + 1] || { name: "BYE" };
         const id = `${idCounter++}`;
-  
+
         const isBye = team2.name === "BYE";
-  
+
         if (isBye) {
           localWinners[id] = team1.name;
         }
-  
+
         const winnerName = isBye ? team1.name : winners[id];
-  
+
         const participants = [
           { id: `${i}`, name: team1.name, isWinner: winnerName === team1.name },
           { id: `${i + 1}`, name: team2.name, isWinner: winnerName === team2.name }
         ];
-  
+
         const match: Match = {
           id,
           name: `Match ${id}`,
@@ -88,18 +120,17 @@ function Brac({ game, user }: { game: string; user: { role: string } }) {
               }
             : undefined
         };
-  
+
         roundMatches.push(match);
         nextRoundTeams.push({ name: winnerName || "TBD" });
       }
-  
+
       matchMap[round] = roundMatches;
       matches.push(...roundMatches);
       currentRoundTeams = nextRoundTeams;
       round++;
     }
-  
-    // Wire up nextMatchId
+
     const roundKeys = Object.keys(matchMap).map(Number);
     for (let i = 0; i < roundKeys.length - 1; i++) {
       const current = matchMap[roundKeys[i]];
@@ -114,10 +145,13 @@ function Brac({ game, user }: { game: string; user: { role: string } }) {
     }
 
     return matches;
-
   };
 
-  const matches = useMemo(() => generateMatches(), [winners, selectedGame]);
+  const matches = useMemo(() => {
+    if (!teamData) return [];
+    return generateMatches();
+  }, [winners, selectedGame, teamData]);
+  
 
   const getFinalPlacements = () => {
     const finalMatch = matches[matches.length - 1];
@@ -132,11 +166,7 @@ function Brac({ game, user }: { game: string; user: { role: string } }) {
   };
 
   const placements = getFinalPlacements();
-
-  const allGameKeys = [
-    ...Object.keys(data.GAMES.pc_block),
-    ...data.GAMES.booths
-  ];
+  const allGameKeys = Array.isArray(gameData) ? gameData.map((game) => game.name) : [];
 
   return (
     <div className="flex justify-center items-center min-h-screen w-full">
@@ -184,25 +214,34 @@ function Brac({ game, user }: { game: string; user: { role: string } }) {
               }}              
               svgWrapper={({ children, ...props }) => (
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  <SVGViewer background="transparent" SVGBackground="transparent" width={1200} height={800} {...props}>
-                    {children}
-                  </SVGViewer>
+                    <SVGViewer background="transparent" SVGBackground="transparent" width={1200} height={800} {...props}>
+                        {children}
+                    </SVGViewer>
                 </div>
               )}
               matchComponent={({ match, topParty, bottomParty, topWon, bottomWon, teamNameFallback }) => {
-                const handleNavigate = () => {
+                const handleNavigate = async () => {
+                  const team1 = match.participants[0]?.name;
+                  const team2 = match.participants[1]?.name;
+                
+                  if (!team1 || !team2 || team1 === 'BYE' || team2 === 'BYE' || team1 === 'TBD' || team2 === 'TBD') return;
+                
+                  const players1 = await getPlayersForTeam(selectedGame, team1);
+                  const players2 = await getPlayersForTeam(selectedGame, team2);
+                
                   console.log('Navigating to match:', match.id);
+                
                   router(`/match/${match.id}`, {
                     state: {
                       round: match.tournamentRoundText,
                       game: selectedGame,
-                      team1: match.participants[0].name,
-                      team2: match.participants[1].name,
-                      players1: getPlayersForTeam(selectedGame, match.participants[0].name),
-                      players2: getPlayersForTeam(selectedGame, match.participants[1].name),
-                    }
-                  });                  
-                };
+                      team1,
+                      team2,
+                      players1,
+                      players2,
+                    },
+                  });
+                };                
               
                 const handleToggle = (e, partyName) => {
                   e.stopPropagation();
