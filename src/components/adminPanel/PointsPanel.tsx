@@ -25,26 +25,41 @@ const PointsPanel: React.FC = () => {
   const [pointsToAdd, setPointsToAdd] = useState<string>("");
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Player[]>([]);
-  
 
   useEffect(() => {
     const fetchData = async () => {
       const token = await getToken();
 
-      const playerRes = await fetch("/api/players", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const [playerRes, staffRes] = await Promise.all([
+        fetch("/api/players", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch("/api/staff", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
       const playersData = await playerRes.json();
       setPlayers(playersData);
 
-      const staffRes = await fetch("/api/staff", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
       const staffData: Staff[] = await staffRes.json();
-      const currentUser = user?.username || user?.firstName || "";
-      const current = staffData.find((s) => s.name === currentUser);
-      setStaffRole(current?.role || "");
-      setStaffName(current?.name || "");
+
+      // Check with priority: Discord username > Clerk username > First Name
+      const discordName = user?.externalAccounts?.find(
+        (acc) => acc.provider === "discord"
+      )?.username;
+      const fallbackName = user?.username || user?.firstName || "";
+      const nameToCheck = discordName || fallbackName;
+
+      const current = staffData.find((s) => s.name === nameToCheck);
+
+      if (!current) {
+        alert("You're not authorized to assign points.");
+        return;
+      }
+
+      setStaffRole(current.role);
+      setStaffName(discordName || current.name);
     };
 
     fetchData();
@@ -90,14 +105,21 @@ const PointsPanel: React.FC = () => {
     await Promise.all(toUpdate.map((p) => updatePoints(p, value)));
 
     setPointsToAdd("");
-
   };
+
+  if (!staffName) {
+    return (
+      <div className="p-4 font-semibold text-red-600">
+        ⚠️ You are not authorized to access this panel.
+      </div>
+    );
+  }
 
   return (
     <div>
       <h2 className="mb-4 text-xl font-bold">Award or Remove Points</h2>
 
-      <div className="overflow-x-auto whitespace-nowrap py-2 border-b mb-4">
+      <div className="mb-4 overflow-x-auto whitespace-nowrap border-b py-2">
         {players.map((player) => {
           const isSelected = selectedPlayers.has(player.name);
           return (
@@ -114,8 +136,10 @@ const PointsPanel: React.FC = () => {
                   return next;
                 });
               }}
-              className={`inline-block px-4 py-2 mr-2 rounded shadow-sm ${
-                isSelected ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300"
+              className={`mr-2 inline-block rounded px-4 py-2 shadow-sm ${
+                isSelected
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 hover:bg-gray-300"
               }`}
             >
               {player.name}
@@ -143,7 +167,7 @@ const PointsPanel: React.FC = () => {
             setSuggestions([]);
           }
         }}
-        className="rounded border p-2 mb-2 w-full"
+        className="mb-2 w-full rounded border p-2"
       />
 
       {suggestions.map((player) => (
@@ -154,7 +178,7 @@ const PointsPanel: React.FC = () => {
             setQuery("");
             setSuggestions([]);
           }}
-          className="cursor-pointer hover:bg-gray-100 p-2"
+          className="cursor-pointer p-2 hover:bg-gray-100"
         >
           {player.name}
         </li>
@@ -163,15 +187,17 @@ const PointsPanel: React.FC = () => {
       {players
         .filter((player) => selectedPlayers.has(player.name))
         .map((player) => (
-          <div key={player.name} className="border-t pt-4 mt-4">
+          <div key={player.name} className="mt-4 border-t pt-4">
             <h3 className="text-lg font-bold">{player.name}</h3>
             <p className="mb-2">Points: {player.points}</p>
-
 
             <div>
               <h4 className="font-medium">Logs</h4>
               {player.log.map((entry, idx) => (
-                <div key={idx} className="flex justify-between items-center text-sm mb-2">
+                <div
+                  key={idx}
+                  className="mb-2 flex items-center justify-between text-sm"
+                >
                   <span>{entry}</span>
                   <button
                     onClick={() => {
@@ -183,7 +209,7 @@ const PointsPanel: React.FC = () => {
                         prev.map((p) => (p.name === player.name ? updated : p))
                       );
                     }}
-                    className="text-red-500 text-xs hover:underline"
+                    className="text-xs text-red-500 hover:underline"
                   >
                     Remove
                   </button>
@@ -191,7 +217,7 @@ const PointsPanel: React.FC = () => {
               ))}
             </div>
           </div>
-      ))}
+        ))}
 
       <div className="mb-4 mt-4 flex items-center gap-2">
         <input
