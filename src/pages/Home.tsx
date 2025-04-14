@@ -1,16 +1,10 @@
 import Carousel from "../components/Carousel";
 import Footer from "../components/Footer";
 import { sponsors } from "../data/sponsors";
-import CS from '../assets/game-icons/cs.png'
-import RL from '../assets/game-icons/rl.png'
-import R6S from '../assets/game-icons/r6s.png'
-import OW2 from '../assets/game-icons/ow2.png'
-import VAL from '../assets/game-icons/val.png'
-import RIVALS from '../assets/game-icons/rivals.png'
-import LOL from '../assets/game-icons/lol.png'
-import APEX from '../assets/game-icons/apex.png'
 import MCHEADLINER from '../assets/mc-headliner.jpg'
 import FORTNITEHEADLINER from '../assets/fortnite-headliner.jpg'
+import PCBLOCK1 from '../assets/pc_block_1.jpg'
+import PCBLOCK2 from '../assets/pc_block_2.jpg'
 
 function Home() {
   const scrollToSection = (sectionId: string, offset: number = 0) => {
@@ -81,15 +75,7 @@ function Home() {
             <p className='text-white text-lg text-center'>9:30AM - 10:00AM</p>
           </div>
           <div className='col-span-4 lg:col-span-1 mb-12'>
-            <div className='bg-gray-800/80 rounded-lg pt-4 text-2xl h-full'>
-              <h3 className='font-bayon text-tech-gold text-center'>PC BLOCK 1</h3>
-              <div className='flex flex-col items-center py-4'>
-                <img src={CS} className='w-[6rem] my-2'/>
-                <img src={RL} className='w-[6rem] my-2'/>
-                <img src={R6S} className='w-[6rem] my-2'/>
-                <img src={OW2} className='w-[6rem] my-2'/>
-              </div>
-            </div>
+            <img src={PCBLOCK1} className='rounded-lg h-full w-full'/>
             <p className='text-white text-lg text-center'>10:00AM - 2:30PM</p>
           </div>
           <div className='col-span-4 lg:col-span-1 mb-12'>
@@ -97,16 +83,8 @@ function Home() {
               <p className='text-white text-lg text-center'>2:30PM - 3:00PM</p>
           </div>
           <div className='col-span-4 lg:col-span-1 mb-12'>
-                <div className='bg-gray-800/80 rounded-lg pt-4 text-2xl h-full'>
-                  <h3 className='font-bayon text-tech-gold text-center'>PC BLOCK 2</h3>
-                  <div className='flex flex-col items-center '>
-                    <img src={VAL} className='w-[6rem] my-2'/>
-                    <img src={RIVALS} className='w-[6rem] my-2'/>
-                    <img src={LOL} className='w-[6rem] my-2'/>
-                    <img src={APEX} className='w-[6rem] my-2'/>
-                  </div>
-                </div>
-              <p className='text-white text-lg text-center'>3:00PM - 7:30PM</p>
+            <img src={PCBLOCK2} className='rounded-lg h-full w-full'/>
+            <p className='text-white text-lg text-center'>3:00PM - 7:30PM</p>
           </div>
         </div>
         <button
