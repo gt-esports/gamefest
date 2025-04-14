@@ -10,8 +10,8 @@ const router = express.Router();
 
 router.use(requireClerkAuth);
 
-router.get("/", requireStaffOrAdmin, gameController.getAllGames);
-router.get("/:name", requireStaffOrAdmin, gameController.getGameByName);
+router.get("/", gameController.getAllGames);
+router.get("/:name", gameController.getGameByName);
 router.put("/:name", requireAdmin, gameController.updateGame);
 router.post("/", requireAdmin, gameController.createGame);
 router.delete("/:name", requireAdmin, gameController.deleteGame);
