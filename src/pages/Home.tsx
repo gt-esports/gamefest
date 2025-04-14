@@ -1,8 +1,6 @@
 import Carousel from "../components/Carousel";
 import Footer from "../components/Footer";
-import TournamentCard from "../components/TournamentCard";
 import { sponsors } from "../data/sponsors";
-import Avatar from "../components/Avatar";
 import CS from '../assets/game-icons/cs.png'
 import RL from '../assets/game-icons/rl.png'
 import R6S from '../assets/game-icons/r6s.png'
@@ -11,18 +9,8 @@ import VAL from '../assets/game-icons/val.png'
 import RIVALS from '../assets/game-icons/rivals.png'
 import LOL from '../assets/game-icons/lol.png'
 import APEX from '../assets/game-icons/apex.png'
-
-const tournaments = [
-  {
-    title: "Tournament 1",
-  },
-  {
-    title: "Tournament 2",
-  },
-  {
-    title: "Tournament 3",
-  },
-];
+import MCHEADLINER from '../assets/mc-headliner.jpg'
+import FORTNITEHEADLINER from '../assets/fortnite-headliner.jpg'
 
 function Home() {
   const scrollToSection = (sectionId: string, offset: number = 0) => {
@@ -81,7 +69,6 @@ function Home() {
       >
         <div className="flex flex-row items-center justify-center pb-4 pt-24">
           <h2
-            style={{ fontFamily: "Bayon, sans-serif" }}
             className="font-bayon text-5xl font-normal text-white text-center"
           >
             TOURNAMENT SCHEDULE
@@ -90,39 +77,35 @@ function Home() {
 
         <div className='grid grid-cols-4 gap-2 w-4/5'>
           <div className='col-span-4 lg:col-span-1 mb-12'>
-            <div className='bg-gray-800/80 rounded-lg pt-4 my-4 text-2xl h-full'>
-              <h3 className='font-bayon text-tech-gold text-center'>HEADLINER</h3>
-            </div>
+            <img src={MCHEADLINER} className='rounded-lg h-full w-full'/>
             <p className='text-white text-lg text-center'>9:30AM - 10:00AM</p>
           </div>
           <div className='col-span-4 lg:col-span-1 mb-12'>
-            <div className='bg-gray-800/80 rounded-lg pt-4 my-4 text-2xl h-full'>
+            <div className='bg-gray-800/80 rounded-lg pt-4 text-2xl h-full'>
               <h3 className='font-bayon text-tech-gold text-center'>PC BLOCK 1</h3>
-              <div className='flex flex-col items-center mt-6'>
+              <div className='flex flex-col items-center py-4'>
                 <img src={CS} className='w-[6rem] my-2'/>
                 <img src={RL} className='w-[6rem] my-2'/>
                 <img src={R6S} className='w-[6rem] my-2'/>
                 <img src={OW2} className='w-[6rem] my-2'/>
               </div>
             </div>
-                <p className='text-white text-lg text-center'>10:00AM - 2:30PM</p>
+            <p className='text-white text-lg text-center'>10:00AM - 2:30PM</p>
           </div>
           <div className='col-span-4 lg:col-span-1 mb-12'>
-            <div className='bg-gray-800/80 rounded-lg pt-4 my-4 text-2xl h-full'>
-              <h3 className='font-bayon text-tech-gold text-center'>HEADLINER</h3>
-            </div>
+              <img src={FORTNITEHEADLINER} className='rounded-lg h-full w-full'/>
               <p className='text-white text-lg text-center'>2:30PM - 3:00PM</p>
           </div>
           <div className='col-span-4 lg:col-span-1 mb-12'>
-              <div className='bg-gray-800/80 rounded-lg pt-4 my-4 text-2xl h-full'>
-                <h3 className='font-bayon text-tech-gold text-center'>PC BLOCK 2</h3>
-                <div className='flex flex-col items-center mt-6'>
-                  <img src={VAL} className='w-[6rem] my-2'/>
-                  <img src={RIVALS} className='w-[6rem] my-2'/>
-                  <img src={LOL} className='w-[6rem] my-2'/>
-                  <img src={APEX} className='w-[6rem] my-2'/>
+                <div className='bg-gray-800/80 rounded-lg pt-4 text-2xl h-full'>
+                  <h3 className='font-bayon text-tech-gold text-center'>PC BLOCK 2</h3>
+                  <div className='flex flex-col items-center '>
+                    <img src={VAL} className='w-[6rem] my-2'/>
+                    <img src={RIVALS} className='w-[6rem] my-2'/>
+                    <img src={LOL} className='w-[6rem] my-2'/>
+                    <img src={APEX} className='w-[6rem] my-2'/>
+                  </div>
                 </div>
-              </div>
               <p className='text-white text-lg text-center'>3:00PM - 7:30PM</p>
           </div>
         </div>
