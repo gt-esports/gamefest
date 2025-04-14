@@ -59,6 +59,7 @@ function Navbar() {
 
   const links = [
     { name: "HOME", link: "/home" },
+    { name: "INFORMATION", link: "/information" },
     { name: "BRACKETS", link: "/brackets" },
     // { name: "MATCHES", link: "/matches" },
     { name: "TEAMS", link: "/teams" },
