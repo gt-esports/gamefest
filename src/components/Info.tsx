@@ -89,7 +89,7 @@ export default function Info() {
                         </div>
                     </div>
                     <div className='col-span-2 lg:col-span-1'>
-                        <div className='bg-gray-800/80 rounded-lg p-4 mb-4 text-2xl text-tech-gold h-fit'>
+                        <div className='bg-gray-800/80 rounded-lg p-4 mb-4 text-2xl text-tech-gold'>
                             <h3 className='font-bayon'>CHALLENGER</h3>
                             <p className='text-sm'>Booths running all day</p>
                         </div>
