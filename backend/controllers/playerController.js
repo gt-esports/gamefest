@@ -1,5 +1,6 @@
 import Player from "../models/Player.js";
 import Game from "../models/Game.js";
+import { clerkClient } from "@clerk/clerk-sdk-node";
 
 // Sync game team rosters based on player assignments
 const syncTeamRosters = async () => {
@@ -32,8 +33,14 @@ const getPlayerByName = async (req, res) => {
 };
 
 const updatePlayer = async (req, res) => {
-  // const role = req.auth?.user?.publicMetadata?.role;
-  const role = "admin";
+  const userId = req.auth?.userId;
+
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const user = await clerkClient.users.getUser(userId);
+  const role = user.publicMetadata?.role;
   const updateFields = {};
 
   if (role === "admin") {
@@ -43,6 +50,8 @@ const updatePlayer = async (req, res) => {
     if ("log" in req.body) updateFields.log = req.body.log;
     if ("teamAssignments" in req.body)
       updateFields.teamAssignments = req.body.teamAssignments;
+    if ("participation" in req.body)
+      updateFields.participation = req.body.participation;
   } else {
     return res
       .status(403)
@@ -64,12 +73,14 @@ const updatePlayer = async (req, res) => {
 const createPlayer = async (req, res) => {
   const player = new Player(req.body);
   await player.save();
+  await syncTeamRosters();
   res.status(201).json(player);
 };
 
 const deletePlayer = async (req, res) => {
   const result = await Player.findOneAndDelete({ name: req.params.name });
   if (!result) return res.status(404).json({ message: "Player not found" });
+  await syncTeamRosters();
   res.json({ message: "Player deleted" });
 };
 
