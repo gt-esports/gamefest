@@ -27,6 +27,7 @@ const PlayerCheckinPanel: React.FC = () => {
     "idle"
   );
   const { user } = useUser();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,6 +47,7 @@ const PlayerCheckinPanel: React.FC = () => {
 
       setPlayers(playersData);
       setGames(gamesData.map((g: { name: string }) => g.name)); // adapt this based on your Game model
+      setIsAdmin(user?.publicMetadata?.role === "admin");
     };
 
     fetchData();
@@ -184,7 +186,7 @@ const PlayerCheckinPanel: React.FC = () => {
           const top = players
             .filter((p) => !selectedPlayer || p.name !== selectedPlayer.name)
             .sort((a, b) => b.points - a.points)
-            .slice(0, 5);
+            .slice(0, 1000);
 
           setSuggestions(top);
         }}
@@ -212,21 +214,23 @@ const PlayerCheckinPanel: React.FC = () => {
       />
 
       {suggestions.length > 0 && (
-        <ul className="max-h-60 overflow-y-auto rounded border bg-white shadow-md">
-          {suggestions.map((player) => (
-            <li
-              key={player.name}
-              onClick={() => {
-                setSelectedPlayer(player);
-                setQuery("");
-                setSuggestions([]);
-              }}
-              className="cursor-pointer p-2 hover:bg-gray-100"
-            >
-              {player.name}
-            </li>
-          ))}
-        </ul>
+        <div className="max-h-64 overflow-y-auto rounded border bg-white shadow-md">
+          <ul>
+            {suggestions.map((player) => (
+              <li
+                key={player.name}
+                onClick={() => {
+                  setSelectedPlayer(player);
+                  setQuery("");
+                  setSuggestions([]);
+                }}
+                className="cursor-pointer p-2 hover:bg-gray-100"
+              >
+                {player.name}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {selectedPlayer && (
@@ -252,64 +256,65 @@ const PlayerCheckinPanel: React.FC = () => {
             {selectedPlayer.log.map((entry, idx) => (
               <div key={idx} className="mb-2 flex items-center justify-between">
                 <span className="text-sm">{entry}</span>
-                <button
-                  onClick={() => {
-                    const newLogs = selectedPlayer.log.filter(
-                      (_, i) => i !== idx
-                    );
-                    setSelectedPlayer({ ...selectedPlayer, log: newLogs });
-                  }}
-                  className="text-sm text-red-500 hover:underline"
-                >
-                  Remove
-                </button>
+                {isAdmin && (
+                  <button
+                    onClick={() => {
+                      const newLogs = selectedPlayer.log.filter(
+                        (_, i) => i !== idx
+                      );
+                      setSelectedPlayer({ ...selectedPlayer, log: newLogs });
+                    }}
+                    className="text-sm text-red-500 hover:underline"
+                  >
+                    Remove
+                  </button>
+                )}
               </div>
             ))}
           </div>
 
           <div className="mt-3">
             <h4 className="font-medium">Participation</h4>
+
+            {selectedPlayer.participation.length === 0 && (
+              <p className="text-sm text-gray-500">No participation entries</p>
+            )}
+
             {selectedPlayer.participation.map((entry, idx) => (
-              <div key={idx} className="mb-2 flex items-center gap-2">
-                <input
-                  value={entry}
-                  onChange={(e) => {
-                    const newPart = [...selectedPlayer.participation];
-                    newPart[idx] = e.target.value;
-                    setSelectedPlayer({
-                      ...selectedPlayer,
-                      participation: newPart,
-                    });
-                  }}
-                  className="flex-1 rounded border p-1"
-                />
-                <button
-                  onClick={() => {
-                    const newPart = selectedPlayer.participation.filter(
-                      (_, i) => i !== idx
-                    );
-                    setSelectedPlayer({
-                      ...selectedPlayer,
-                      participation: newPart,
-                    });
-                  }}
-                  className="text-sm text-red-500 hover:underline"
-                >
-                  Remove
-                </button>
+              <div key={idx} className="mb-2 flex items-center justify-between">
+                <span className="text-sm">{entry}</span>
+                {isAdmin && (
+                  <button
+                    onClick={() => {
+                      const newPart = selectedPlayer.participation.filter(
+                        (_, i) => i !== idx
+                      );
+                      setSelectedPlayer({
+                        ...selectedPlayer,
+                        participation: newPart,
+                      });
+                    }}
+                    className="text-sm text-red-500 hover:underline"
+                  >
+                    Remove
+                  </button>
+                )}
               </div>
             ))}
-            <button
-              onClick={() =>
-                setSelectedPlayer({
-                  ...selectedPlayer,
-                  participation: [...selectedPlayer.participation, ""],
-                })
-              }
-              className="text-sm text-blue-500 underline"
-            >
-              + Add Participation
-            </button>
+
+            {isAdmin && (
+              <button
+                onClick={() =>
+                  setSelectedPlayer({
+                    ...selectedPlayer,
+                    participation: [...selectedPlayer.participation, ""],
+                  })
+                }
+                className="text-sm text-blue-500 underline"
+              >
+                + Add Participation
+              </button>
+            )}
           </div>
 
           <div className="mt-3">
