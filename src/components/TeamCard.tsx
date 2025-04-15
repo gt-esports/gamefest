@@ -1,11 +1,27 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/Matches.css';
 
 interface TeamCardProps {
   players: string[];
+  teamName: string;
+  gameName: string;
 }
 
-const TeamCard: React.FC<TeamCardProps> = ({ players }) => {
+const TeamCard: React.FC<TeamCardProps> = ({ players, teamName, gameName}) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    //console.log("Navigating with teamToOpen:", teamName);
+    navigate('/teams', {
+      state: {
+        teamToOpen: teamName,
+        gameToOpen: gameName,
+      },
+    });
+    
+  };
+
   return (
     <div className="teamcard">
       <h2>TEAM ROSTER</h2>
@@ -14,8 +30,9 @@ const TeamCard: React.FC<TeamCardProps> = ({ players }) => {
           <h3 key={index}>{player}</h3>
         ))}
       </div>
-      <a href="/teams" className="right-align">
-        <button>
+      
+      <div className="right-align">
+        <button onClick={handleClick}>
           <svg
             width="24"
             height="24"
@@ -26,7 +43,7 @@ const TeamCard: React.FC<TeamCardProps> = ({ players }) => {
             <path d="M13 5l7 7-7 7M5 12h14" stroke="#FFFFFF" strokeWidth="2" fill="none" />
           </svg>
         </button>
-      </a>
+      </div>
     </div>
   );
 };
