@@ -6,8 +6,8 @@ const router = express.Router();
 
 router.use(requireClerkAuth);
 
-router.get("/", requireStaffOrAdmin, playerController.getAllPlayers);
-router.get("/:name", requireStaffOrAdmin, playerController.getPlayerByName);
+router.get("/", playerController.getAllPlayers);
+router.get("/:name", playerController.getPlayerByName);
 router.put("/:name", requireStaffOrAdmin, playerController.updatePlayer);
 router.post("/", requireStaffOrAdmin, playerController.createPlayer);
 router.delete("/:name", requireStaffOrAdmin, playerController.deletePlayer);
