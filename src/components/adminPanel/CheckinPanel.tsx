@@ -186,7 +186,7 @@ const PlayerCheckinPanel: React.FC = () => {
           const top = players
             .filter((p) => !selectedPlayer || p.name !== selectedPlayer.name)
             .sort((a, b) => b.points - a.points)
-            .slice(0, 5);
+            .slice(0, 1000);
 
           setSuggestions(top);
         }}
@@ -214,21 +214,23 @@ const PlayerCheckinPanel: React.FC = () => {
       />
 
       {suggestions.length > 0 && (
-        <ul className="max-h-60 overflow-y-auto rounded border bg-white shadow-md">
-          {suggestions.map((player) => (
-            <li
-              key={player.name}
-              onClick={() => {
-                setSelectedPlayer(player);
-                setQuery("");
-                setSuggestions([]);
-              }}
-              className="cursor-pointer p-2 hover:bg-gray-100"
-            >
-              {player.name}
-            </li>
-          ))}
-        </ul>
+        <div className="max-h-64 overflow-y-auto rounded border bg-white shadow-md">
+          <ul>
+            {suggestions.map((player) => (
+              <li
+                key={player.name}
+                onClick={() => {
+                  setSelectedPlayer(player);
+                  setQuery("");
+                  setSuggestions([]);
+                }}
+                className="cursor-pointer p-2 hover:bg-gray-100"
+              >
+                {player.name}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {selectedPlayer && (
@@ -284,7 +286,9 @@ const PlayerCheckinPanel: React.FC = () => {
                 {isAdmin && (
                   <button
                     onClick={() => {
-                      const newPart = selectedPlayer.participation.filter((_, i) => i !== idx);
+                      const newPart = selectedPlayer.participation.filter(
+                        (_, i) => i !== idx
+                      );
                       setSelectedPlayer({
                         ...selectedPlayer,
                         participation: newPart,
@@ -312,7 +316,6 @@ const PlayerCheckinPanel: React.FC = () => {
               </button>
             )}
           </div>
-
 
           <div className="mt-3">
             <h4 className="font-medium">Team Assignments</h4>

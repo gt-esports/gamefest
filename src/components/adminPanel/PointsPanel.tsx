@@ -26,33 +26,50 @@ const PointsPanel: React.FC = () => {
   const [pointsToAdd, setPointsToAdd] = useState<string>("");
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Player[]>([]);
-  
 
   useEffect(() => {
     const fetchData = async () => {
       const token = await getToken();
 
-      const playerRes = await fetch("/api/players", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const [playerRes, staffRes] = await Promise.all([
+        fetch("/api/players", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch("/api/staff", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
       const playersData = await playerRes.json();
       setPlayers(playersData);
 
-      const staffRes = await fetch("/api/staff", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
       const staffData: Staff[] = await staffRes.json();
+
+      // Check with priority: Discord username > Clerk username > First Name
+      const discordName = user?.externalAccounts?.find(
+        (acc) => acc.provider === "discord"
+      )?.username;
       const currentUser = user?.username || user?.firstName || "";
       const current = staffData.find((s) => s.name === currentUser);
-      setStaffRole(current?.role || "");
-      setStaffName(current?.name || "");
+
+      if (!current) {
+        alert("You're not authorized to assign points.");
+        return;
+      }
+
+      setStaffRole(current.role);
+      setStaffName(discordName || current.name);
       setIsAdmin(current?.role === "admin");
     };
 
     fetchData();
   }, [getToken, user]);
 
-  const updatePoints = async (player: Player, amount: number, override: boolean = false) => {
+  const updatePoints = async (
+    player: Player,
+    amount: number,
+    override: boolean = false
+  ) => {
     const token = await getToken();
 
     const res = await fetch(`/api/players/${player.name}`, {
@@ -61,11 +78,11 @@ const PointsPanel: React.FC = () => {
     const freshPlayer: Player = await res.json();
 
     if (!override && freshPlayer.participation.includes(staffRole)) {
-    alert(
-      `This player has already received points from the '${staffRole}' role.`
-    );
-    return;
-  }
+      alert(
+        `This player has already received points from the '${staffRole}' role.`
+      );
+      return;
+    }
 
     const now = new Date();
     const timestamp = now.toLocaleString(undefined, {
@@ -100,7 +117,7 @@ const PointsPanel: React.FC = () => {
   const applyPointsToSelected = async () => {
     const value = parseInt(pointsToAdd);
     if (isNaN(value) || selectedPlayers.size === 0) return;
-    
+
     // find all selected player objects
     const toUpdate = players.filter((p) => selectedPlayers.has(p.name));
 
@@ -111,11 +128,19 @@ const PointsPanel: React.FC = () => {
 
   };
 
+  if (!staffName) {
+    return (
+      <div className="p-4 font-semibold text-red-600">
+        ⚠️ You are not authorized to access this panel.
+      </div>
+    );
+  }
+
   return (
     <div>
       <h2 className="mb-4 text-xl font-bold">Award or Remove Points</h2>
 
-      <div className="overflow-x-auto whitespace-nowrap py-2 border-b mb-4">
+      <div className="mb-4 overflow-x-auto whitespace-nowrap border-b py-2">
         {players.map((player) => {
           const isSelected = selectedPlayers.has(player.name);
           return (
@@ -132,8 +157,10 @@ const PointsPanel: React.FC = () => {
                   return next;
                 });
               }}
-              className={`inline-block px-4 py-2 mr-2 rounded shadow-sm ${
-                isSelected ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300"
+              className={`mr-2 inline-block rounded px-4 py-2 shadow-sm ${
+                isSelected
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 hover:bg-gray-300"
               }`}
             >
               {player.name}
@@ -161,7 +188,7 @@ const PointsPanel: React.FC = () => {
             setSuggestions([]);
           }
         }}
-        className="rounded border p-2 mb-2 w-full"
+        className="mb-2 w-full rounded border p-2"
       />
 
       {suggestions.map((player) => (
@@ -172,7 +199,7 @@ const PointsPanel: React.FC = () => {
             setQuery("");
             setSuggestions([]);
           }}
-          className="cursor-pointer hover:bg-gray-100 p-2"
+          className="cursor-pointer p-2 hover:bg-gray-100"
         >
           {player.name}
         </li>
@@ -181,29 +208,34 @@ const PointsPanel: React.FC = () => {
       {players
         .filter((player) => selectedPlayers.has(player.name))
         .map((player) => (
-          
-          <div key={player.name} className="border-t pt-4 mt-4">
+          <div key={player.name} className="mt-4 border-t pt-4">
             <h3 className="text-lg font-bold">{player.name}</h3>
             <p className="mb-2">Points: {player.points}</p>
-
 
             <div>
               <h4 className="font-medium">Logs</h4>
               {player.log.map((entry, idx) => (
-                <div key={idx} className="flex justify-between items-center text-sm mb-2">
+                <div
+                  key={idx}
+                  className="mb-2 flex items-center justify-between text-sm"
+                >
                   <span>{entry}</span>
                   {isAdmin && (
                     <button
                       onClick={() => {
-                        const updatedLog = player.log.filter((_, i) => i !== idx);
+                        const updatedLog = player.log.filter(
+                          (_, i) => i !== idx
+                        );
                         const updated = { ...player, log: updatedLog };
 
                         // update players list with new log
                         setPlayers((prev) =>
-                          prev.map((p) => (p.name === player.name ? updated : p))
+                          prev.map((p) =>
+                            p.name === player.name ? updated : p
+                          )
                         );
                       }}
-                      className="text-red-500 text-xs hover:underline"
+                      className="text-xs text-red-500 hover:underline"
                     >
                       Remove
                     </button>
@@ -214,54 +246,58 @@ const PointsPanel: React.FC = () => {
 
             {staffRole &&
               player.participation.includes(staffRole) && // must have role
-              player.log.some((log) => log.includes(`[${staffRole}] gave ${player.name}`)) && (
-                (() => {
-                  // Gather logs from this staff role
-                  const logsFromRole = player.log.filter((log) =>
-                    log.includes(`[${staffRole}] gave ${player.name}`)
-                  );
+              player.log.some((log) =>
+                log.includes(`[${staffRole}] gave ${player.name}`)
+              ) &&
+              (() => {
+                // Gather logs from this staff role
+                const logsFromRole = player.log.filter((log) =>
+                  log.includes(`[${staffRole}] gave ${player.name}`)
+                );
 
-                  // Sum how many points were given in those logs
-                  const pointsToRevoke = logsFromRole.reduce((sum, log) => {
-                    const match = log.match(/gave .*? (\d+) points/);
-                    return match ? sum + parseInt(match[1]) : sum;
-                  }, 0);
+                // Sum how many points were given in those logs
+                const pointsToRevoke = logsFromRole.reduce((sum, log) => {
+                  const match = log.match(/gave .*? (\d+) points/);
+                  return match ? sum + parseInt(match[1]) : sum;
+                }, 0);
 
-                  return (
-                    <button
-                      onClick={async () => {
-                        const updatedPlayer = {
-                          ...player,
-                          log: player.log.filter((log) => !logsFromRole.includes(log)),
-                          participation: player.participation.filter((r) => r !== staffRole),
-                        };
+                return (
+                  <button
+                    onClick={async () => {
+                      const updatedPlayer = {
+                        ...player,
+                        log: player.log.filter(
+                          (log) => !logsFromRole.includes(log)
+                        ),
+                        participation: player.participation.filter(
+                          (r) => r !== staffRole
+                        ),
+                      };
 
-                        await updatePoints(updatedPlayer, -pointsToRevoke, true);
+                      await updatePoints(updatedPlayer, -pointsToRevoke, true);
 
-                        // Update local player state
-                        setPlayers((prev) =>
-                          prev.map((p) =>
-                            p.name === player.name
-                              ? {
-                                  ...p,
-                                  participation: updatedPlayer.participation,
-                                  log: updatedPlayer.log,
-                                  points: player.points - pointsToRevoke,
-                                }
-                              : p
-                          )
-                        );
-
-                      }}
-                      className="mt-2 text-sm text-red-600 underline"
-                    >
-                      🔁 Revoke {pointsToRevoke} pts from {staffRole}
-                    </button>
-                  );
-                })()
-            )}
+                      // Update local player state
+                      setPlayers((prev) =>
+                        prev.map((p) =>
+                          p.name === player.name
+                            ? {
+                                ...p,
+                                participation: updatedPlayer.participation,
+                                log: updatedPlayer.log,
+                                points: player.points - pointsToRevoke,
+                              }
+                            : p
+                        )
+                      );
+                    }}
+                    className="mt-2 text-sm text-red-600 underline"
+                  >
+                    🔁 Revoke {pointsToRevoke} pts from {staffRole}
+                  </button>
+                );
+              })()}
           </div>
-      ))}
+        ))}
 
       <div className="mb-4 mt-4 flex items-center gap-2">
         <input
