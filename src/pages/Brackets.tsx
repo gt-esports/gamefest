@@ -5,7 +5,6 @@ import { useState } from "react";
 const games: string[] = Array.from({ length: 16 }, (_, i) => `Game ${i + 1}`);
 
 function Brackets() {
-  const user = { role: "Staff" }; //get from user data later
   const [selectedGame, setSelectedGame] = useState("Game 1");
 
   return (
@@ -15,7 +14,7 @@ function Brackets() {
           Selected: {selectedGame}
         </div>
         <div className="flex items-center justify-center py-20 text-white">
-          <Brac game={selectedGame} user={user} />
+          <Brac game={selectedGame} />
         </div>
       </div>
       <Footer />
