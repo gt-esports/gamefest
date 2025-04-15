@@ -48,7 +48,7 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/home" element={<Home />} />
             <Route path="/brackets" element={<Brackets />} />
-            <Route path="/matches" element={<Matches />} />
+            <Route path="/match/:id" element={<Matches />} />
             <Route path="/teams" element={<Teams />} />
             <Route path="/schools" element={<Schools />} />
             <Route path="/sponsor" element={<Sponsor />} />

@@ -143,3 +143,20 @@ export const casual_games = {
     discordLink: "https://discord.gg/Q2bZFrFkvQ",
   },
 };
+export const gameCovers: { [key: string]: string } = {
+  "league_of_legends": league,
+  "teamfight_tactics": tft,
+  "valorant": valorant,
+  "overwatch_2": overwatch2,
+  "rocket_league": rl,
+  "counter_strike_2": csgo2,
+  "smash": smash,
+  "rainbow_six_seige": r6,
+  "rythm": rythm,
+  "team_fortress_2": tf2,
+  "hearthstone": hearthstone,
+  "smite": smite,
+  "cod": cod,
+  "apex_leagues": apex,
+  "dota2": dota2,
+};
