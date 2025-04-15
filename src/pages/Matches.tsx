@@ -32,7 +32,7 @@ function Matches() {
               {/* Team 1 */}
               <div className="team-card w-1/4 flex flex-col items-center flex-grow">
                 <h2 className="text-5xl text-center py-6" style={{ fontFamily: 'Bayon, sans-serif' }}>{team1}</h2>
-                <TeamCard players={players1} />
+                <TeamCard players={players1} teamName={team1} gameName={game}/>
               </div>
 
               {/* Match Card */}
@@ -47,7 +47,7 @@ function Matches() {
               {/* Team 2 */}
               <div className="team-card w-1/4 flex flex-col items-center flex-grow">
                 <h2 className="text-5xl text-center py-6" style={{ fontFamily: 'Bayon, sans-serif' }}>{team2}</h2>
-                <TeamCard players={players2} />
+                <TeamCard players={players2} teamName={team2} gameName={game}/>
               </div>
 
             </div>

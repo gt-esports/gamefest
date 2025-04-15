@@ -157,6 +157,6 @@ export const gameCovers: { [key: string]: string } = {
   "hearthstone": hearthstone,
   "smite": smite,
   "cod": cod,
-  "apex": apex,
+  "apex_leagues": apex,
   "dota2": dota2,
 };
