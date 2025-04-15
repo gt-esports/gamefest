@@ -60,7 +60,6 @@ const PlayerCheckinPanel: React.FC = () => {
       newPlayerGame && newPlayerTeam
         ? [{ game: newPlayerGame, team: newPlayerTeam }]
         : [];
-
     const res = await fetch("/api/players", {
       method: "POST",
       headers: {

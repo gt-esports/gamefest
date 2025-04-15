@@ -18,6 +18,7 @@ GET http://localhost:3000/api/players
 Authorization: Bearer <your_token>
 Content-Type: application/json
 
+
 ###
 
 ### Modify Points (Admin Only)

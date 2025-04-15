@@ -133,11 +133,9 @@ const PointsPanel: React.FC = () => {
       </div>
     );
   }
-
   return (
     <div>
       <h2 className="mb-4 text-xl font-bold">Award or Remove Points</h2>
-
       <div className="mb-4 overflow-x-auto whitespace-nowrap border-b py-2">
         {players.map((player) => {
           const isSelected = selectedPlayers.has(player.name);

@@ -13,7 +13,6 @@ const StaffPanel: React.FC = () => {
   const [newRole, setNewRole] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-
   useEffect(() => {
     const fetchStaff = async () => {
       const token = await getToken();
@@ -55,7 +54,6 @@ const StaffPanel: React.FC = () => {
       alert("Please fill in both name and role.");
       return;
     }
-    
     const token = await getToken();
     const res = await fetch("/api/staff", {
       method: "POST",
@@ -77,7 +75,6 @@ const StaffPanel: React.FC = () => {
     setNewStaff("");
     setNewRole("");
   };
-
   const deleteStaff = async (name: string) => {
     const token = await getToken();
     await fetch(`/api/staff/${name}`, {
