@@ -117,7 +117,12 @@ function Navbar() {
           </SignedOut>
 
           <SignedIn>
-            <UserButton />
+            <div className="mt-2">
+              <UserButton
+                userProfileMode="navigation"
+                userProfileUrl="/profile"
+              />
+            </div>
           </SignedIn>
         </li>
         {links.map((link, index) => (
