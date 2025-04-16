@@ -57,7 +57,6 @@ function App() {
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/profile" element={<UserProfilePage />} />
             <Route path="/rootAdmin" element={<RootAdminPanel />} />
-            <Route path="/playercard" element={<PlayerCard />} />
           </Routes>
         </main>
       </div>
