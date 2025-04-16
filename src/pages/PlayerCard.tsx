@@ -55,11 +55,11 @@ const themes: Record<ThemeCategory, ThemeOption[]> = {
   ],  
   
   card: [
-    { name: "None", classname: "", image: "" },
-    { name: "Valorant", image: "", classname: "" },
-    { name: "CS2", image: "", classname: "" },
-    { name: "Rocket League", image: "", classname: "" },
-    { name: "Apex", image: "", classname: "" },
+    { name: "Navy Blue", classname: "bg-[#0F1F3C] bg-opacity-60", image: "" },
+    { name: "Valorant", image: "", classname: "bg-gradient-to-br from-red-900/80 to-navy-blue/80" },
+    { name: "CS2", image: "", classname: "bg-gradient-to-bl from-black/80 to-white/80" },
+    { name: "Rocket League", image: "", classname: "bg-gradient-to-br from-blue-900/80 to-green-900/80" },
+    { name: "Apex", image: "", classname: "bg-gradient-to-tl from-green-400/80 to-gray-400/80" },
   ],
   badges: [
     { name: "None", classname: "", image: "" },
@@ -229,7 +229,7 @@ const PlayerCard = () => {
               className={`w-[340px] h-[300px] mt-16 rounded-xl flex flex-col justify-center items-center space-y-8 ${borderStyle}`}
             >
               <div
-                className="flex flex-col justify-center items-center rounded-tl-lg rounded-tr-lg bg-[#0F1F3C] bg-opacity-60 text-white px-4"
+                className={`flex flex-col justify-center items-center rounded-tl-lg rounded-tr-lg ${bgCard} text-white px-4`}
                 style={{
                   width: "320px",
                   height: "150px",
@@ -242,7 +242,7 @@ const PlayerCard = () => {
                 ) : (
                   <div className="text-center">
                     <p className="text-4xl font-bayon">{players?.name}</p>
-                    <p className="text-md text-tech-gold font-bayon">
+                    <p className="text-xl text-[#eecf5d] font-bayon">
                       TOKENS: {players ? players.points : "N/A"}
                     </p>
                   </div>
@@ -252,7 +252,7 @@ const PlayerCard = () => {
               {/* Badges */}
               <div
                 ref={badgeRef}
-                className="flex w-[320px] space-x-6 justify-center bg-[#0F1F3C] bg-opacity-60 py-6 rounded-xl"
+                className={`flex w-[320px] space-x-6 justify-center ${bgCard} py-6 rounded-xl`}
               >
                 {badges.map((badge, index) => (
                   <button
