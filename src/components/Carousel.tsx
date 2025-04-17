@@ -1,7 +1,6 @@
 import { Swiper, SwiperSlide } from "swiper/react";
-
 import { Navigation, Pagination, EffectCoverflow, A11y } from "swiper/modules";
-import { games } from "../data/gamesData";
+import { games, casual_games, challenges } from "../data/gamesData";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -27,6 +26,8 @@ export default () => {
       pagination={{
         clickable: true,
         type: "bullets",
+        dynamicBullets: true,
+        horizontalClass: "centered-pagination-bullets"
       }}
       spaceBetween={0}
       slidesPerView={1}
@@ -72,7 +73,29 @@ export default () => {
     >
       {Object.entries(games).map(([name, game], index) => (
         <SwiperSlide key={index}>
-          <a href={`https://www.start.gg/tournament/gamefest-2025-1/event/gamefest-2025-${game.pageLink}`} target='_blank' rel="noopener noreferrer">
+          <a href={`https://www.start.gg/tournament/gamefest-2025-1/${game.pageLink}`} target='_blank' rel="noopener noreferrer">
+          <img
+            src={game.image}
+            alt={name}
+            className="h-[490px] w-[370px] scale-90 rounded-lg"
+          />
+          </a>
+        </SwiperSlide>
+      ))}
+      {Object.entries(casual_games).map(([name, game], index) => (
+        <SwiperSlide key={index}>
+          <a href={`https://www.start.gg/tournament/gamefest-2025-1/${game.pageLink}`} target='_blank' rel="noopener noreferrer">
+          <img
+            src={game.image}
+            alt={name}
+            className="h-[490px] w-[370px] scale-90 rounded-lg"
+          />
+          </a>
+        </SwiperSlide>
+      ))}
+      {Object.entries(challenges).map(([name, game], index) => (
+        <SwiperSlide key={index}>
+          <a href={`https://www.start.gg/tournament/gamefest-2025-1/${game.pageLink}`} target='_blank' rel="noopener noreferrer">
           <img
             src={game.image}
             alt={name}

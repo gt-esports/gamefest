@@ -1,32 +1,41 @@
-import { useState } from 'react';
-import { FaChevronDown } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
 import SearchBar from './SearchBar';
-import DropDownList from './DropDownList';
+
 
 const Team = () => {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const teams = [
-    { player: "Player  A", points: 100 },
-    { player: "Player B", points: 90 },
-    { player: "Player C", points: 80 },
-    { player: "Player D", points: 70 },
-    { player: "Player E", points: 60 },
-    { player: "Player F", points: 50 },
-  ];
+  const [players, setPlayers] = useState<Array<{ name: string; points: number }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleToggle = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/players');
+        if (!response.ok) {
+          throw new Error('Failed to fetch players data');
+        }
+        const data = await response.json();
+        setPlayers(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+        console.error('Error fetching teams:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTeams();
+  }, []);
+
   const handleSearch = (gameName: string) => {
     const trimmedGameName = gameName.trim().toLowerCase();
-    const index = teams.findIndex((t) => t.player.trim().toLowerCase() === trimmedGameName);
+    const index = players.findIndex((player) => player.name.trim().toLowerCase() === trimmedGameName);
     
     if (index !== -1) {
-      setOpenIndex(index); // expand game tab when found
-
       setTimeout(() => { // timer delay to make scrollTo time to position correctly
-        const id = teams[index].player.trim().replace(/\s+/g, "-").toLowerCase();
+        const id = players[index].name.trim().replace(/\s+/g, "-").toLowerCase();
         const teamsElement = document.getElementById(id);
   
         if (teamsElement) {
@@ -47,48 +56,30 @@ const Team = () => {
       <div className="flex flex-row justify-between items-center">
         <SearchBar 
           onSearch={handleSearch}
-          items={teams.map((teams) => teams.player)}
+          items={players.map((player) => player.name)}
         />
       </div>
       <div className="space-y-4">
         <div className='rounded-lg border border-white/20 p-4 bg-opacity-25 bg-gradient-to-br from-[#2e1d1d] to-[#101c3b] overflow-auto'>
-            <div className="grid grid-cols-4 gap-4 font-quicksand text-center text-white uppercase text-lg">
+            <div className="grid grid-cols-3 gap-4 font-quicksand text-center text-white uppercase text-lg">
                 <p className="py-3">Rank</p>
                 <p className="py-3">Player</p>
-                <p className="py-3">Points</p>
-                <p className="py-3">Details</p>
+                <p className="py-3">Tokens</p>
             </div>
             <hr className="border-white/20" />
             <div>
-              {[...teams]
+              {[...players]
                 .sort((a, b) => b.points - a.points)
-                .map((team, index) => (
-                    <button 
-                        onClick={() => handleToggle(index)}
-                        className='w-full'
-                    >
-                        <div className='grid grid-cols-4 text-white hover:text-tech-gold text-center text-md'>
-                            <p className="py-4">{index + 1}</p>
-                            <p className="py-4">{team.player}</p>
-                            <p className="py-4">{team.points}</p>
-                            <p className="py-4 flex justify-center">
-                                <FaChevronDown className={`transition-transform duration-200 ${openIndex === index ? 'rotate-180' : ''}`} />
-                            </p>
-
-                            {/* team details */}
-                            {openIndex !== null && openIndex === index && (
-                            <div className="col-span-4 w-full">
-                                <ul className="grid grid-cols-1 lg:grid-cols-5 gap-2">
-                                    {/* {teams[openIndex].player.map((idx) => (
-                                        <li key={idx} className="flex items-center px-4 py-2 border rounded-lg text-white border-tech-gold/50 hover:border-tech-gold border-b-4 overflow-auto">
-                                            {player}
-                                        </li>
-                                    ))} */}
-                                </ul>
-                            </div>
-                            )}
-                        </div>
-                    </button>
+                .map((player, index) => (
+                  <div 
+                    className='grid grid-cols-3 text-white hover:text-tech-gold text-center text-md'
+                    key={player.name}
+                    id={player.name.trim().replace(/\s+/g, "-").toLowerCase()}
+                  >
+                    <p className="py-4">{index + 1}</p>
+                    <p className="py-4">{player.name}</p>
+                    <p className="py-4">{player.points}</p>
+                  </div>
                 ))}
             </div>
         </div>        
