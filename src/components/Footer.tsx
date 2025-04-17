@@ -6,9 +6,17 @@ import facebookLogo from "../assets/facebook-icon.svg";
 import xLogo from "../assets/x-icon.svg";
 import instagramLogo from "../assets/instagram-icon.svg";
 import discordLogo from "../assets/discord-icon.svg";
+import linkedinLogo from "../assets/linkedin_logo.png";
 
 function Footer() {
   const location = useLocation();
+
+  const staff = [
+    { name: "Kevin Hu", link: "https://www.linkedin.com/in/sijunkevinhu/" },
+    { name: "May Li",       link: "https://www.linkedin.com/in/mei-li-ba800b290/" },
+    { name: "Ethan Loo",  link: "https://www.linkedin.com/in/ethan-loo-73a1b0236/" },
+    { name: "Wilson Gao",     link: "https://www.linkedin.com/in/gaowilson81/" },
+  ];
 
   const links = [
     { name: "HOME", link: "/home" },
@@ -75,6 +83,46 @@ function Footer() {
             ))}
           </ul>
         </div>
+      </div>
+
+      <div className="w-full px-6 mt-2 mb-8">
+        <h2 className="mb-4 text-center text-xl font-semibold text-white md:text-left">
+          Meet the Team
+        </h2>
+
+        {/* mobile row → desktop grid */}
+        <ul
+          className="
+            flex md:grid
+            overflow-x-auto md:overflow-visible
+            gap-3 md:gap-4
+            md:grid-cols-2 xl:grid-cols-3"
+        >
+          {staff.map(({ name, link }) => (
+            <li>
+            <a
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Connect with ${name} on LinkedIn`}
+              className="
+                group flex md:flex md:items-center
+                rounded-full border border-white/20
+                py-2 px-4 backdrop-blur-sm
+                text-white transition
+                hover:bg-white/10 hover:shadow-lg
+              "
+            >
+              <span className="mr-2 whitespace-nowrap">{name}</span>
+              <img
+                src={linkedinLogo}
+                alt="LinkedIn Logo"
+                className="h-5 w-5 flex-shrink-0"
+              />
+            </a>
+          </li>
+          ))}
+        </ul>
       </div>
 
       {/* nav link and info */}

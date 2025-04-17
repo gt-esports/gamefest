@@ -8,17 +8,59 @@ const FAQ = () => {
   // Replace FAQ text with the provided content
   const faqs = [
     {
-      question: "Is this organization only for competitive gamers?",
-      answer: "Not at all! We host gaming communities for competitive and casual gamers alike. Check out our games page" +
-          " to see a list of our communities!",
+      question: "How do I register for GameFest 2025?",
+      answer: (
+        <>
+          Grab your free ticket at{' '}
+          <a
+            href="https://www.ticketleap.events/tickets/gtesports/gamefest-2025-1853548566"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-tech-gold underline"
+          >
+            Ticketleap
+          </a>
+          , then hop into our Discord ({' '}
+          <a
+            href="https://discord.gg/trg88CR6Q3"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-tech-gold underline"
+          >
+            discord.gg/trg88CR6Q3
+          </a>
+          ) to complete your BYOC or console sign‑up! For full tournament brackets and match details, check out our Start.gg page:{' '}
+          <a
+            href="https://www.start.gg/tournament/gamefest-2025-1/details"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-tech-gold underline"
+          >
+            GameFest 2025 on Start.gg
+          </a>
+          .
+        </>
+      )
     },
     {
-      question: "What are the time commitments for this organization?",
-      answer: "There is no specific time commitment necessary to join our communities. Depends on your expectations and interests for the gaming community!",
+      question: "Do I need to bring my own PC or console?",
+      answer: `PC players: you’re welcome to bring your own setup (and we’ll have plenty of outlets!), but we’ll also provide a limited number of PCs on a first‑come, first‑served basis. Console players: we supply TVs and controllers, though bringing your own is totally fine for extra comfort!`,
     },
     {
-      question: "How do I join?",
-      answer: "Discord links in the Games Page, link to our main Discord: https://discord.gg/gtesports, link to our Engage: https://gatech.campuslabs.com/engage/organization/esports.",
+      question: "What titles are included this year?",
+      answer: `We've got speedruns, shooters, racers, and more! Check the Games page for the full schedule: Minecraft Speedrun, Fortnite Solo LAN, Mario Kart 8 DX, Smash Ultimate, Street Fighte 6, Guilty Gear Strive, and several surprise challenges.`,
+    },
+    {
+      question: "How does the Director’s Cup points system work?",
+      answer: `Every match and side‑challenge awards weighted points. Top point earners enter the Grand Prize raffle for a custom PC. There’s also an unweighted draw for AMD Radeon RX6750XT GPUs—just by showing up!`,
+    },
+    {
+      question: "Can I compete if I’m new to esports?",
+      answer: `Absolutely! We have casual brackets and pickup matches for rookies.`,
+    },
+    {
+      question: "Where and when should I arrive?",
+      answer: `GameFest 2025 runs April 19th, 9 AM–8 PM at the Instructional Center. Doors open at 8 AM for setup—look for the big GT Esports banners at the entrance!`,
     },
   ];
 
