@@ -176,23 +176,21 @@ const PointsPanel: React.FC = () => {
     <div>
       <h2 className="mb-4 text-xl font-bold">Award or Remove Points</h2>
 
-      {/* <div className="mb-4 overflow-x-auto whitespace-nowrap border-b py-2">
+      <div className="mb-4 flex overflow-x-auto whitespace-nowrap border-b py-2">
         {players.map((player) => {
           const isSelected = selectedPlayers.has(player.name);
           return (
             <button
               key={player.name}
-              onClick={() => {
+              onClick={() =>
                 setSelectedPlayers((prev) => {
                   const next = new Set(prev);
-                  if (next.has(player.name)) {
-                    next.delete(player.name);
-                  } else {
-                    next.add(player.name);
-                  }
+                  if (next.has(player.name)) next.delete(player.name);
+                  else next.add(player.name);
                   return next;
-                });
-              }}
+                })
+              }
+              style={{ order: isSelected ? -1 : 0 }}
               className={`mr-2 inline-block rounded px-4 py-2 shadow-sm ${
                 isSelected
                   ? "bg-blue-600 text-white"
@@ -203,33 +201,7 @@ const PointsPanel: React.FC = () => {
             </button>
           );
         })}
-      </div> */}
-      <div className="mb-4 flex overflow-x-auto whitespace-nowrap border-b py-2">
-  {players.map((player) => {
-    const isSelected = selectedPlayers.has(player.name);
-    return (
-      <button
-        key={player.name}
-        onClick={() =>
-          setSelectedPlayers((prev) => {
-            const next = new Set(prev);
-            if (next.has(player.name)) next.delete(player.name);
-            else next.add(player.name);
-            return next;
-          })
-        }
-        style={{ order: isSelected ? -1 : 0 }}
-        className={`mr-2 inline-block rounded px-4 py-2 shadow-sm ${
-          isSelected
-            ? "bg-blue-600 text-white"
-            : "bg-gray-200 hover:bg-gray-300"
-        }`}
-      >
-        {player.name}
-      </button>
-    );
-  })}
-</div>
+      </div>
 
 
       <input
