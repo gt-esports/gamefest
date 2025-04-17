@@ -73,35 +73,74 @@ export default () => {
     >
       {Object.entries(games).map(([name, game], index) => (
         <SwiperSlide key={index}>
-          <a href={`https://www.start.gg/tournament/gamefest-2025-1/${game.pageLink}`} target='_blank' rel="noopener noreferrer">
-          <img
-            src={game.image}
-            alt={name}
-            className="h-[490px] w-[370px] scale-90 rounded-lg"
-          />
-          </a>
+          {game.pageLink ? (
+            <a href={`https://www.start.gg/tournament/gamefest-2025-1/${game.pageLink}`} target='_blank' rel="noopener noreferrer">
+              <img
+                src={game.image}
+                alt={name}
+                className="h-[490px] w-[370px] scale-90 rounded-lg"
+              />
+            </a>
+          ) : (
+            <div className="relative group">
+              <img
+          src={game.image}
+          alt={name}
+          className="h-[490px] w-[370px] scale-90 rounded-lg"
+              />
+              <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-70 text-white p-2 rounded bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+                Look for the table at gamefest
+              </div>
+            </div>
+          )}
         </SwiperSlide>
       ))}
       {Object.entries(casual_games).map(([name, game], index) => (
         <SwiperSlide key={index}>
-          <a href={`https://www.start.gg/tournament/gamefest-2025-1/${game.pageLink}`} target='_blank' rel="noopener noreferrer">
-          <img
-            src={game.image}
-            alt={name}
-            className="h-[490px] w-[370px] scale-90 rounded-lg"
-          />
-          </a>
+          {game.pageLink ? (
+            <a href={`https://www.start.gg/tournament/gamefest-2025-1/${game.pageLink}`} target='_blank' rel="noopener noreferrer">
+              <img
+                src={game.image}
+                alt={name}
+                className="h-[490px] w-[370px] scale-90 rounded-lg"
+              />
+            </a>
+          ) : (
+            <div className="relative group">
+              <img
+                src={game.image}
+                alt={name}
+                className="h-[490px] w-[370px] scale-90 rounded-lg"
+              />
+              <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-70 text-white p-2 rounded bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+                Look for the table at gamefest
+              </div>
+            </div>
+          )}
         </SwiperSlide>
       ))}
       {Object.entries(challenges).map(([name, game], index) => (
         <SwiperSlide key={index}>
-          <a href={`https://www.start.gg/tournament/gamefest-2025-1/${game.pageLink}`} target='_blank' rel="noopener noreferrer">
-          <img
-            src={game.image}
-            alt={name}
-            className="h-[490px] w-[370px] scale-90 rounded-lg"
-          />
-          </a>
+          {game.pageLink ? (
+            <a href={`https://www.start.gg/tournament/gamefest-2025-1/${game.pageLink}`} target='_blank' rel="noopener noreferrer">
+              <img
+                src={game.image}
+                alt={name}
+                className="h-[490px] w-[370px] scale-90 rounded-lg"
+              />
+            </a>
+          ) : (
+            <div className="relative group">
+              <img
+                src={game.image}
+                alt={name}
+                className="h-[490px] w-[370px] scale-90 rounded-lg"
+              />
+              <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-70 text-white p-2 rounded bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+                Look for the table at Gamefest
+              </div>
+            </div>
+          )}
         </SwiperSlide>
       ))}
     </Swiper>

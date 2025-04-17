@@ -19,6 +19,7 @@ import tetris from "../assets/game-covers/tetris-cover.jpg";
 import beatsaber from "../assets/game-covers/beat-saber-cover.jpg";
 import geoguessr from "../assets/game-covers/geoguessr-cover.jpg";
 import supercell from "../assets/game-covers/supercell-cover.png";
+import vgdev from "../assets/game-covers/vgdev-cover.png";
 
 export const games = {
   "League of Legends": {
@@ -123,7 +124,11 @@ export const challenges = {
     pageLink: "",
     discordLink: "",
   },
-  // VGC:
+  VGDev: {
+    image: vgdev,
+    pageLink: "",
+    discordLink: "",
+  },
 }
 
 export const gameCovers: { [key: string]: string } = {
