@@ -1,4 +1,4 @@
-const Participants = require('../models/participants');
+const Participants = require('../models/Player.js');
 const mongoose = require('mongoose');
 
 export const pickRaffles = async (req, res) => {
@@ -88,4 +88,8 @@ const pickWinnersWithWeightedChance = (participants, count) => {
   }
   
   return winners;
+};
+
+export const getWinners = async (req, res) => {
+
 };
