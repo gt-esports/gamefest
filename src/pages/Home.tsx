@@ -68,7 +68,6 @@ function Home() {
             TOURNAMENT SCHEDULE
           </h2>
         </div>
-
         <div className='grid grid-cols-4 gap-2 w-4/5'>
           <div className='col-span-4 lg:col-span-1 mb-12'>
             <img src={MCHEADLINER} className='rounded-lg h-full w-full'/>
