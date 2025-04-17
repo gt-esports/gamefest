@@ -72,11 +72,13 @@ export default () => {
     >
       {Object.entries(games).map(([name, game], index) => (
         <SwiperSlide key={index}>
+          <a href={`https://www.start.gg/tournament/gamefest-2025-1/event/gamefest-2025-${game.pageLink}`} target='_blank' rel="noopener noreferrer">
           <img
             src={game.image}
             alt={name}
             className="h-[490px] w-[370px] scale-90 rounded-lg"
           />
+          </a>
         </SwiperSlide>
       ))}
     </Swiper>

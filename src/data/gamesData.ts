@@ -26,7 +26,7 @@ import amongus from "../assets/game-covers/amongus.png";
 export const games = {
   "League of Legends": {
     image: league,
-    pageLink: "link",
+    pageLink: "league-of-legends-tournament",
     discordLink: "https://discord.gg/T3vB5jYhdE",
   },
   "Teamfight Tactics": {
@@ -36,32 +36,32 @@ export const games = {
   },
   Valorant: {
     image: valorant,
-    pageLink: "link",
+    pageLink: "valorant-tournament",
     discordLink: "https://discord.gg/2aUxJuT",
   },
   "Overwatch 2": {
     image: overwatch2,
-    pageLink: "link",
+    pageLink: "overwatch-2-tournament",
     discordLink: "https://discord.com/invite/Q3s2dU9jEa",
   },
   "Rocket League": {
     image: rl,
-    pageLink: "link",
+    pageLink: "rocket-league-tournament",
     discordLink: "https://discord.gg/B9tQzuk8jh",
   },
   "CS 2": {
     image: csgo2,
-    pageLink: "link",
+    pageLink: "counter-strike-2-tournament",
     discordLink: "https://discord.gg/3FUjyXA",
   },
   Smash: {
     image: smash,
-    pageLink: "link",
+    pageLink: "smash-ultimate-singles",
     discordLink: "https://discord.gg/xpFgFyU",
   },
   "Rainbow Six Siege": {
     image: r6,
-    pageLink: "link",
+    pageLink: "rainbow-six-siege-tournament",
     discordLink: "https://discord.gg/MPuJg5qws5",
   },
   "Team Fortress 2": {
@@ -71,27 +71,27 @@ export const games = {
   },
   "Osu/Rhythm Games": {
     image: rythm,
-    pageLink: "link",
+    pageLink: "",
     discordLink: "https://discord.gg/pFVVySyuEn",
   },
   Hearthstone: {
     image: hearthstone,
-    pageLink: "link",
+    pageLink: "",
     discordLink: "https://discord.gg/uVGfKd3jre",
   },
   Smite: {
     image: smite,
-    pageLink: "link",
+    pageLink: "",
     discordLink: "https://discord.gg/mJGzCCgYCC",
   },
   "Apex Legends": {
     image: apex,
-    pageLink: "link",
+    pageLink: "apex-legends-tournament",
     discordLink: "https://discord.gg/hf4aHRHUTH",
   },
   "COD/WZ/CODM": {
     image: cod,
-    pageLink: "link",
+    pageLink: "",
     discordLink: "https://discord.gg/bSz7Qg4gjH",
   },
   "Dota 2": {
@@ -104,7 +104,7 @@ export const games = {
 export const casual_games = {
   Minecraft: {
     image: minecraft,
-    pageLink: "link",
+    pageLink: "minecraft-pvp-speedrun",
     discordLink: "https://discord.gg/QbeazDKCdM",
   },
   "Genshin Impact": {
@@ -119,7 +119,7 @@ export const casual_games = {
   },
   Fortnite: {
     image: fortnite,
-    pageLink: "link",
+    pageLink: "fortnite-solo-showdown",
     discordLink: "https://discord.gg/ZDmmynxYYM",
   },
   "Animal Crossing": {
