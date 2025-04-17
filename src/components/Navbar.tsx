@@ -4,14 +4,19 @@ import { TfiClose } from "react-icons/tfi";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import Logo from "../assets/gt-esports-logo1.png";
-import { SignedOut, SignInButton, SignedIn, UserButton, UserProfile } from "@clerk/clerk-react";
+import {
+  SignedOut,
+  SignInButton,
+  SignedIn,
+  UserButton,
+  UserProfile,
+} from "@clerk/clerk-react";
 
 function Navbar() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const menuRef = useRef<HTMLUListElement | null>(null);;
-  const navigate = useNavigate();
+  const menuRef = useRef<HTMLUListElement | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -54,16 +59,20 @@ function Navbar() {
 
   const links = [
     { name: "HOME", link: "/home" },
+    { name: "INFORMATION", link: "/information" },
     { name: "BRACKETS", link: "/brackets" },
-    { name: "MATCHES", link: "/matches" },
+    // { name: "MATCHES", link: "/matches" },
     { name: "TEAMS", link: "/teams" },
+    // { name: "SCHOOLS", link: "/schools" },
+    { name: "LEADERBOARD", link: "/leaderboard" },
+    { name: "PLAYER", link: "/playercard" },
     { name: "SPONSORS", link: "/sponsor" },
     { name: "ABOUT", link: "/about" },
   ];
 
   return (
     <div
-      className={`fixed flex z-10 w-full h-[--navbar-height] border-0 items-center justify-between bg-transparent md:flex md:px-20 md:py-6 transition-all duration-500 ${
+      className={`fixed z-10 flex h-[--navbar-height] w-full items-center justify-between border-0 bg-transparent transition-all duration-500 md:flex md:px-20 md:py-6 ${
         isScrolled ? "bg-opacity-70 backdrop-blur-md" : "bg-transparent"
       }`}
     >
@@ -76,27 +85,30 @@ function Navbar() {
             height={68}
             className="mr-2"
           />
-          <span className="text-2xl md:text-4xl text-tech-gold">GAME</span>{" "}
-          <span className="text-2xl ml-1 md:text-4xl md:ml-2 text-white">FEST</span>
+          <span className="text-2xl text-tech-gold md:text-4xl">GAME</span>{" "}
+          <span className="ml-1 text-2xl text-white md:ml-2 md:text-4xl">
+            FEST
+          </span>
         </Link>
       </div>
       <div
         onClick={() => setOpen(!open)}
-        className="cursor-pointer text-3xl mr-2 z-[2] text-bright-buzz md:hidden"
+        className="z-[2] mr-2 cursor-pointer text-3xl text-bright-buzz md:hidden"
       >
         {!open ? <RxHamburgerMenu /> : <TfiClose />}
       </div>
-      
+
       {/* Mobile Menu */}
       <ul
         ref={menuRef}
-        className={`fixed md:hidden right-0 top-0 z-[1] w-2/6 h-screen bg-black/90 pt-14 transition-all duration-300 ease-in ${
-          open ? "px-4 translate-x-0" : "opacity-0 translate-x-full"
+        className={`fixed right-0 top-0 z-[1] h-screen w-2/5 bg-black/90 pt-14 transition-all duration-300 ease-in md:hidden ${
+          open ? "translate-x-0 px-4" : "translate-x-full opacity-0"
         }`}
       >
         {/* LOGIN button */}
-        <li className={`text-white hover:text-bright-buzz text-md py-4 text-right w-full transition-all duration-700 ease-in-out ${
-          open ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
+        <li
+          className={`text-md w-full py-4 text-right text-white transition-all duration-700 ease-in-out hover:text-bright-buzz ${
+            open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
           }`}
         >
           <SignedOut>
@@ -113,8 +125,8 @@ function Navbar() {
           <li
             key={link.name}
             style={{ transitionDelay: `${index * 50}ms` }}
-            className={`text-md py-4 text-right w-full transition-all duration-700 ease-in-out ${
-              open ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
+            className={`text-md w-full py-4 text-right transition-all duration-700 ease-in-out ${
+              open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
             }`}
           >
             <NavLink
@@ -133,7 +145,7 @@ function Navbar() {
       </ul>
 
       {/* Desktop Menu */}
-      <ul className="hidden md:flex md:static md:z-auto md:items-center md:space-x-4">
+      <ul className="hidden md:static md:z-auto md:flex md:items-center md:space-x-4">
         {links.map((link, index) => (
           <li
             key={link.name}
@@ -154,7 +166,7 @@ function Navbar() {
           </li>
         ))}
         {/* LOGIN button */}
-        <li className="text-white hover:text-bright-buzz duration-500">
+        <li className="text-white duration-500 hover:text-bright-buzz">
           <SignedOut>
             <SignInButton mode="modal">
               <button>LOGIN</button>
@@ -163,7 +175,10 @@ function Navbar() {
 
           <SignedIn>
             <div className="mt-2">
-                <UserButton userProfileMode="navigation" userProfileUrl="/profile"/>
+              <UserButton
+                userProfileMode="navigation"
+                userProfileUrl="/profile"
+              />
             </div>
           </SignedIn>
         </li>
