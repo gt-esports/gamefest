@@ -33,21 +33,33 @@ const PlayerCheckinPanel: React.FC = () => {
     const fetchData = async () => {
       const token = await getToken();
 
-      const [playerRes, gamesRes] = await Promise.all([
-        fetch("/api/players", {
+      const [playerRes, gamesRes, staffRes] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_URL}/api/players`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("/api/games", {
+        fetch(`${import.meta.env.VITE_API_URL}/api/games`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${import.meta.env.VITE_API_URL}/api/staff`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
 
       const playersData = await playerRes.json();
       const gamesData = await gamesRes.json(); // should be an array of game names
+      const staffData = await staffRes.json(); // must include your `isAdmin` field
 
       setPlayers(playersData);
       setGames(gamesData.map((g: { name: string }) => g.name)); // adapt this based on your Game model
-      setIsAdmin(user?.publicMetadata?.role === "admin");
+
+      const discordName = user?.externalAccounts?.find(
+        (a) => a.provider === "discord"
+      )?.username;
+      const currentUser =
+        discordName || user?.username || user?.firstName || "";
+      const me = staffData.find((s: any) => s.name === currentUser);
+
+      setIsAdmin(me.isAdmin || false);
     };
 
     fetchData();
@@ -60,7 +72,7 @@ const PlayerCheckinPanel: React.FC = () => {
       newPlayerGame && newPlayerTeam
         ? [{ game: newPlayerGame, team: newPlayerTeam }]
         : [];
-    const res = await fetch("/api/players", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/players`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -103,14 +115,17 @@ const PlayerCheckinPanel: React.FC = () => {
     };
 
     try {
-      const res = await fetch(`/api/players/${player.name}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updatedPlayer),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/players/${player.name}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(updatedPlayer),
+        }
+      );
 
       const data = await res.json();
 
@@ -280,17 +295,35 @@ const PlayerCheckinPanel: React.FC = () => {
             )}
 
             {selectedPlayer.participation.map((entry, idx) => (
-              <div key={idx} className="mb-2 flex items-center justify-between">
-                <span className="text-sm">{entry}</span>
+              <div key={idx} className="mb-2 flex items-center gap-2">
+                {isAdmin ? (
+                  <input
+                    type="text"
+                    value={entry}
+                    onChange={(e) => {
+                      const updated = [...selectedPlayer.participation];
+                      updated[idx] = e.target.value;
+                      setSelectedPlayer({
+                        ...selectedPlayer,
+                        participation: updated,
+                      });
+                    }}
+                    placeholder="Enter participation role"
+                    className="flex-1 rounded border p-1"
+                  />
+                ) : (
+                  <span className="flex-1 text-sm">{entry}</span>
+                )}
+
                 {isAdmin && (
                   <button
                     onClick={() => {
-                      const newPart = selectedPlayer.participation.filter(
+                      const filtered = selectedPlayer.participation.filter(
                         (_, i) => i !== idx
                       );
                       setSelectedPlayer({
                         ...selectedPlayer,
-                        participation: newPart,
+                        participation: filtered,
                       });
                     }}
                     className="text-sm text-red-500 hover:underline"
@@ -320,7 +353,7 @@ const PlayerCheckinPanel: React.FC = () => {
             <h4 className="font-medium">Team Assignments</h4>
             {selectedPlayer.teamAssignments.map((ta, idx) => (
               <div key={idx} className="mb-2 flex items-center gap-2">
-                <input
+                <select
                   value={ta.game}
                   onChange={(e) => {
                     const updated = [...selectedPlayer.teamAssignments];
@@ -330,9 +363,16 @@ const PlayerCheckinPanel: React.FC = () => {
                       teamAssignments: updated,
                     });
                   }}
-                  placeholder="Game (e.g., Valorant)"
                   className="w-full flex-1 rounded border p-1"
-                />
+                >
+                  <option value="">Select Game</option>
+                  {games.map((game) => (
+                    <option key={game} value={game}>
+                      {game}
+                    </option>
+                  ))}
+                </select>
+
                 <input
                   value={ta.team}
                   onChange={(e) => {

@@ -1,10 +1,10 @@
 import Carousel from "../components/Carousel";
 import Footer from "../components/Footer";
 import { sponsors } from "../data/sponsors";
-import MCHEADLINER from '../assets/mc-headliner.jpg'
-import FORTNITEHEADLINER from '../assets/fortnite-headliner.jpg'
-import PCBLOCK1 from '../assets/pc_block_1.jpg'
-import PCBLOCK2 from '../assets/pc_block_2.jpg'
+import MCHEADLINER from "../assets/mc-headliner.jpg";
+import FORTNITEHEADLINER from "../assets/fortnite-headliner.jpg";
+import PCBLOCK1 from "../assets/pc_block_1.jpg";
+import PCBLOCK2 from "../assets/pc_block_2.jpg";
 
 function Home() {
   const scrollToSection = (sectionId: string, offset: number = 0) => {
@@ -62,28 +62,26 @@ function Home() {
         className="mt-24 flex w-full flex-col items-center justify-center"
       >
         <div className="flex flex-row items-center justify-center pb-4 pt-24">
-          <h2
-            className="font-bayon text-5xl font-normal text-white text-center"
-          >
+          <h2 className="text-center font-bayon text-5xl font-normal text-white">
             TOURNAMENT SCHEDULE
           </h2>
         </div>
-        <div className='grid grid-cols-4 gap-2 w-4/5'>
-          <div className='col-span-4 lg:col-span-1 mb-12'>
-            <img src={MCHEADLINER} className='rounded-lg h-full w-full'/>
-            <p className='text-white text-lg text-center'>9:30AM - 10:00AM</p>
+        <div className="grid w-4/5 grid-cols-4 gap-2">
+          <div className="col-span-4 mb-12 lg:col-span-1">
+            <img src={MCHEADLINER} className="h-full w-full rounded-lg" />
+            <p className="text-center text-lg text-white">9:30AM - 10:00AM</p>
           </div>
-          <div className='col-span-4 lg:col-span-1 mb-12'>
-            <img src={PCBLOCK1} className='rounded-lg h-full w-full'/>
-            <p className='text-white text-lg text-center'>10:00AM - 2:30PM</p>
+          <div className="col-span-4 mb-12 lg:col-span-1">
+            <img src={PCBLOCK1} className="h-full w-full rounded-lg" />
+            <p className="text-center text-lg text-white">10:00AM - 2:30PM</p>
           </div>
-          <div className='col-span-4 lg:col-span-1 mb-12'>
-              <img src={FORTNITEHEADLINER} className='rounded-lg h-full w-full'/>
-              <p className='text-white text-lg text-center'>2:30PM - 3:00PM</p>
+          <div className="col-span-4 mb-12 lg:col-span-1">
+            <img src={FORTNITEHEADLINER} className="h-full w-full rounded-lg" />
+            <p className="text-center text-lg text-white">2:30PM - 3:00PM</p>
           </div>
-          <div className='col-span-4 lg:col-span-1 mb-12'>
-            <img src={PCBLOCK2} className='rounded-lg h-full w-full'/>
-            <p className='text-white text-lg text-center'>3:00PM - 7:30PM</p>
+          <div className="col-span-4 mb-12 lg:col-span-1">
+            <img src={PCBLOCK2} className="h-full w-full rounded-lg" />
+            <p className="text-center text-lg text-white">3:00PM - 7:30PM</p>
           </div>
         </div>
         <button
@@ -153,9 +151,12 @@ function Home() {
           <h2 className="text-center font-bayon text-5xl font-normal text-white">
             A MESSAGE FROM OUR SPONSORS
           </h2>
-          <p className="m-8 pt-12 text-center font-bayon text-2xl text-[#b3a369]">
+          {/* <p className="m-8 pt-12 text-center font-bayon text-2xl text-[#b3a369]">
             "Fueling the next generation of gamers. Play hard, compete harder.
             Proud sponsors of Georgia Tech Esports" - Alienware
+          </p> */}
+          <p className="m-8 pt-12 text-center font-bayon text-2xl text-[#b3a369]">
+            "Level up your gear with Alienware" - Proud sponsors of GameFest
           </p>
         </div>
 

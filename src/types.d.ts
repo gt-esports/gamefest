@@ -20,3 +20,40 @@ export interface ProfileCardProps {
   name: string;
   position: string;
 }
+
+export interface TeamAssignment {
+  game: string;
+  team: string;
+}
+
+export interface Player {
+  name: string;
+  teamAssignments?: TeamAssignment[];
+}
+
+export interface Team {
+  name: string;
+  players: string[];
+}
+
+export interface GameData {
+  name: string;
+  teams: Team[];
+}
+
+export interface Participant {
+  id: string;
+  name: string;
+  isWinner: boolean | undefined;
+}
+
+export interface Match {
+  id: string;
+  name: string;
+  nextMatchId: string | null;
+  tournamentRoundText: string;
+  startTime: string;
+  state: "DONE" | "SCHEDULED";
+  participants: Participant[];
+  onClick?: () => void;
+}

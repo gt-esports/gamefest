@@ -1,13 +1,12 @@
-import React from 'react';
-import '../styles/Matches.css';
+import React from "react";
+import "../styles/Matches.css";
 import { gameCovers } from "../data/gamesData.ts";
 
-
-interface MatchCardProps {
-    game: string;
-    round: string;
-    date: number;
-}
+type MatchCardProps = {
+  game: string;
+  round: number;
+  date: string;
+};
 
 const MatchCard: React.FC<MatchCardProps> = ({ game, round, date }) => {
     const gameKey = game.toLowerCase().replace(/[\s\-]/g, "_");

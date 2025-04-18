@@ -1,18 +1,28 @@
-import { useEffect, useMemo, useState } from "react";
-import { SingleEliminationBracket, SVGViewer } from "@g-loot/react-tournament-brackets";
+import { useEffect, useMemo, useState, ReactNode } from "react";
+import {
+  SingleEliminationBracket,
+  SVGViewer,
+} from "@g-loot/react-tournament-brackets";
 import DropDownList from "../components/DropDownList";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import eventMap from "../assets/event_map.png";
-import { useAuth, useUser} from "@clerk/clerk-react";
-function Brac({ game }: { game: string}) {
+import { useAuth, useUser } from "@clerk/clerk-react";
+
+function Brac() {
   const [gameData, setGameData] = useState<any[]>([]);
   const { getToken } = useAuth();
   const { user } = useUser();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const initialGame = searchParams.get("game");
+  const [selectedGame, setSelectedGame] = useState<string | null>(initialGame);
+  const [winners, setWinners] = useState<{ [matchId: string]: string }>({});
 
   useEffect(() => {
     const fetchPlayers = async () => {
       const token = await getToken();
-      const res = await fetch("/api/players", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/players`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -39,31 +49,34 @@ function Brac({ game }: { game: string}) {
       }));
 
       setGameData(gameData);
-      console.log("Game data built from players:", gameData);
     };
 
     fetchPlayers();
-  }, []);
+  }, [getToken]);
 
-  async function getPlayersForTeam(game: string, teamName: string): Promise<string[]> {
+  async function getPlayersForTeam(
+    game: string,
+    teamName: string
+  ): Promise<string[]> {
     const selected = gameData.find((g) => g.name === game);
     const team = selected?.teams.find((t: any) => t.name === teamName);
     return team?.players || [];
   }
 
-  const [selectedGame, setSelectedGame] = useState<string | null>(null);
-  const [winners, setWinners] = useState<{ [matchId: string]: string }>({});
   const teamData = Array.isArray(gameData)
     ? gameData.find((g: any) => g.name === selectedGame)?.teams
     : [];
   const teamNames = teamData?.map((team: any) => team.name) || [];
   const isBracketGame = selectedGame && teamNames.length >= 2;
   const isBoothGame = selectedGame && !isBracketGame;
-  const router = useNavigate();
 
   const generateMatches = () => {
     type Team = { name: string };
-    type Participant = { id: string; name: string; isWinner: boolean | undefined };
+    type Participant = {
+      id: string;
+      name: string;
+      isWinner: boolean | undefined;
+    };
     type Match = {
       id: string;
       name: string;
@@ -80,7 +93,9 @@ function Brac({ game }: { game: string}) {
     let idCounter = 1;
 
     const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(teamNames.length)));
-    const paddedTeams: Team[] = [...teamNames.map((t) => ({ name: t }))];
+    const paddedTeams: Team[] = [
+      ...teamNames.map((t: string) => ({ name: t })),
+    ];
     while (paddedTeams.length < nextPowerOfTwo) {
       paddedTeams.push({ name: "BYE" });
     }
@@ -108,7 +123,11 @@ function Brac({ game }: { game: string}) {
 
         const participants = [
           { id: `${i}`, name: team1.name, isWinner: winnerName === team1.name },
-          { id: `${i + 1}`, name: team2.name, isWinner: winnerName === team2.name }
+          {
+            id: `${i + 1}`,
+            name: team2.name,
+            isWinner: winnerName === team2.name,
+          },
         ];
 
         const match: Match = {
@@ -121,10 +140,11 @@ function Brac({ game }: { game: string}) {
           participants,
           onClick: !isBye
             ? () => {
-                const newWinner = winnerName === team1.name ? team2.name : team1.name;
+                const newWinner =
+                  winnerName === team1.name ? team2.name : team1.name;
                 setWinners((prev) => ({ ...prev, [id]: newWinner }));
               }
-            : undefined
+            : undefined,
         };
 
         roundMatches.push(match);
@@ -163,18 +183,22 @@ function Brac({ game }: { game: string}) {
     const winner = winners[finalMatch?.id];
     if (!winner) return [];
 
-    const secondPlace = finalMatch.participants.find((p: any) => p.name !== winner)?.name;
+    const secondPlace = finalMatch.participants.find(
+      (p: any) => p.name !== winner
+    )?.name;
     return [
       { team: winner, place: 1 },
-      ...(secondPlace ? [{ team: secondPlace, place: 2 }] : [])
+      ...(secondPlace ? [{ team: secondPlace, place: 2 }] : []),
     ];
   };
 
   const placements = getFinalPlacements();
-  const allGameKeys = Array.isArray(gameData) ? gameData.map((game) => game.name) : [];
+  const allGameKeys = Array.isArray(gameData)
+    ? gameData.map((game) => game.name)
+    : [];
 
   return (
-    <div className="flex justify-center items-center min-h-screen w-full">
+    <div className="flex min-h-screen w-full items-center justify-center">
       <div
         style={{
           width: "min(90%, 1400px)",
@@ -183,58 +207,99 @@ function Brac({ game }: { game: string}) {
           borderRadius: "15px",
           display: "flex",
           flexDirection: "column",
-          alignItems: "center"
+          alignItems: "center",
         }}
       >
-        <div className="text-white text-lg mb-4">Bracket for {selectedGame}</div>
+        <div className="mb-4 text-lg text-white">
+          {selectedGame
+            ? `Bracket for ${selectedGame}`
+            : "Select a game to view bracket"}
+        </div>
         <DropDownList
           items={allGameKeys}
           onSelect={(item) => {
             setSelectedGame(item);
             setWinners({});
+            navigate(`/brackets?game=${item}`);
           }}
         />
 
         {isBoothGame && (
-          <div className="text-white mt-4 flex flex-col items-center gap-4">
+          <div className="mt-4 flex flex-col items-center gap-4 text-white">
             <p>This is a booth game — please find the booth.</p>
             <img
               src={eventMap}
               alt="Event Booth Map"
-              className="rounded-lg max-w-full h-[520px]"
+              className="h-[520px] max-w-full rounded-lg"
             />
           </div>
         )}
 
         {isBracketGame && matches.length > 0 && (
-          <div className="w-full mt-6">
+          <div className="mt-6 w-full">
             <SingleEliminationBracket
               matches={matches}
               options={{
                 style: {
-                  roundHeader: { backgroundColor: '#0F172A', fontColor: '#F8FAFC' },
-                  connectorColor: '#60a5fa',
-                  connectorColorHighlight: '#3b82f6'
+                  roundHeader: {
+                    backgroundColor: "#0F172A",
+                    fontColor: "#F8FAFC",
+                  },
+                  connectorColor: "#60a5fa",
+                  connectorColorHighlight: "#3b82f6",
                 },
               }}
-              svgWrapper={({ children, ...props }) => (
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <SVGViewer background="transparent" SVGBackground="transparent" width={1200} height={800} {...props}>
-                        {children}
-                    </SVGViewer>
+              svgWrapper={({ children, ...props }: { children: ReactNode }) => (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <SVGViewer
+                    background="transparent"
+                    SVGBackground="transparent"
+                    width={1200}
+                    height={800}
+                    {...props}
+                  >
+                    {children}
+                  </SVGViewer>
                 </div>
               )}
-              matchComponent={({ match, topParty, bottomParty, topWon, bottomWon, teamNameFallback }) => {
+              matchComponent={({
+                match,
+                topParty,
+                bottomParty,
+                topWon,
+                bottomWon,
+                teamNameFallback,
+              }: any) => {
                 const handleNavigate = async () => {
                   const team1 = match.participants[0]?.name;
                   const team2 = match.participants[1]?.name;
-                
-                  if (!team1 || !team2 || team1 === 'BYE' || team2 === 'BYE' || team1 === 'TBD' || team2 === 'TBD') return;
-                
-                  const players1 = await getPlayersForTeam(selectedGame, team1);
-                  const players2 = await getPlayersForTeam(selectedGame, team2);
-                
-                  router(`/match/${match.id}`, {
+
+                  if (
+                    !team1 ||
+                    !team2 ||
+                    team1 === "BYE" ||
+                    team2 === "BYE" ||
+                    team1 === "TBD" ||
+                    team2 === "TBD"
+                  )
+                    return;
+
+                  const players1 = await getPlayersForTeam(
+                    selectedGame!,
+                    team1
+                  );
+                  const players2 = await getPlayersForTeam(
+                    selectedGame!,
+                    team2
+                  );
+
+                  navigate(`/match/${match.id}`, {
                     state: {
                       round: match.tournamentRoundText,
                       game: selectedGame,
@@ -246,7 +311,9 @@ function Brac({ game }: { game: string}) {
                   });
                 };
 
-                const handleToggle = (e, partyName) => {
+                const handleToggle = (
+                  e: React.MouseEvent<HTMLDivElement, MouseEvent>
+                ) => {
                   e.stopPropagation();
                   if (user?.publicMetadata?.role === "admin") {
                     match.onClick?.();
@@ -257,48 +324,50 @@ function Brac({ game }: { game: string}) {
                   <div
                     onClick={handleNavigate}
                     style={{
-                      position: 'relative',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      border: '1px solid #ccc',
-                      borderRadius: '10px',
-                      backgroundColor: 'rgba(232, 233, 244, 0.73)',
-                      padding: '10px 14px',
-                      margin: '4px 0',
-                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.08)',
-                      cursor: 'pointer',
-                      transition: 'transform 0.15s ease, box-shadow 0.2s ease',
+                      position: "relative",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      border: "1px solid #ccc",
+                      borderRadius: "10px",
+                      backgroundColor: "rgba(232, 233, 244, 0.73)",
+                      padding: "10px 14px",
+                      margin: "4px 0",
+                      boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
+                      cursor: "pointer",
+                      transition: "transform 0.15s ease, box-shadow 0.2s ease",
                     }}
                   >
                     <div
                       style={{
-                        position: 'absolute',
-                        right: '18px',
-                        top: '8px',
-                        bottom: '8px',
-                        width: '2px',
-                        backgroundColor: '#3b82f6',
-                        borderRadius: '1px',
+                        position: "absolute",
+                        right: "18px",
+                        top: "8px",
+                        bottom: "8px",
+                        width: "2px",
+                        backgroundColor: "#3b82f6",
+                        borderRadius: "1px",
                         opacity: 0.5,
                       }}
                     />
-                    {[topParty, bottomParty].map((p, idx) => {
+                    {[topParty, bottomParty].map((p: any, idx: number) => {
                       const isWinner = idx === 0 ? topWon : bottomWon;
-                      const isBYE = p.name === 'BYE';
+                      const isBYE = p.name === "BYE";
                       return (
                         <div
                           key={p.id}
-                          onClick={(e) => handleToggle(e, p.name)}
+                          onClick={(e) => handleToggle(e)}
                           style={{
-                            fontWeight: isWinner ? '700' : '400',
-                            color: isWinner ? '#1e3a8a' : '#333',
+                            fontWeight: isWinner ? "700" : "400",
+                            color: isWinner ? "#1e3a8a" : "#333",
                             opacity: isBYE ? 0.5 : 1,
-                            fontSize: '0.9rem',
-                            padding: '4px 0',
-                            borderLeft: isWinner ? '4px solid #1e3a8a' : '4px solid transparent',
-                            paddingLeft: '8px',
-                            cursor: 'pointer',
+                            fontSize: "0.9rem",
+                            padding: "4px 0",
+                            borderLeft: isWinner
+                              ? "4px solid #1e3a8a"
+                              : "4px solid transparent",
+                            paddingLeft: "8px",
+                            cursor: "pointer",
                           }}
                         >
                           {p.name || teamNameFallback}
@@ -314,7 +383,9 @@ function Brac({ game }: { game: string}) {
 
         {placements.length > 0 && (
           <div className="mt-6 text-center">
-            <h2 className="text-white text-lg font-semibold mb-2">Final Placements</h2>
+            <h2 className="mb-2 text-lg font-semibold text-white">
+              Final Placements
+            </h2>
             {placements.map((p) => (
               <div key={p.team} className="text-white">
                 {p.place}. {p.team}
