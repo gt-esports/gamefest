@@ -74,12 +74,15 @@ function Footer() {
               </li>
             ))}
           </ul>
-          <Link
-            to="/team"
+          <a
+            href="https://gatechesports.com/ourteam"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-block bg-tech-gold text-black font-bold px-4 py-2 rounded-lg hover:bg-yellow-500 transition"
+
           >
-            Meet the Team
-          </Link>
+            Meet Our Team
+          </a>
         </div>
       </div>
 
