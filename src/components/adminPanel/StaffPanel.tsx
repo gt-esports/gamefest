@@ -16,11 +16,25 @@ const StaffPanel: React.FC = () => {
   useEffect(() => {
     const fetchStaff = async () => {
       const token = await getToken();
+      console.log("Token:", token);
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/staff`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      if (!res.ok) {
+        const error = await res.json();
+        console.error("Failed to fetch staff:", error);
+        setStaffList([]);
+        return;
+      }
+
       const data = await res.json();
-      setStaffList(data); // Ensure the data is an array
+      if (Array.isArray(data)) {
+        setStaffList(data);
+      } else {
+        console.error("Expected an array but got:", data);
+        setStaffList([]);
+      }
     };
     fetchStaff();
   }, [getToken]);
@@ -86,6 +100,16 @@ const StaffPanel: React.FC = () => {
     setStaffList((prev) => prev.filter((s) => s.name !== name));
   };
 
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const filteredNames = staffList
+    .map((s) => s.name)
+    .filter(
+      (name) =>
+        name.toLowerCase().includes(newStaff.toLowerCase()) &&
+        name.toLowerCase() !== newStaff.toLowerCase()
+    )
+    .slice(0, 5);
+
   return (
     <div>
       <h2 className="mb-4 text-xl font-bold">Manage Staff Roles</h2>
@@ -137,13 +161,36 @@ const StaffPanel: React.FC = () => {
       {/* Add Staff Member */}
       <div className="mt-6 flex flex-col gap-2">
         <h3 className="font-semibold">Add Staff Member</h3>
-        <input
-          type="text"
-          placeholder="Name"
-          value={newStaff}
-          onChange={(e) => setNewStaff(e.target.value)}
-          className="rounded border p-2"
-        />
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Name"
+            value={newStaff}
+            onChange={(e) => {
+              setNewStaff(e.target.value);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 100)} // delay to allow click
+            className="rounded border p-2 w-full"
+          />
+          {showSuggestions && filteredNames.length > 0 && (
+            <ul className="absolute z-10 w-full rounded border bg-white shadow">
+              {filteredNames.map((name) => (
+                <li
+                  key={name}
+                  onClick={() => {
+                    setNewStaff(name);
+                    setShowSuggestions(false);
+                  }}
+                  className="cursor-pointer px-4 py-2 hover:bg-gray-100"
+                >
+                  {name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <input
           type="text"
           placeholder="Role (e.g. valorant)"
