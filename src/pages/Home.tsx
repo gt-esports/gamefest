@@ -115,10 +115,14 @@ function Home() {
         <h2 className="flex pt-8 text-center font-bayon text-5xl font-normal tracking-wide text-white">
           CURRENT GAMES
         </h2>
-        <div className="flex w-3/4 mx-auto max-w-screen-xl flex-col items-center pb-16">
+        <div className="mx-auto flex w-3/4 max-w-screen-xl flex-col items-center pb-16">
           <Carousel />
-          <a href="https://www.start.gg/tournament/gamefest-2025-1/details" target="_blank" rel="noopener noreferrer">
-            <button className='bg-tech-gold hover:bg-tech-gold/90 rounded-lg px-4 py-2 font-bayon text-2xl text-white my-8 sm:px-6 sm:py-3 sm:text-4xl'>
+          <a
+            href="https://www.start.gg/tournament/gamefest-2025-1/details"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <button className="my-8 rounded-lg bg-tech-gold px-4 py-2 font-bayon text-2xl text-white hover:bg-tech-gold/90 sm:px-6 sm:py-3 sm:text-4xl">
               VIEW DETAILS
             </button>
           </a>
