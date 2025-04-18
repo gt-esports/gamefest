@@ -115,11 +115,16 @@ function Home() {
         <h2 className="flex pt-8 text-center font-bayon text-5xl font-normal tracking-wide text-white">
           CURRENT GAMES
         </h2>
-        <div className="flex w-3/4 max-w-screen-xl flex-col items-center pb-16">
+        <div className="flex w-3/4 mx-auto max-w-screen-xl flex-col items-center pb-16">
           <Carousel />
+          <a href="https://www.start.gg/tournament/gamefest-2025-1/details" target="_blank" rel="noopener noreferrer">
+            <button className='bg-tech-gold hover:bg-tech-gold/90 rounded-lg px-4 py-2 font-bayon text-2xl text-white my-8 sm:px-6 sm:py-3 sm:text-4xl'>
+              VIEW DETAILS
+            </button>
+          </a>
           <button
             onClick={() => scrollToSection("sponsors-section", -80)}
-            className="mb-8 flex h-8 w-8 items-center justify-center rounded-full bg-tech-gold hover:bg-tech-gold/90 sm:mb-12 sm:h-10 sm:w-10"
+            className="my-8 flex h-8 w-8 items-center justify-center rounded-full bg-tech-gold hover:bg-tech-gold/90 sm:mb-12 sm:h-10 sm:w-10"
             aria-label="Scroll to sponsors section"
           >
             <svg
