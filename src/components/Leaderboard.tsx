@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import SearchBar from './SearchBar';
-import { useAuth, useUser} from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
+import {motion } from 'framer-motion';
 
 const Team = () => {
   const { getToken, isLoaded: authLoaded, isSignedIn } = useAuth();
@@ -49,6 +50,9 @@ const Team = () => {
           const winnersData = await winnersResponse.json();
           
           if (winnersData.success && winnersData.data?.winners?.length > 0) {
+            // if the raffle is run more than once,
+            // there might be more than one winner
+            // so we take the first one in the list
             const winner = winnersData.data.winners[0];
             setRaffleWinner({
               name: winner.name,
@@ -131,10 +135,19 @@ const Team = () => {
       </div>
 
       {raffleWinner && (
-        <div className="my-4 p-4 bg-tech-gold/20 border border-tech-gold rounded-lg text-white text-center">
-          <h2 className="text-2xl font-bayon">🎉 Raffle Winner 🎉</h2>
+        <motion.div 
+          className="my-4 p-4 bg-tech-gold/20 border border-tech-gold rounded-lg text-white text-center"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{
+            type: 'spring',
+            stiffness: 300,
+            damping: 20,
+          }}
+        >
+          <h1 className="text-3xl font-bayon">🎉 Raffle Winner 🎉</h1>
           <p className="text-xl mt-2">{raffleWinner.name} - {raffleWinner.points} Tokens</p>
-        </div>
+        </motion.div>
       )}
 
       <div className="space-y-4">
