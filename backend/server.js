@@ -19,13 +19,21 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // middleware
+const allowedOrigins = [
+  "http://localhost:5173", // local dev
+  "https://gamefest.gatechesports.com", // production frontend
+];
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://your-frontend-service.onrender.com",
-      "https://gamefest.gatechesports.com",
-    ],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true, // required for Clerk or any auth using cookies
   })
 );
 app.use(bodyParser.json());
