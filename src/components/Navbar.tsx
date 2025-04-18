@@ -9,7 +9,6 @@ import {
   SignInButton,
   SignedIn,
   UserButton,
-  UserProfile,
 } from "@clerk/clerk-react";
 
 function Navbar() {
