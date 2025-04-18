@@ -20,7 +20,6 @@ const StaffPanel: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      console.log(data); // Check what you're getting
       setStaffList(data); // Ensure the data is an array
     };
     fetchStaff();

@@ -9,9 +9,9 @@ interface SearchProps {
 const SearchBar: React.FC<SearchProps> = ({ onSearch, items, placeholder = "Search..." }) => {
   const [search, setSearch] = useState("");
 
-  const filteredItems = items.filter((item) =>
-    item.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredItems = items && items.length > 0 
+  ? items.filter((item) => item && item.toLowerCase().includes(search.toLowerCase()))
+  : [];
 
   const handleSearch = (item: string) => {
     onSearch(item.toLowerCase());
