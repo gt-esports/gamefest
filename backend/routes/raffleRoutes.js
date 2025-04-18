@@ -7,6 +7,6 @@ const router = express.Router();
 router.use(requireClerkAuth);
 
 router.post('/pick', requireStaffOrAdmin, raffleController.pickRaffles);
-router.get('/raffles', raffleController.getWinners);
+router.get('/getWinner', raffleController.getWinners);
 
 export default router;

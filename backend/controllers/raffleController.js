@@ -2,7 +2,7 @@ import Players from '../models/Player.js';
 
 const pickRaffles = async (req, res) => {
   try {
-    const { count = 1 } = req.body;
+    const { count } = req.body;
 
     if (count < 1) {
       return res.status(400).json({ 
@@ -27,18 +27,36 @@ const pickRaffles = async (req, res) => {
       });
     }
 
-    // pick winners
-    const winners = pickWinnersWithWeightedChance(participants, 1);
-
-    const winnerIds = winners.map(winner => winner.userId);
+    // reset all participants' raffle placing to 0
     await Players.updateMany(
-      { _id: { $in: winnerIds } },
-      { $set: { raffleWinner: true } }
+      {},
+      { $set: { raffleWinner: false, rafflePlacing: 0 } }
     );
+
+    // pick winners
+    const winners = pickWinnersWithWeightedChance(participants, 3);
+
+    const placings = winners.map((winner, index) => {
+      let place;
+      switch (index) {
+        case 0: place = '1st'; break;
+        case 1: place = '2nd'; break;
+        case 2: place = '3rd'; break;
+        default: place = 'Participant';
+      }
+      return { ...winner, place };
+    });
+
+    for (let i = 0; i < winners.length; i++) {
+      await Players.updateOne(
+        { _id: winners[i].userId },
+        { $set: { rafflePlacing: i + 1, raffleWinner: true } }
+      );
+    }
     
     return res.status(200).json({
       success: true,
-      winner: winners[0]
+      winners: placings
     });
   } catch (error) {
     console.error('Error picking raffle winners:', error);
@@ -104,11 +122,24 @@ const getWinners = async (req, res) => {
         message: 'No winners found' 
       });
     }
+
+    const winnerPlacings = winners.map(winner => {
+      const place = winner.rafflePlacing === 1 ? '1st' : 
+                    winner.rafflePlacing === 2 ? '2nd' : 
+                    winner.rafflePlacing === 3 ? '3rd' : 'Participant';
+      
+      return {
+        userId: winner._id,
+        name: winner.name,
+        points: winner.points,
+        place
+      };
+    });
     
     return res.status(200).json({
       success: true,
       data: {
-        winners
+        winners: winnerPlacings
       }
     });
   } catch (error) {
