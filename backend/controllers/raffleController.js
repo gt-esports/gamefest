@@ -1,10 +1,9 @@
-const Participants = require('../models/Player.js');
-const mongoose = require('mongoose');
+import Players from '../models/Player.js';
 
-export const pickRaffles = async (req, res) => {
+const pickRaffles = async (req, res) => {
   try {
     const { count = 1 } = req.body;
-    
+
     if (count < 1) {
       return res.status(400).json({ 
         success: false, 
@@ -29,13 +28,17 @@ export const pickRaffles = async (req, res) => {
     }
 
     // pick winners
-    const winners = pickWinnersWithWeightedChance(participants, count);
+    const winners = pickWinnersWithWeightedChance(participants, 1);
+
+    const winnerIds = winners.map(winner => winner.userId);
+    await Players.updateMany(
+      { _id: { $in: winnerIds } },
+      { $set: { raffleWinner: true } }
+    );
     
     return res.status(200).json({
       success: true,
-      data: {
-        winners
-      }
+      winner: winners[0]
     });
   } catch (error) {
     console.error('Error picking raffle winners:', error);
@@ -47,7 +50,7 @@ export const pickRaffles = async (req, res) => {
 };
 
 const getParticipants = async () => {
-  const participants = await Participants.find();
+  const participants = await Players.find();
 
   return participants.map(participant => ({
     userId: participant._id.toString(),
@@ -57,23 +60,23 @@ const getParticipants = async () => {
 };
 
 const pickWinnersWithWeightedChance = (participants, count) => {
-  const _participants = [...participants];
+  const pool = [...participants];
   const winners = [];
 
-  if (_participants.length <= count) {
+  if (pool.length <= count) {
     return participants;
   }
   
   for (let i = 0; i < count; i++) {
-    const totalPoints = _participants.reduce((sum, p) => sum + Math.max(1, p.points), 0);
+    const totalPoints = pool.reduce((sum, p) => sum + Math.max(1, p.points), 0);
     
     const randVal = Math.random() * totalPoints;
 
     let cumulativePoints = 0;
     let winnerIndex = 0;
     
-    for (let j = 0; j < _participants.length; j++) {
-      const points = Math.max(1, _participants[j].points);
+    for (let j = 0; j < pool.length; j++) {
+      const points = Math.max(1, pool[j].points);
       cumulativePoints += points;
       
       if (cumulativePoints >= randVal) {
@@ -82,14 +85,40 @@ const pickWinnersWithWeightedChance = (participants, count) => {
       }
     }
     
-    // add winner to the list and remove from available participants
-    winners.push(_participants[winnerIndex]);
-    _participants.splice(winnerIndex, 1);
+    winners.push(pool[winnerIndex]);
+    pool.splice(winnerIndex, 1);
   }
   
   return winners;
 };
 
-export const getWinners = async (req, res) => {
+const getWinners = async (req, res) => {
+  try {
+    const winners = await Players.find({ raffleWinner: true });
+    
+    if (winners.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'No winners found' 
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      data: {
+        winners
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching winners:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch winners' 
+    });
+  }
+};
 
+export default {
+  pickRaffles,
+  getWinners
 };

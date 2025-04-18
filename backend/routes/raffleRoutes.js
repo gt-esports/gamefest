@@ -1,10 +1,12 @@
-const express = require('express');
-const raffleController = require('../controllers/raffleController');
+import express from 'express';
+import raffleController from '../controllers/raffleController.js';
+import { requireClerkAuth, requireStaffOrAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// POST /api/raffle/pick
-router.post('/pick', raffleController.pickRaffles);
+router.use(requireClerkAuth);
+
+router.post('/pick', requireStaffOrAdmin, raffleController.pickRaffles);
 router.get('/raffles', raffleController.getWinners);
 
-module.exports = router;
+export default router;
