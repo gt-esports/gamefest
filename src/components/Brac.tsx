@@ -22,7 +22,7 @@ function Brac() {
   useEffect(() => {
     const fetchPlayers = async () => {
       const token = await getToken();
-      const res = await fetch("/api/players", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/players`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
