@@ -99,9 +99,6 @@ export const games = {
     pageLink: "link",
     discordLink: "https://discord.gg/cEG2MMDQKK",
   },
-};
-
-export const casual_games = {
   Minecraft: {
     image: minecraft,
     pageLink: "link",
@@ -142,4 +139,65 @@ export const casual_games = {
     pageLink: "link",
     discordLink: "https://discord.gg/Q2bZFrFkvQ",
   },
+};
+/** 
+ * export const casual_games = {
+  Minecraft: {
+    image: minecraft,
+    pageLink: "link",
+    discordLink: "https://discord.gg/QbeazDKCdM",
+  },
+  "Genshin Impact": {
+    image: genshin,
+    pageLink: "link",
+    discordLink: "https://discord.gg/QaTtcMat6Y",
+  },
+  "Pokemon Go": {
+    image: pokemonGo,
+    pageLink: "link",
+    discordLink: "https://discord.gg/txJjUhg",
+  },
+  Fortnite: {
+    image: fortnite,
+    pageLink: "link",
+    discordLink: "https://discord.gg/ZDmmynxYYM",
+  },
+  "Animal Crossing": {
+    image: animalCrossing,
+    pageLink: "link",
+    discordLink: "https://discord.gg/AN4Zspc6Pr",
+  },
+  "GT Arcade": {
+    image: amongus,
+    pageLink: "link",
+    discordLink: "https://discord.gg/tpcMu4jQGh",
+  },
+  Destiny: {
+    image: destiny,
+    pageLink: "link",
+    discordLink: "https://discord.gg/F2FqwxxHXK",
+  },
+  "Hearts of Iron 4": {
+    image: hearts_of_iron,
+    pageLink: "link",
+    discordLink: "https://discord.gg/Q2bZFrFkvQ",
+  },
+};
+*/
+export const gameCovers: { [key: string]: string } = {
+  "league_of_legends": league,
+  "teamfight_tactics": tft,
+  "valorant": valorant,
+  "overwatch_2": overwatch2,
+  "rocket_league": rl,
+  "counter_strike_2": csgo2,
+  "smash": smash,
+  "rainbow_six_seige": r6,
+  "rythm": rythm,
+  "team_fortress_2": tf2,
+  "hearthstone": hearthstone,
+  "smite": smite,
+  "cod": cod,
+  "apex_leagues": apex,
+  "dota2": dota2,
 };

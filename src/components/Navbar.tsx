@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { TfiClose } from "react-icons/tfi";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 
 import Logo from "../assets/gt-esports-logo1.png";
 import {
@@ -9,7 +9,6 @@ import {
   SignInButton,
   SignedIn,
   UserButton,
-  UserProfile,
 } from "@clerk/clerk-react";
 
 function Navbar() {
@@ -59,11 +58,13 @@ function Navbar() {
 
   const links = [
     { name: "HOME", link: "/home" },
+    { name: "INFORMATION", link: "/information" },
     { name: "BRACKETS", link: "/brackets" },
     // { name: "MATCHES", link: "/matches" },
     { name: "TEAMS", link: "/teams" },
     // { name: "SCHOOLS", link: "/schools" },
     { name: "LEADERBOARD", link: "/leaderboard" },
+    { name: "PLAYER", link: "/playercard" },
     { name: "SPONSORS", link: "/sponsor" },
     { name: "ABOUT", link: "/about" },
   ];
