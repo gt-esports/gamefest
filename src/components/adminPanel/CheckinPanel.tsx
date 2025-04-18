@@ -40,20 +40,23 @@ const PlayerCheckinPanel: React.FC = () => {
         fetch(`${import.meta.env.VITE_API_URL}/api/games`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("/api/staff",   { 
-          headers: { Authorization: `Bearer ${token}` }
-        }), 
+        fetch(`${import.meta.env.VITE_API_URL}/api/staff`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
 
       const playersData = await playerRes.json();
       const gamesData = await gamesRes.json(); // should be an array of game names
-      const staffData   = await staffRes.json();  // must include your `isAdmin` field
+      const staffData = await staffRes.json(); // must include your `isAdmin` field
 
       setPlayers(playersData);
       setGames(gamesData.map((g: { name: string }) => g.name)); // adapt this based on your Game model
-      
-      const discordName = user?.externalAccounts?.find(a => a.provider === "discord")?.username;
-      const currentUser = discordName || user?.username || user?.firstName || "";
+
+      const discordName = user?.externalAccounts?.find(
+        (a) => a.provider === "discord"
+      )?.username;
+      const currentUser =
+        discordName || user?.username || user?.firstName || "";
       const me = staffData.find((s: any) => s.name === currentUser);
 
       setIsAdmin(me.isAdmin || false);
@@ -315,7 +318,9 @@ const PlayerCheckinPanel: React.FC = () => {
                 {isAdmin && (
                   <button
                     onClick={() => {
-                      const filtered = selectedPlayer.participation.filter((_, i) => i !== idx);
+                      const filtered = selectedPlayer.participation.filter(
+                        (_, i) => i !== idx
+                      );
                       setSelectedPlayer({
                         ...selectedPlayer,
                         participation: filtered,
@@ -343,7 +348,6 @@ const PlayerCheckinPanel: React.FC = () => {
               </button>
             )}
           </div>
-
 
           <div className="mt-3">
             <h4 className="font-medium">Team Assignments</h4>
