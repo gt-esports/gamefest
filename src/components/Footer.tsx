@@ -74,6 +74,12 @@ function Footer() {
               </li>
             ))}
           </ul>
+          <Link
+            to="/team"
+            className="inline-block bg-tech-gold text-black font-bold px-4 py-2 rounded-lg hover:bg-yellow-500 transition"
+          >
+            Meet the Team
+          </Link>
         </div>
       </div>
 
