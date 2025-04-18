@@ -20,6 +20,7 @@ import beatsaber from "../assets/game-covers/beat-saber-cover.jpg";
 import geoguessr from "../assets/game-covers/geoguessr-cover.jpg";
 import supercell from "../assets/game-covers/supercell-cover.png";
 import vgdev from "../assets/game-covers/vgdev-cover.png";
+import marioKart from "../assets/game-covers/mario-kart-cover.webp";
 
 export const games = {
   "League of Legends": {
@@ -54,7 +55,7 @@ export const games = {
     discordLink: "https://discord.gg/xpFgFyU",
   },
   "Mario Kart 8 Deluxe": {
-    image: smash,
+    image: marioKart,
     pageLink: "event/gamefest-2025-mario-kart-8-deluxe-tournament",
     discordLink: "",
   },
@@ -82,10 +83,10 @@ export const games = {
     image: rivals,
     pageLink: "event/gamefest-2025-marvel-rivals-tournament",
     discordLink: "",
-  }
+  },
 };
-/** 
- * export const casual_games = {
+
+export const casual_games = {
   Minecraft: {
     image: minecraft,
     pageLink: "event/gamefest-2025-minecraft-pvp-speedrun",
@@ -130,18 +131,17 @@ export const challenges = {
     discordLink: "",
   },
 };
-*/
 
 export const gameCovers: { [key: string]: string } = {
-  "league_of_legends": league,
-  "teamfight_tactics": tft,
-  "valorant": valorant,
-  "overwatch_2": overwatch2,
-  "rocket_league": rl,
-  "counter_strike_2": csgo2,
-  "smash": smash,
-  "mario_kart": smash,
-  "rainbow_six_seige": r6,
-  "rythm": rythm,
-  "apex_leagues": apex,
+  league_of_legends: league,
+  teamfight_tactics: tft,
+  valorant: valorant,
+  overwatch_2: overwatch2,
+  rocket_league: rl,
+  counter_strike_2: csgo2,
+  smash: smash,
+  mario_kart: smash,
+  rainbow_six_seige: r6,
+  rythm: rythm,
+  apex_leagues: apex,
 };
