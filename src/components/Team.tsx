@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { FaChevronDown } from 'react-icons/fa';
+import { useState, useEffect } from "react";
+import { FaChevronDown } from "react-icons/fa";
 import { useAuth } from "@clerk/clerk-react";
-import { useLocation } from 'react-router-dom';
-import SearchBar from './SearchBar';
-import DropDownList from './DropDownList';
+import { useLocation } from "react-router-dom";
+import SearchBar from "./SearchBar";
+import DropDownList from "./DropDownList";
 
 const Team = () => {
   const { getToken } = useAuth();
@@ -36,7 +36,12 @@ const Team = () => {
         }
       }
 
-      const allTeams: { name: string; players: string[]; game: string; points: number }[] = [];
+      const allTeams: {
+        name: string;
+        players: string[];
+        game: string;
+        points: number;
+      }[] = [];
       const allGamesSet: Set<string> = new Set();
 
       for (const game in gameMap) {
@@ -44,7 +49,7 @@ const Team = () => {
         for (const team in gameMap[game]) {
           const teamPlayers = gameMap[game][team];
           const participationPoints = teamPlayers.reduce((sum, playerName) => {
-            const player = players.find((p) => p.name === playerName);
+            const player = players.find((p: any) => p.name === playerName);
             return sum + (player?.participation?.length || 0);
           }, 0);
 
@@ -89,7 +94,9 @@ const Team = () => {
 
   const handleTeamSearch = (teamName: string) => {
     const trimmed = teamName.trim().toLowerCase();
-    const index = teams.findIndex((t) => t.name.trim().toLowerCase() === trimmed);
+    const index = teams.findIndex(
+      (t) => t.name.trim().toLowerCase() === trimmed
+    );
 
     if (index !== -1) {
       setOpenIndex(index);
@@ -117,7 +124,7 @@ const Team = () => {
 
   return (
     <div className="mx-auto p-8 px-10 lg:px-20">
-      <div className="flex flex-col lg:flex-row justify-between items-center">
+      <div className="flex flex-col items-center justify-between lg:flex-row">
         <SearchBar
           onSearch={handleTeamSearch}
           items={teams.map((team) => team.name)}
@@ -130,7 +137,7 @@ const Team = () => {
           <div
             key={index}
             id={tab.name.replace(/\s+/g, "-").toLowerCase()}
-            className={`rounded-lg border border-white/20 p-4 bg-opacity-25 bg-gradient-to-br ${
+            className={`rounded-lg border border-white/20 bg-opacity-25 bg-gradient-to-br p-4 ${
               openIndex === index
                 ? "from-[#2e1d1d] to-[#101c3b]"
                 : "from-[#241717] to-[#101c3b]"
@@ -138,12 +145,12 @@ const Team = () => {
           >
             <button
               onClick={() => handleToggle(index)}
-              className="w-full flex justify-between items-center text-left font-semibold text-white hover:text-tech-gold focus:outline-none"
+              className="flex w-full items-center justify-between text-left font-semibold text-white hover:text-tech-gold focus:outline-none"
             >
               <span className="text-lg tracking-wider">{tab.name}</span>
               <FaChevronDown
                 className={`transition-transform duration-200 ${
-                  openIndex === index ? "transform rotate-180" : ""
+                  openIndex === index ? "rotate-180 transform" : ""
                 }`}
               />
             </button>
@@ -151,16 +158,16 @@ const Team = () => {
             {openIndex === index && (
               <div className="mt-4 flex flex-col items-center">
                 {/* Desktop */}
-                <div className="hidden lg:flex justify-between items-start space-x-8 w-full">
+                <div className="hidden w-full items-start justify-between space-x-8 lg:flex">
                   <div className="flex flex-col">
                     <h1 className="font-bayon text-9xl">{tab.points}</h1>
                     <span className="font-quicksand text-xl">points</span>
                   </div>
-                  <div className="w-full max-h-screen overflow-y-auto">
+                  <div className="max-h-screen w-full overflow-y-auto">
                     {tab.players.map((p: string, idx: number) => (
                       <div
                         key={idx}
-                        className="flex items-start justify-between px-4 py-2 border rounded-lg mb-2 border-tech-gold/50 hover:border-tech-gold border-b-4 text-center"
+                        className="mb-2 flex items-start justify-between rounded-lg border border-b-4 border-tech-gold/50 px-4 py-2 text-center hover:border-tech-gold"
                       >
                         <span className="text-lg font-bold">{p}</span>
                       </div>
@@ -169,7 +176,7 @@ const Team = () => {
                 </div>
 
                 {/* Mobile */}
-                <div className="lg:hidden flex flex-col overflow-y-auto w-full px-1">
+                <div className="flex w-full flex-col overflow-y-auto px-1 lg:hidden">
                   <h1 className="font-bayon text-9xl">
                     {tab.points}
                     <span className="font-quicksand text-lg">pts</span>
@@ -177,7 +184,7 @@ const Team = () => {
                   {tab.players.map((p: string, idx: number) => (
                     <div
                       key={idx}
-                      className="flex items-start justify-between px-4 py-2 border rounded-lg mb-2 border-tech-gold/50 hover:border-tech-gold border-b-4 text-center"
+                      className="mb-2 flex items-start justify-between rounded-lg border border-b-4 border-tech-gold/50 px-4 py-2 text-center hover:border-tech-gold"
                     >
                       <span className="text-lg font-bold">{p}</span>
                     </div>
