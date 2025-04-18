@@ -4,25 +4,18 @@ import {
   SVGViewer,
 } from "@g-loot/react-tournament-brackets";
 import DropDownList from "../components/DropDownList";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import eventMap from "../assets/event_map.png";
 import { useAuth, useUser } from "@clerk/clerk-react";
-
 function Brac() {
   const [gameData, setGameData] = useState<any[]>([]);
   const { getToken } = useAuth();
   const { user } = useUser();
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-
-  const initialGame = searchParams.get("game");
-  const [selectedGame, setSelectedGame] = useState<string | null>(initialGame);
-  const [winners, setWinners] = useState<{ [matchId: string]: string }>({});
 
   useEffect(() => {
     const fetchPlayers = async () => {
       const token = await getToken();
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/players`, {
+      const res = await fetch("/api/players", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -49,10 +42,11 @@ function Brac() {
       }));
 
       setGameData(gameData);
+      console.log("Game data built from players:", gameData);
     };
 
     fetchPlayers();
-  }, [getToken]);
+  }, []);
 
   async function getPlayersForTeam(
     game: string,
@@ -63,12 +57,15 @@ function Brac() {
     return team?.players || [];
   }
 
+  const [selectedGame, setSelectedGame] = useState<string | null>(null);
+  const [winners, setWinners] = useState<{ [matchId: string]: string }>({});
   const teamData = Array.isArray(gameData)
     ? gameData.find((g: any) => g.name === selectedGame)?.teams
     : [];
   const teamNames = teamData?.map((team: any) => team.name) || [];
   const isBracketGame = selectedGame && teamNames.length >= 2;
   const isBoothGame = selectedGame && !isBracketGame;
+  const router = useNavigate();
 
   const generateMatches = () => {
     type Team = { name: string };
@@ -211,16 +208,13 @@ function Brac() {
         }}
       >
         <div className="mb-4 text-lg text-white">
-          {selectedGame
-            ? `Bracket for ${selectedGame}`
-            : "Select a game to view bracket"}
+          Bracket for {selectedGame}
         </div>
         <DropDownList
           items={allGameKeys}
           onSelect={(item) => {
             setSelectedGame(item);
             setWinners({});
-            navigate(`/brackets?game=${item}`);
           }}
         />
 
@@ -275,7 +269,14 @@ function Brac() {
                 topWon,
                 bottomWon,
                 teamNameFallback,
-              }: any) => {
+              }: {
+                match: any;
+                topParty: { id: string; name: string };
+                bottomParty: { id: string; name: string };
+                topWon: boolean;
+                bottomWon: boolean;
+                teamNameFallback: string;
+              }) => {
                 const handleNavigate = async () => {
                   const team1 = match.participants[0]?.name;
                   const team2 = match.participants[1]?.name;
@@ -290,16 +291,10 @@ function Brac() {
                   )
                     return;
 
-                  const players1 = await getPlayersForTeam(
-                    selectedGame!,
-                    team1
-                  );
-                  const players2 = await getPlayersForTeam(
-                    selectedGame!,
-                    team2
-                  );
+                  const players1 = await getPlayersForTeam(selectedGame, team1);
+                  const players2 = await getPlayersForTeam(selectedGame, team2);
 
-                  navigate(`/match/${match.id}`, {
+                  router(`/match/${match.id}`, {
                     state: {
                       round: match.tournamentRoundText,
                       game: selectedGame,
@@ -312,9 +307,11 @@ function Brac() {
                 };
 
                 const handleToggle = (
-                  e: React.MouseEvent<HTMLDivElement, MouseEvent>
+                  e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+                  partyName: string
                 ) => {
                   e.stopPropagation();
+                  console.log(partyName);
                   if (user?.publicMetadata?.role === "admin") {
                     match.onClick?.();
                   }
@@ -350,13 +347,13 @@ function Brac() {
                         opacity: 0.5,
                       }}
                     />
-                    {[topParty, bottomParty].map((p: any, idx: number) => {
+                    {[topParty, bottomParty].map((p, idx) => {
                       const isWinner = idx === 0 ? topWon : bottomWon;
                       const isBYE = p.name === "BYE";
                       return (
                         <div
                           key={p.id}
-                          onClick={(e) => handleToggle(e)}
+                          onClick={(e) => handleToggle(e, p.name)}
                           style={{
                             fontWeight: isWinner ? "700" : "400",
                             color: isWinner ? "#1e3a8a" : "#333",

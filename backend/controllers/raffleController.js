@@ -52,11 +52,13 @@ const pickRaffles = async (req, res) => {
 const getParticipants = async () => {
   const participants = await Players.find();
 
-  return participants.map(participant => ({
-    userId: participant._id.toString(),
-    name: participant.name,
-    points: participant.points || 0
-  }));
+  return participants
+    .filter(participant => participant.points > 0)  
+    .map(participant => ({
+      userId: participant._id.toString(),
+      name: participant.name,
+      points: participant.points || 0
+    }));
 };
 
 const pickWinnersWithWeightedChance = (participants, count) => {

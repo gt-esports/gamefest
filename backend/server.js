@@ -19,15 +19,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // middleware
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "https://your-frontend-service.onrender.com",
-      "https://gamefest.gatechesports.com",
-    ],
-  })
-);
+app.use(cors());
 app.use(bodyParser.json());
 
 // auth protection

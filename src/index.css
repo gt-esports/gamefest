@@ -147,27 +147,3 @@ body {
     rgba(12, 12, 12, 0)
   );
 }
-
-.valorant-bg {
-  background-image: url('./assets/valorant_theme_img.png');
-  background-size: cover;
-  background-position: center;
-}
-
-.cs2-bg {
-  background-image: url('./assets/cs2_theme_img.png');
-  background-size: cover;
-  background-position: center;
-}
-
-.rl-bg {
-  background-image: url('./assets/rocket_league_theme_img.png');
-  background-size: cover;
-  background-position: center;
-}
-
-.apex-bg {
-  background-image: url('./assets/apex_theme_img.png');
-  background-size: cover;
-  background-position: center;
-}

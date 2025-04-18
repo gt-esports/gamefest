@@ -64,6 +64,7 @@ function Navbar() {
     { name: "TEAMS", link: "/teams" },
     // { name: "SCHOOLS", link: "/schools" },
     { name: "LEADERBOARD", link: "/leaderboard" },
+    { name: "PLAYER", link: "/playercard" },
     { name: "SPONSORS", link: "/sponsor" },
     { name: "ABOUT", link: "/about" },
   ];
@@ -116,12 +117,7 @@ function Navbar() {
           </SignedOut>
 
           <SignedIn>
-            <div className="mt-2">
-              <UserButton
-                userProfileMode="navigation"
-                userProfileUrl="/profile"
-              />
-            </div>
+            <UserButton />
           </SignedIn>
         </li>
         {links.map((link, index) => (

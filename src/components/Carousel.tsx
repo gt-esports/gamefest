@@ -1,6 +1,7 @@
 import { Swiper, SwiperSlide } from "swiper/react";
+
 import { Navigation, Pagination, EffectCoverflow, A11y } from "swiper/modules";
-import { games, casual_games, challenges } from "../data/gamesData";
+import { games } from "../data/gamesData";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -26,8 +27,6 @@ export default () => {
       pagination={{
         clickable: true,
         type: "bullets",
-        dynamicBullets: true,
-        horizontalClass: "centered-pagination-bullets",
       }}
       spaceBetween={0}
       slidesPerView={1}
@@ -73,86 +72,11 @@ export default () => {
     >
       {Object.entries(games).map(([name, game], index) => (
         <SwiperSlide key={index}>
-          {game.pageLink ? (
-            <a
-              href={`https://www.start.gg/tournament/gamefest-2025-1/${game.pageLink}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src={game.image}
-                alt={name}
-                className="h-[490px] w-[370px] scale-90 rounded-lg"
-              />
-            </a>
-          ) : (
-            <div className="group relative">
-              <img
-                src={game.image}
-                alt={name}
-                className="h-[490px] w-[370px] scale-90 rounded-lg"
-              />
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 transform whitespace-nowrap rounded bg-black bg-opacity-70 p-2 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                Look for the table at gamefest
-              </div>
-            </div>
-          )}
-        </SwiperSlide>
-      ))}
-      {Object.entries(casual_games).map(([name, game], index) => (
-        <SwiperSlide key={index}>
-          {game.pageLink ? (
-            <a
-              href={`https://www.start.gg/tournament/gamefest-2025-1/${game.pageLink}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src={game.image}
-                alt={name}
-                className="h-[490px] w-[370px] scale-90 rounded-lg"
-              />
-            </a>
-          ) : (
-            <div className="group relative">
-              <img
-                src={game.image}
-                alt={name}
-                className="h-[490px] w-[370px] scale-90 rounded-lg"
-              />
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 transform whitespace-nowrap rounded bg-black bg-opacity-70 p-2 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                Look for the table at gamefest
-              </div>
-            </div>
-          )}
-        </SwiperSlide>
-      ))}
-      {Object.entries(challenges).map(([name, game], index) => (
-        <SwiperSlide key={index}>
-          {game.pageLink ? (
-            <a
-              href={`https://www.start.gg/tournament/gamefest-2025-1/${game.pageLink}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src={game.image}
-                alt={name}
-                className="h-[490px] w-[370px] scale-90 rounded-lg"
-              />
-            </a>
-          ) : (
-            <div className="group relative">
-              <img
-                src={game.image}
-                alt={name}
-                className="h-[490px] w-[370px] scale-90 rounded-lg"
-              />
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 transform whitespace-nowrap rounded bg-black bg-opacity-70 p-2 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                Look for the table at Gamefest
-              </div>
-            </div>
-          )}
+          <img
+            src={game.image}
+            alt={name}
+            className="h-[490px] w-[370px] scale-90 rounded-lg"
+          />
         </SwiperSlide>
       ))}
     </Swiper>

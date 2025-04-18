@@ -11,7 +11,6 @@ interface Player {
 interface Staff {
   name: string;
   role: string;
-  isAdmin: boolean;
 }
 
 const PointsPanel: React.FC = () => {
@@ -33,10 +32,10 @@ const PointsPanel: React.FC = () => {
       const token = await getToken();
 
       const [playerRes, staffRes] = await Promise.all([
-        fetch(`${import.meta.env.VITE_API_URL}/api/players`, {
+        fetch("/api/players", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch(`${import.meta.env.VITE_API_URL}/api/staff`, {
+        fetch("/api/staff", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -47,9 +46,9 @@ const PointsPanel: React.FC = () => {
       const staffData: Staff[] = await staffRes.json();
 
       // Check with priority: Discord username > Clerk username > First Name
-      // const discordName = user?.externalAccounts?.find(
-      //   (acc) => acc.provider === "discord"
-      // )?.username;
+      const discordName = user?.externalAccounts?.find(
+        (acc) => acc.provider === "discord"
+      )?.username;
       const currentUser = user?.username || user?.firstName || "";
       const current = staffData.find((s) => s.name === currentUser);
 
@@ -59,8 +58,8 @@ const PointsPanel: React.FC = () => {
       }
 
       setStaffRole(current.role);
-      setStaffName(currentUser);
-      setIsAdmin(current.isAdmin);
+      setStaffName(discordName || current.name);
+      setIsAdmin(current?.role === "admin");
     };
 
     fetchData();
@@ -73,15 +72,12 @@ const PointsPanel: React.FC = () => {
   ) => {
     const token = await getToken();
 
-    const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/players/${player.name}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    const res = await fetch(`/api/players/${player.name}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     const freshPlayer: Player = await res.json();
 
-    if (!override && !isAdmin && freshPlayer.participation.includes(staffRole)) {
+    if (!override && freshPlayer.participation.includes(staffRole)) {
       alert(
         `This player has already received points from the '${staffRole}' role.`
       );
@@ -93,29 +89,17 @@ const PointsPanel: React.FC = () => {
       dateStyle: "medium",
       timeStyle: "short",
     });
-    // build tag to use in the log
-    const tag = isAdmin ? "ADMIN" : staffRole;  
-
-    const logEntry =
-      `${staffName}[${tag}] gave ${player.name} ${amount} points on ${timestamp}`;
-
-    // Decide new participation array:
-    // - Admins: leave it exactly as-is
-    // - Non-admins: add or remove their role
-    const newParticipation = isAdmin
-    ? player.participation       // ← keep it exactly as‐is
-    : override
-      ? player.participation.filter(r => r !== staffRole)
-      : Array.from(new Set([...player.participation, staffRole]));
+    const logEntry = `${staffName}[${staffRole}] gave ${player.name} ${amount} points on ${timestamp}`;
 
     const updated = {
       points: player.points + amount,
       log: [...player.log, logEntry],
-      participation: newParticipation
+      participation: override
+        ? player.participation.filter((r) => r !== staffRole) // remove if revoking
+        : Array.from(new Set([...player.participation, staffRole])), // add if giving
     };
-    
 
-    await fetch(`${import.meta.env.VITE_API_URL}/api/players/${player.name}`, {
+    await fetch(`/api/players/${player.name}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -133,30 +117,6 @@ const PointsPanel: React.FC = () => {
     const value = parseInt(pointsToAdd);
     if (isNaN(value) || selectedPlayers.size === 0) return;
 
-    if (value === 0) {
-      alert("Please enter a non-zero value.");
-      return;
-    }
-    
-    // If this is a removal (negative value), only admins can do it:
-    if (value < 0 && !isAdmin) {
-      alert("Only admins can remove points.");
-      return;
-    }
-
-    // Check that no player's points would drop below zero:
-    if (value < 0) {
-      const wouldGoNegative = players.some(
-        (p) =>
-          selectedPlayers.has(p.name) &&
-          p.points + value < 0
-      );
-      if (wouldGoNegative) {
-        alert("Cannot remove that many points—some players would end up below 0.");
-        return;
-      }
-    }
-    
     // find all selected player objects
     const toUpdate = players.filter((p) => selectedPlayers.has(p.name));
 
@@ -164,7 +124,6 @@ const PointsPanel: React.FC = () => {
     await Promise.all(toUpdate.map((p) => updatePoints(p, value)));
 
     setPointsToAdd("");
-
   };
 
   if (!staffName) {
@@ -177,21 +136,23 @@ const PointsPanel: React.FC = () => {
   return (
     <div>
       <h2 className="mb-4 text-xl font-bold">Award or Remove Points</h2>
-      <div className="mb-4 flex overflow-x-auto whitespace-nowrap border-b py-2">
+      <div className="mb-4 overflow-x-auto whitespace-nowrap border-b py-2">
         {players.map((player) => {
           const isSelected = selectedPlayers.has(player.name);
           return (
             <button
               key={player.name}
-              onClick={() =>
+              onClick={() => {
                 setSelectedPlayers((prev) => {
                   const next = new Set(prev);
-                  if (next.has(player.name)) next.delete(player.name);
-                  else next.add(player.name);
+                  if (next.has(player.name)) {
+                    next.delete(player.name);
+                  } else {
+                    next.add(player.name);
+                  }
                   return next;
-                })
-              }
-              style={{ order: isSelected ? -1 : 0 }}
+                });
+              }}
               className={`mr-2 inline-block rounded px-4 py-2 shadow-sm ${
                 isSelected
                   ? "bg-blue-600 text-white"
@@ -203,7 +164,6 @@ const PointsPanel: React.FC = () => {
           );
         })}
       </div>
-
 
       <input
         type="text"
