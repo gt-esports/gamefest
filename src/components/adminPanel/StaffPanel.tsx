@@ -16,7 +16,6 @@ const StaffPanel: React.FC = () => {
   useEffect(() => {
     const fetchStaff = async () => {
       const token = await getToken();
-      console.log("Token:", token);
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/staff`, {
         headers: { Authorization: `Bearer ${token}` },
       });
