@@ -34,10 +34,10 @@ const PlayerCheckinPanel: React.FC = () => {
       const token = await getToken();
 
       const [playerRes, gamesRes] = await Promise.all([
-        fetch("/api/players", {
+        fetch(`${import.meta.env.VITE_API_URL}/api/players`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("/api/games", {
+        fetch(`${import.meta.env.VITE_API_URL}/api/games`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -60,7 +60,7 @@ const PlayerCheckinPanel: React.FC = () => {
       newPlayerGame && newPlayerTeam
         ? [{ game: newPlayerGame, team: newPlayerTeam }]
         : [];
-    const res = await fetch("/api/players", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/players`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -103,14 +103,17 @@ const PlayerCheckinPanel: React.FC = () => {
     };
 
     try {
-      const res = await fetch(`/api/players/${player.name}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updatedPlayer),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/players/${player.name}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(updatedPlayer),
+        }
+      );
 
       const data = await res.json();
 
