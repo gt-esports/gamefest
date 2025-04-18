@@ -4,13 +4,20 @@ import {
   SVGViewer,
 } from "@g-loot/react-tournament-brackets";
 import DropDownList from "../components/DropDownList";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import eventMap from "../assets/event_map.png";
 import { useAuth, useUser } from "@clerk/clerk-react";
+
 function Brac() {
   const [gameData, setGameData] = useState<any[]>([]);
   const { getToken } = useAuth();
   const { user } = useUser();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const initialGame = searchParams.get("game");
+  const [selectedGame, setSelectedGame] = useState<string | null>(initialGame);
+  const [winners, setWinners] = useState<{ [matchId: string]: string }>({});
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -42,11 +49,10 @@ function Brac() {
       }));
 
       setGameData(gameData);
-      console.log("Game data built from players:", gameData);
     };
 
     fetchPlayers();
-  }, []);
+  }, [getToken]);
 
   async function getPlayersForTeam(
     game: string,
@@ -57,15 +63,12 @@ function Brac() {
     return team?.players || [];
   }
 
-  const [selectedGame, setSelectedGame] = useState<string | null>(null);
-  const [winners, setWinners] = useState<{ [matchId: string]: string }>({});
   const teamData = Array.isArray(gameData)
     ? gameData.find((g: any) => g.name === selectedGame)?.teams
     : [];
   const teamNames = teamData?.map((team: any) => team.name) || [];
   const isBracketGame = selectedGame && teamNames.length >= 2;
   const isBoothGame = selectedGame && !isBracketGame;
-  const router = useNavigate();
 
   const generateMatches = () => {
     type Team = { name: string };
@@ -208,13 +211,14 @@ function Brac() {
         }}
       >
         <div className="mb-4 text-lg text-white">
-          Bracket for {selectedGame}
+          {selectedGame ? `Bracket for ${selectedGame}` : "Select a game to view bracket"}
         </div>
         <DropDownList
           items={allGameKeys}
           onSelect={(item) => {
             setSelectedGame(item);
             setWinners({});
+            navigate(`/brackets?game=${item}`);
           }}
         />
 
@@ -269,14 +273,7 @@ function Brac() {
                 topWon,
                 bottomWon,
                 teamNameFallback,
-              }: {
-                match: any;
-                topParty: { id: string; name: string };
-                bottomParty: { id: string; name: string };
-                topWon: boolean;
-                bottomWon: boolean;
-                teamNameFallback: string;
-              }) => {
+              }: any) => {
                 const handleNavigate = async () => {
                   const team1 = match.participants[0]?.name;
                   const team2 = match.participants[1]?.name;
@@ -291,10 +288,16 @@ function Brac() {
                   )
                     return;
 
-                  const players1 = await getPlayersForTeam(selectedGame, team1);
-                  const players2 = await getPlayersForTeam(selectedGame, team2);
+                  const players1 = await getPlayersForTeam(
+                    selectedGame!,
+                    team1
+                  );
+                  const players2 = await getPlayersForTeam(
+                    selectedGame!,
+                    team2
+                  );
 
-                  router(`/match/${match.id}`, {
+                  navigate(`/match/${match.id}`, {
                     state: {
                       round: match.tournamentRoundText,
                       game: selectedGame,
@@ -311,7 +314,6 @@ function Brac() {
                   partyName: string
                 ) => {
                   e.stopPropagation();
-                  console.log(partyName);
                   if (user?.publicMetadata?.role === "admin") {
                     match.onClick?.();
                   }
@@ -347,7 +349,7 @@ function Brac() {
                         opacity: 0.5,
                       }}
                     />
-                    {[topParty, bottomParty].map((p, idx) => {
+                    {[topParty, bottomParty].map((p: any, idx: number) => {
                       const isWinner = idx === 0 ? topWon : bottomWon;
                       const isBYE = p.name === "BYE";
                       return (
