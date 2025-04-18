@@ -32,10 +32,10 @@ const PointsPanel: React.FC = () => {
       const token = await getToken();
 
       const [playerRes, staffRes] = await Promise.all([
-        fetch("/api/players", {
+        fetch(`${import.meta.env.VITE_API_URL}/api/players`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("/api/staff", {
+        fetch(`${import.meta.env.VITE_API_URL}/api/staff`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -72,9 +72,12 @@ const PointsPanel: React.FC = () => {
   ) => {
     const token = await getToken();
 
-    const res = await fetch(`/api/players/${player.name}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/players/${player.name}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     const freshPlayer: Player = await res.json();
 
     if (!override && freshPlayer.participation.includes(staffRole)) {
@@ -99,7 +102,7 @@ const PointsPanel: React.FC = () => {
         : Array.from(new Set([...player.participation, staffRole])), // add if giving
     };
 
-    await fetch(`/api/players/${player.name}`, {
+    await fetch(`${import.meta.env.VITE_API_URL}/api/players/${player.name}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

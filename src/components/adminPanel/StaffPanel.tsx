@@ -16,7 +16,7 @@ const StaffPanel: React.FC = () => {
   useEffect(() => {
     const fetchStaff = async () => {
       const token = await getToken();
-      const res = await fetch("/api/staff", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/staff`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -28,7 +28,7 @@ const StaffPanel: React.FC = () => {
 
   const updateRole = async (name: string, role: string) => {
     const token = await getToken();
-    await fetch(`/api/staff/${name}`, {
+    await fetch(`${import.meta.env.VITE_API_URL}/api/staff/${name}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -55,7 +55,7 @@ const StaffPanel: React.FC = () => {
       return;
     }
     const token = await getToken();
-    const res = await fetch("/api/staff", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/staff`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -69,7 +69,7 @@ const StaffPanel: React.FC = () => {
       alert(error?.message || "Failed to add staff.");
       return;
     }
-    
+
     const created = await res.json();
     setStaffList((prev) => [...prev, created]);
     setNewStaff("");
@@ -77,7 +77,7 @@ const StaffPanel: React.FC = () => {
   };
   const deleteStaff = async (name: string) => {
     const token = await getToken();
-    await fetch(`/api/staff/${name}`, {
+    await fetch(`${import.meta.env.VITE_API_URL}/api/staff/${name}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -86,54 +86,54 @@ const StaffPanel: React.FC = () => {
     });
     setStaffList((prev) => prev.filter((s) => s.name !== name));
   };
-  
+
   return (
     <div>
-        <h2 className="mb-4 text-xl font-bold">Manage Staff Roles</h2>
+      <h2 className="mb-4 text-xl font-bold">Manage Staff Roles</h2>
 
-        <div className="relative flex items-center">
-          {/* Left Arrow */}
-          <button
-            onClick={scrollLeft}
-            className="z-10 h-10 w-10 rounded-full bg-gray-200 hover:bg-gray-300"
-          >
-            ←
-          </button>
+      <div className="relative flex items-center">
+        {/* Left Arrow */}
+        <button
+          onClick={scrollLeft}
+          className="z-10 h-10 w-10 rounded-full bg-gray-200 hover:bg-gray-300"
+        >
+          ←
+        </button>
 
-          {/* Scrollable Staff Cards */}
-          <div
-            ref={scrollRef}
-            className="flex w-full gap-4 overflow-x-auto px-4 py-2 scrollbar-hide"
-          >
-            {staffList.map((staff) => (
-              <div
-                key={staff.name}
-                className="min-w-[400px] flex items-center gap-4 rounded border px-4 py-2 shadow"
+        {/* Scrollable Staff Cards */}
+        <div
+          ref={scrollRef}
+          className="scrollbar-hide flex w-full gap-4 overflow-x-auto px-4 py-2"
+        >
+          {staffList.map((staff) => (
+            <div
+              key={staff.name}
+              className="flex min-w-[400px] items-center gap-4 rounded border px-4 py-2 shadow"
+            >
+              <span className="w-22">{staff.name}</span>
+              <input
+                value={staff.role}
+                onChange={(e) => updateRole(staff.name, e.target.value)}
+                className="w-64 rounded border p-1"
+              />
+              <button
+                onClick={() => deleteStaff(staff.name)}
+                className="rounded bg-red-500 px-2 py-1 text-white hover:bg-red-600"
               >
-                <span className="w-22">{staff.name}</span>
-                <input
-                  value={staff.role}
-                  onChange={(e) => updateRole(staff.name, e.target.value)}
-                  className="w-64 rounded border p-1"
-                />
-                <button
-                  onClick={() => deleteStaff(staff.name)}
-                  className="rounded bg-red-500 px-2 py-1 text-white hover:bg-red-600"
-                >
-                  Delete
-                </button>
-              </div>
-            ))}
-          </div>
+                Delete
+              </button>
+            </div>
+          ))}
+        </div>
 
-  {/* Right Arrow */}
-  <button
-    onClick={scrollRight}
-    className="z-10 h-10 w-10 rounded-full bg-gray-200 hover:bg-gray-300"
-  >
-    →
-  </button>
-</div>
+        {/* Right Arrow */}
+        <button
+          onClick={scrollRight}
+          className="z-10 h-10 w-10 rounded-full bg-gray-200 hover:bg-gray-300"
+        >
+          →
+        </button>
+      </div>
 
       {/* Add Staff Member */}
       <div className="mt-6 flex flex-col gap-2">
