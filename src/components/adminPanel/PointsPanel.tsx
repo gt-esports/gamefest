@@ -46,11 +46,13 @@ const PointsPanel: React.FC = () => {
 
       const staffData: Staff[] = await staffRes.json();
 
-      // Check with priority: Discord username > Clerk username > First Name
-      // const discordName = user?.externalAccounts?.find(
-      //   (acc) => acc.provider === "discord"
-      // )?.username;
-      const currentUser = user?.username || user?.firstName || "";
+      const discordName = user?.externalAccounts?.find(
+        (acc) => acc.provider === "discord"
+      )?.username;
+
+      const currentUser =
+        discordName || user?.username || user?.firstName || "";
+
       const current = staffData.find((s) => s.name === currentUser);
 
       if (!current) {
@@ -81,7 +83,11 @@ const PointsPanel: React.FC = () => {
     );
     const freshPlayer: Player = await res.json();
 
-    if (!override && !isAdmin && freshPlayer.participation.includes(staffRole)) {
+    if (
+      !override &&
+      !isAdmin &&
+      freshPlayer.participation.includes(staffRole)
+    ) {
       alert(
         `This player has already received points from the '${staffRole}' role.`
       );
@@ -94,26 +100,24 @@ const PointsPanel: React.FC = () => {
       timeStyle: "short",
     });
     // build tag to use in the log
-    const tag = isAdmin ? "ADMIN" : staffRole;  
+    const tag = isAdmin ? "ADMIN" : staffRole;
 
-    const logEntry =
-      `${staffName}[${tag}] gave ${player.name} ${amount} points on ${timestamp}`;
+    const logEntry = `${staffName}[${tag}] gave ${player.name} ${amount} points on ${timestamp}`;
 
     // Decide new participation array:
     // - Admins: leave it exactly as-is
     // - Non-admins: add or remove their role
     const newParticipation = isAdmin
-    ? player.participation       // ← keep it exactly as‐is
-    : override
-      ? player.participation.filter(r => r !== staffRole)
+      ? player.participation // ← keep it exactly as‐is
+      : override
+      ? player.participation.filter((r) => r !== staffRole)
       : Array.from(new Set([...player.participation, staffRole]));
 
     const updated = {
       points: player.points + amount,
       log: [...player.log, logEntry],
-      participation: newParticipation
+      participation: newParticipation,
     };
-    
 
     await fetch(`${import.meta.env.VITE_API_URL}/api/players/${player.name}`, {
       method: "PUT",
@@ -137,7 +141,7 @@ const PointsPanel: React.FC = () => {
       alert("Please enter a non-zero value.");
       return;
     }
-    
+
     // If this is a removal (negative value), only admins can do it:
     if (value < 0 && !isAdmin) {
       alert("Only admins can remove points.");
@@ -147,16 +151,16 @@ const PointsPanel: React.FC = () => {
     // Check that no player's points would drop below zero:
     if (value < 0) {
       const wouldGoNegative = players.some(
-        (p) =>
-          selectedPlayers.has(p.name) &&
-          p.points + value < 0
+        (p) => selectedPlayers.has(p.name) && p.points + value < 0
       );
       if (wouldGoNegative) {
-        alert("Cannot remove that many points—some players would end up below 0.");
+        alert(
+          "Cannot remove that many points—some players would end up below 0."
+        );
         return;
       }
     }
-    
+
     // find all selected player objects
     const toUpdate = players.filter((p) => selectedPlayers.has(p.name));
 
@@ -164,7 +168,6 @@ const PointsPanel: React.FC = () => {
     await Promise.all(toUpdate.map((p) => updatePoints(p, value)));
 
     setPointsToAdd("");
-
   };
 
   if (!staffName) {
@@ -203,7 +206,6 @@ const PointsPanel: React.FC = () => {
           );
         })}
       </div>
-
 
       <input
         type="text"
