@@ -211,7 +211,9 @@ function Brac() {
         }}
       >
         <div className="mb-4 text-lg text-white">
-          {selectedGame ? `Bracket for ${selectedGame}` : "Select a game to view bracket"}
+          {selectedGame
+            ? `Bracket for ${selectedGame}`
+            : "Select a game to view bracket"}
         </div>
         <DropDownList
           items={allGameKeys}
@@ -310,8 +312,7 @@ function Brac() {
                 };
 
                 const handleToggle = (
-                  e: React.MouseEvent<HTMLDivElement, MouseEvent>,
-                  partyName: string
+                  e: React.MouseEvent<HTMLDivElement, MouseEvent>
                 ) => {
                   e.stopPropagation();
                   if (user?.publicMetadata?.role === "admin") {
@@ -355,7 +356,7 @@ function Brac() {
                       return (
                         <div
                           key={p.id}
-                          onClick={(e) => handleToggle(e, p.name)}
+                          onClick={(e) => handleToggle(e)}
                           style={{
                             fontWeight: isWinner ? "700" : "400",
                             color: isWinner ? "#1e3a8a" : "#333",
