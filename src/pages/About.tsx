@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import axios from "axios";
 function About() {
   const fetchAPI = async () => {
-    const response = await axios.get("http://localhost:8080/api");
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}`);
     console.log(response.data.about);
   };
 

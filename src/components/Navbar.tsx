@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { TfiClose } from "react-icons/tfi";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 
 import Logo from "../assets/gt-esports-logo1.png";
 import {
@@ -9,7 +9,6 @@ import {
   SignInButton,
   SignedIn,
   UserButton,
-  UserProfile,
 } from "@clerk/clerk-react";
 
 function Navbar() {

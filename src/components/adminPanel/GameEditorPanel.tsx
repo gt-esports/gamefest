@@ -22,14 +22,17 @@ const GameEditorPanel: React.FC = () => {
   const fetchData = async () => {
     const token = await getToken();
 
-    const gameRes = await fetch("/api/games", {
+    const gameRes = await fetch(`${import.meta.env.VITE_API_URL}/api/games`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     setGames(await gameRes.json());
 
-    const challengeRes = await fetch("/api/challenges", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const challengeRes = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/challenges`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     setChallenges(await challengeRes.json());
   };
 
@@ -39,7 +42,7 @@ const GameEditorPanel: React.FC = () => {
 
   const addGame = async () => {
     const token = await getToken();
-    await fetch("/api/games", {
+    await fetch(`${import.meta.env.VITE_API_URL}/api/games`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -53,7 +56,7 @@ const GameEditorPanel: React.FC = () => {
 
   const addChallenge = async () => {
     const token = await getToken();
-    await fetch("/api/challenges", {
+    await fetch(`${import.meta.env.VITE_API_URL}/api/challenges`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -67,7 +70,7 @@ const GameEditorPanel: React.FC = () => {
 
   const deleteGame = async (name: string) => {
     const token = await getToken();
-    await fetch(`/api/games/${name}`, {
+    await fetch(`${import.meta.env.VITE_API_URL}/api/games/${name}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -76,7 +79,7 @@ const GameEditorPanel: React.FC = () => {
 
   const deleteChallenge = async (name: string) => {
     const token = await getToken();
-    await fetch(`/api/challenges/${name}`, {
+    await fetch(`${import.meta.env.VITE_API_URL}/api/challenges/${name}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -88,7 +91,7 @@ const GameEditorPanel: React.FC = () => {
       <div className="mb-6">
         <button
           onClick={() => setShowGames((prev) => !prev)}
-          className="text-left text-xl font-bold flex items-center gap-2"
+          className="flex items-center gap-2 text-left text-xl font-bold"
         >
           Manage Games
           <span>{showGames ? "▲" : "▼"}</span>
@@ -144,7 +147,7 @@ const GameEditorPanel: React.FC = () => {
       <div className="mb-6">
         <button
           onClick={() => setShowChallenges((prev) => !prev)}
-          className="text-left text-xl font-bold flex items-center gap-2"
+          className="flex items-center gap-2 text-left text-xl font-bold"
         >
           Manage Challenges
           <span>{showChallenges ? "▲" : "▼"}</span>

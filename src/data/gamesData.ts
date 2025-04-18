@@ -84,8 +84,8 @@ export const games = {
     discordLink: "",
   }
 };
-
-export const casual_games = {
+/** 
+ * export const casual_games = {
   Minecraft: {
     image: minecraft,
     pageLink: "event/gamefest-2025-minecraft-pvp-speedrun",
@@ -129,7 +129,8 @@ export const challenges = {
     pageLink: "",
     discordLink: "",
   },
-}
+};
+*/
 
 export const gameCovers: { [key: string]: string } = {
   "league_of_legends": league,

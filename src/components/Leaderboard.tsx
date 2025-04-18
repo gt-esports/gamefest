@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import SearchBar from './SearchBar';
 
-
 const Team = () => {
 
   const [players, setPlayers] = useState<Array<{ name: string; points: number }>>([]);
@@ -37,11 +36,11 @@ const Team = () => {
       setTimeout(() => { // timer delay to make scrollTo time to position correctly
         const id = players[index].name.trim().replace(/\s+/g, "-").toLowerCase();
         const teamsElement = document.getElementById(id);
-  
+
         if (teamsElement) {
           const y = -70;
           const pos = teamsElement.getBoundingClientRect().top + window.scrollY;
-  
+
           window.scrollTo({
             top: pos + y,
             behavior: "smooth",
@@ -53,8 +52,8 @@ const Team = () => {
 
   return (
     <div className="mx-auto p-8 px-10 lg:px-20">
-      <div className="flex flex-row justify-between items-center">
-        <SearchBar 
+      <div className="flex flex-row items-center justify-between">
+        <SearchBar
           onSearch={handleSearch}
           items={players.map((player) => player.name)}
         />
