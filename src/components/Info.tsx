@@ -19,44 +19,41 @@ import VGDEV from "../assets/game-icons/vgdev.png";
 import MAP from "../assets/map.png";
 
 export default function Info() {
-  return (
-    <div className="flex w-[90%] flex-col gap-12 pt-10">
-      {/* Overview */}
-      <div className="flex flex-col items-start">
-        <h3 className="mb-4 font-bayon text-3xl tracking-wide text-tech-gold">
-          OVERVIEW
-        </h3>
-        <p className="pt-3 text-left font-quicksand text-lg text-white">
-          Founded in the early 2000's, GameFest has a long history as the first
-          major Collegiate LAN in the Southeast. GameFest unites collegiate
-          gamers of all varieties and platforms to celebrate gaming together at
-          the Georgia Institute of Technology in Atlanta, GA. GameFest has been
-          led over the years by various student groups on Georgia Tech's campus
-          - many members from those groups have gone on to create or work for
-          massive gaming and lifestyle festivals around the country. After a
-          short pause due to COVID and transitional phases in Georgia Tech's
-          policies, GameFest is returning April 19th, 2025! Unite with gamers
-          from across the Southeast in this BYOC/Freeplay LAN event!
-        </p>
-      </div>
+    return (
+        <div className="flex flex-col pt-10 w-[90%] gap-12">
+            <div className='flex  flex-col lg:flex-row lg:space-x-8'>
+                {/* Overview */}
+                <div className="items-start flex flex-col lg:w-1/2">
+                    <h3 className="text-3xl font-bayon tracking-wide text-tech-gold my-4">
+                        OVERVIEW
+                    </h3>
+                    <p className="pt-3 text-white font-quicksand text-lg text-left">
+                    GameFest is the Southeast's original collegiate LAN, uniting gamers at Georgia Tech since the early 2000s. 
+                    After a COVID pause, it's back on April 19, 2025. Join players from across the region for a BYOC/Freeplay LAN you won't want to miss!
+                    </p>
+                </div>
+                <div className="items-start flex flex-col lg:w-1/2">
+                    <h3 className="text-3xl font-bayon tracking-wide text-tech-gold my-4">
+                            EVENT FORMAT
+                    </h3>
+                    <p className="pt-3 text-white font-quicksand text-lg text-left">
+                        Throughout the day, competitors will compete in different events in order to earn tokens.
+                        At the end of the day, the tokens will be added up and the top competitiors will win prizes.
+                    </p>
+                </div>
+            </div>
 
-      {/* Event Format */}
-      <div className="flex flex-col items-start text-center">
-        <h3 className="mb-4 font-bayon text-3xl tracking-wide text-tech-gold">
-          EVENT FORMAT
-        </h3>
-        <p className="pt-3 text-left font-quicksand text-lg text-white">
-          Throughout the day, competitors will compete in different events in
-          order to earn tokens. At the end of the day, the tokens will be added
-          up and the top competitiors will win prizes.
-        </p>
-        <div className="grid w-full grid-cols-4 gap-2">
-          <div className="col-span-4">
-            <h3 className="m-8 font-bayon text-4xl tracking-wide text-white">
-              4 GAME CATEGORIES
-            </h3>
-          </div>
-
+    
+            {/* Event Format */}    
+            <div className="items-start flex flex-col text-center">
+                
+                <div className='grid grid-cols-4 gap-2 w-full'>
+                    <div className='col-span-4'>
+                        <h3 className='text-4xl font-bayon tracking-wide m-8 text-white'>
+                            4 GAME CATEGORIES
+                        </h3>
+                    </div>
+                  
           <div className="col-span-2 lg:col-span-1">
             <div className="mb-4 rounded-lg bg-gray-800/80 p-4 text-2xl text-tech-gold">
               <h3 className="font-bayon">HEADLINERS</h3>

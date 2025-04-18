@@ -1,11 +1,12 @@
 import Footer from "../components/Footer.tsx";
 import TeamCard from "../components/TeamCard.tsx";
 import MatchCard from "../components/MatchCard.tsx";
-import { useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/Matches.css";
 
 function Matches() {
   const location = useLocation();
+  const navigate = useNavigate();
   const {
     round,
     game,
@@ -15,9 +16,16 @@ function Matches() {
     players2 = [],
   } = location.state || {};
 
+  const handleBackClick = () => {
+    navigate(`/brackets?game=${game}`);
+  };
+
   return (
     <div className="bg-streak bg-cover">
       <div className="matchpage flex min-h-screen w-full flex-col pt-20 text-white">
+      <div style={{ margin: "20px", cursor: "pointer" }} onClick={handleBackClick}>
+        ← Back to Bracket
+      </div>
         {/* Match Title */}
         <h1
           className="py-6 text-center text-5xl"
@@ -68,11 +76,11 @@ function Matches() {
             className="py-6 text-center text-5xl"
             style={{ fontFamily: "Bayon, sans-serif" }}
           >
-            LIVESTREAM 1
+            MAIN STREAM
           </h2>
           <div className="twitch-container mb-40">
             <iframe
-              src="https://player.twitch.tv/?channel=mooda&parent=localhost"
+              src="https://player.twitch.tv/?channel=esportsgatech&parent=localhost"
               allowFullScreen
               allow="autoplay *; encrypted-media *;"
             ></iframe>
@@ -83,17 +91,32 @@ function Matches() {
             className="py-6 text-center text-5xl"
             style={{ fontFamily: "Bayon, sans-serif" }}
           >
-            LIVESTREAM 2
+            PC GAMES STREAM
           </h2>
           <div className="twitch-container mb-40">
             <iframe
-              src="https://player.twitch.tv/?channel=mooda&parent=localhost"
+              src="https://player.twitch.tv/?channel=antonline&parent=localhost"
+              allowFullScreen
+              allow="autoplay *; encrypted-media *;"
+            ></iframe>
+          </div>
+          {/* Twitch Live Stream Embed 3 */}
+          <h2
+            className="py-6 text-center text-5xl"
+            style={{ fontFamily: "Bayon, sans-serif" }}
+          >
+            CONSOLE GAMES STREAM
+          </h2>
+          <div className="twitch-container mb-40">
+            <iframe
+              src="https://player.twitch.tv/?channel=gt_esports&parent=localhost"
               allowFullScreen
               allow="autoplay *; encrypted-media *;"
             ></iframe>
           </div>
         </div>
       </div>
+      
 
       {/* Footer */}
       <div className="pt-8">
