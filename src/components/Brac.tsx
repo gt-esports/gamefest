@@ -86,7 +86,10 @@ function Brac() {
     });
   };
 
-  async function getPlayersForTeam(game: string, teamName: string): Promise<string[]> {
+  async function getPlayersForTeam(
+    game: string,
+    teamName: string
+  ): Promise<string[]> {
     const selected = gameData.find((g) => g.name === game);
     const team = selected?.teams.find((t: any) => t.name === teamName);
     return team?.players || [];
@@ -108,7 +111,11 @@ function Brac() {
       tournamentRoundText: string;
       startTime: string;
       state: "DONE" | "SCHEDULED";
-      participants: { id: string; name: string; isWinner: boolean | undefined }[];
+      participants: {
+        id: string;
+        name: string;
+        isWinner: boolean | undefined;
+      }[];
       onClick?: () => void;
     };
 
@@ -116,7 +123,9 @@ function Brac() {
     let idCounter = 1;
 
     const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(teamNames.length)));
-    const paddedTeams: Team[] = [...teamNames.map((t: string) => ({ name: t }))];
+    const paddedTeams: Team[] = [
+      ...teamNames.map((t: string) => ({ name: t })),
+    ];
     while (paddedTeams.length < nextPowerOfTwo) {
       paddedTeams.push({ name: "BYE" });
     }
@@ -149,12 +158,21 @@ function Brac() {
           startTime: new Date().toISOString(),
           state: winnerName ? "DONE" : "SCHEDULED",
           participants: [
-            { id: `${i}`, name: team1.name, isWinner: winnerName === team1.name },
-            { id: `${i + 1}`, name: team2.name, isWinner: winnerName === team2.name },
+            {
+              id: `${i}`,
+              name: team1.name,
+              isWinner: winnerName === team1.name,
+            },
+            {
+              id: `${i + 1}`,
+              name: team2.name,
+              isWinner: winnerName === team2.name,
+            },
           ],
           onClick: !isBye
             ? () => {
-                const newWinner = winnerName === team1.name ? team2.name : team1.name;
+                const newWinner =
+                  winnerName === team1.name ? team2.name : team1.name;
                 setWinners((prev) => ({ ...prev, [id]: newWinner }));
                 saveWinner(id, newWinner);
               }
@@ -196,7 +214,9 @@ function Brac() {
     const finalMatch = matches[matches.length - 1];
     const winner = winners[finalMatch?.id];
     if (!winner) return [];
-    const secondPlace = finalMatch.participants.find((p: any) => p.name !== winner)?.name;
+    const secondPlace = finalMatch.participants.find(
+      (p: any) => p.name !== winner
+    )?.name;
     return [
       { team: winner, place: 1 },
       ...(secondPlace ? [{ team: secondPlace, place: 2 }] : []),
@@ -204,7 +224,9 @@ function Brac() {
   };
 
   const placements = getFinalPlacements();
-  const allGameKeys = Array.isArray(gameData) ? gameData.map((game) => game.name) : [];
+  const allGameKeys = Array.isArray(gameData)
+    ? gameData.map((game) => game.name)
+    : [];
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center">
@@ -236,7 +258,11 @@ function Brac() {
         {isBoothGame && (
           <div className="mt-4 flex flex-col items-center gap-4 text-white">
             <p>This is a booth game — please find the booth.</p>
-            <img src={eventMap} alt="Event Booth Map" className="h-[520px] max-w-full rounded-lg" />
+            <img
+              src={eventMap}
+              alt="Event Booth Map"
+              className="h-[520px] max-w-full rounded-lg"
+            />
           </div>
         )}
 
@@ -255,8 +281,9 @@ function Brac() {
                 },
               }}
               svgWrapper={({ children, ...props }: { children: ReactNode }) => {
-                const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-              
+                const isMobile =
+                  typeof window !== "undefined" && window.innerWidth < 768;
+
                 return (
                   <div
                     style={{
@@ -280,16 +307,37 @@ function Brac() {
                     </div>
                   </div>
                 );
-              }}              
-              matchComponent={({ match, topParty, bottomParty, topWon, bottomWon, teamNameFallback }: any) => {
+              }}
+              matchComponent={({
+                match,
+                topParty,
+                bottomParty,
+                topWon,
+                bottomWon,
+                teamNameFallback,
+              }: any) => {
                 const handleNavigate = async () => {
                   const team1 = match.participants[0]?.name;
                   const team2 = match.participants[1]?.name;
 
-                  if (!team1 || !team2 || team1 === "BYE" || team2 === "BYE" || team1 === "TBD" || team2 === "TBD") return;
+                  if (
+                    !team1 ||
+                    !team2 ||
+                    team1 === "BYE" ||
+                    team2 === "BYE" ||
+                    team1 === "TBD" ||
+                    team2 === "TBD"
+                  )
+                    return;
 
-                  const players1 = await getPlayersForTeam(selectedGame!, team1);
-                  const players2 = await getPlayersForTeam(selectedGame!, team2);
+                  const players1 = await getPlayersForTeam(
+                    selectedGame!,
+                    team1
+                  );
+                  const players2 = await getPlayersForTeam(
+                    selectedGame!,
+                    team2
+                  );
 
                   navigate(`/match/${match.id}`, {
                     state: {
@@ -355,7 +403,9 @@ function Brac() {
                             opacity: isBYE ? 0.5 : 1,
                             fontSize: "0.9rem",
                             padding: "4px 0",
-                            borderLeft: isWinner ? "4px solid #1e3a8a" : "4px solid transparent",
+                            borderLeft: isWinner
+                              ? "4px solid #1e3a8a"
+                              : "4px solid transparent",
                             paddingLeft: "8px",
                             cursor: "pointer",
                           }}
@@ -373,7 +423,9 @@ function Brac() {
 
         {placements.length > 0 && (
           <div className="mt-6 text-center">
-            <h2 className="mb-2 text-lg font-semibold text-white">Final Placements</h2>
+            <h2 className="mb-2 text-lg font-semibold text-white">
+              Final Placements
+            </h2>
             {placements.map((p) => (
               <div key={p.team} className="text-white">
                 {p.place}. {p.team}
