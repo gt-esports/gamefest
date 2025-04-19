@@ -241,9 +241,9 @@ const PlayerCard = () => {
     <div className="flex justify-center items-center">
       <div className="w-full">
         <div
-          className={`relative w-full h-[500px] rounded-xl bg-cover bg-center transition-all duration-500 ease-in-out`}
+          className={`${background} relative w-full h-[500px] rounded-xl bg-cover bg-center transition-all duration-500 ease-in-out`}
           style={{
-            backgroundImage: background ? `url(${background})` : 'none',
+            
             backgroundColor: bgColor || 'transparent',
             backgroundBlendMode: 'screen',
           }}
