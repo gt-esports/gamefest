@@ -20,7 +20,7 @@ const Team = () => {
         // setLoading(true);
         const response = await fetch(
           `${import.meta.env.VITE_API_URL}/api/players`
-          // "/api/players"
+           //"/api/players"
         );
         if (!response.ok) {
           throw new Error("Failed to fetch players data");
