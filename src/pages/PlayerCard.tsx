@@ -140,7 +140,7 @@ const PlayerCard = () => {
       try {
         const token = await getToken();
         console.log("token: ", token);
-        const res = await fetch(`/api/players/${user?.username}`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/players/${user?.username}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -153,7 +153,7 @@ const PlayerCard = () => {
           const unlocked = ["none"];
           
           data.participation.forEach((game: string) => {
-            const id = checkId(game);
+            const id = checkId(game).toLowerCase();
             
             // Match participation with ids
             if (id === "valorant") unlocked.push("valorant");
