@@ -18,7 +18,10 @@ const Team = () => {
     const fetchTeams = async () => {
       try {
         // setLoading(true);
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/players`);
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/players`
+          // "/api/players"
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch players data");
         }
@@ -37,6 +40,7 @@ const Team = () => {
       try {
         const playersResponse = await fetch(
           `${import.meta.env.VITE_API_URL}/api/players`
+          // '/api/players'
         );
         if (!playersResponse.ok) {
           throw new Error("Failed to fetch players data");
@@ -46,6 +50,7 @@ const Team = () => {
 
         const winnersResponse = await fetch(
           `${import.meta.env.VITE_API_URL}/api/raffles/getWinner`
+          // '/api/raffles/getWinner'
         );
         if (winnersResponse.ok) {
           const winnersData = await winnersResponse.json();
