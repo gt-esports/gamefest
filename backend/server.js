@@ -9,6 +9,7 @@ import playerRoutes from "./routes/playerRoutes.js";
 import staffRoutes from "./routes/staffRoutes.js";
 import challengeRoutes from "./routes/challengeRoutes.js";
 import bulkRoutes from "./routes/bulkRoutes.js";
+import winnerRoutes from "./routes/winnerRoutes.js";
 import raffleRoutes from "./routes/raffleRoutes.js";
 
 // mongo connection + env setup
@@ -47,6 +48,7 @@ app.use("/api/players", playerRoutes);
 app.use("/api/staff", staffRoutes);
 app.use("/api/challenges", challengeRoutes);
 app.use("/api/bulk-upload", bulkRoutes);
+app.use("/api/winner", winnerRoutes);
 app.use("/api/raffles", raffleRoutes);
 
 app.listen(port, () => {
