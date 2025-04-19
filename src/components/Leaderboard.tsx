@@ -95,41 +95,73 @@ const Team = () => {
 
         {/* pick raffle winner - admin only */}
         {user?.publicMetadata?.role === "admin" && (
-          <button
-            className="rounded bg-tech-gold px-4 py-2 font-bayon text-xl text-white hover:bg-tech-gold/90"
-            onClick={async () => {
-              const token = await getToken();
-              fetch("/api/raffles/pick", {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ count: 3 }),
-              })
-                .then((response) => {
-                  if (!response.ok)
-                    throw new Error("Failed to pick raffle winner");
-                  return response.json();
+          <div className='space-x-4'>
+            {/* reset winners */}
+            <button
+              className="rounded bg-tech-gold px-4 py-2 font-bayon text-xl text-white hover:bg-tech-gold/90"
+              onClick={async () => {
+                const token = await getToken();
+                fetch("/api/raffles/reset", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                  },
                 })
-                .then((data) => {
-                  if (data.success && data.winners) {
-                    setRaffleWinners(data.winners);
-                    alert(
-                      `Raffle winners: ${data.winners
-                        .map((w: { name: string }) => w.name)
-                        .join(", ")}`
-                    );
-                  }
+                  .then((response) => {
+                    if (!response.ok)
+                      throw new Error("Failed to reset raffle winners");
+                    return response.json();
+                  })
+                  .then(() => {
+                    alert("Raffle winners reset successfully");
+                    setRaffleWinners([]);
+                  })
+                  .catch((err) => {
+                    console.error("Error resetting raffle winners:", err);
+                    alert("Failed to reset raffle winners");
+                  });
+              }}
+            >
+              Reset Raffle Winners
+            </button>
+            {/* pick raffle winner */}
+            <button
+              className="rounded bg-tech-gold px-4 py-2 font-bayon text-xl text-white hover:bg-tech-gold/90"
+              onClick={async () => {
+                const token = await getToken();
+                fetch("/api/raffles/pick", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ count: 3 }),
                 })
-                .catch((err) => {
-                  console.error("Error picking raffle winners:", err);
-                  alert("Failed to pick raffle winners");
-                });
-            }}
-          >
-            Pick Raffle Winners
-          </button>
+                  .then((response) => {
+                    if (!response.ok)
+                      throw new Error("Failed to pick raffle winner");
+                    return response.json();
+                  })
+                  .then((data) => {
+                    if (data.success && data.winners) {
+                      setRaffleWinners(data.winners);
+                      alert(
+                        `Raffle winners: ${data.winners
+                          .map((w: { name: string }) => w.name)
+                          .join(", ")}`
+                      );
+                    }
+                  })
+                  .catch((err) => {
+                    console.error("Error picking raffle winners:", err);
+                    alert("Failed to pick raffle winners");
+                  });
+              }}
+            >
+              Pick Raffle Winners
+            </button>
+          </div>
         )}
       </div>
 
