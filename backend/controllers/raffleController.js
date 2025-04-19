@@ -14,6 +14,7 @@ const pickRaffles = async (req, res) => {
     const participants = await getParticipants();
 
     if (participants.length === 0) {
+      console.log("No eligible participants found");
       return res.status(404).json({
         success: false,
         message: "No eligible participants found",
@@ -78,6 +79,8 @@ const getParticipants = async () => {
   const participants = await Players.find();
 
   return participants
+    .sort((a, b) => b.points - a.points)
+    .slice(3)
     .filter((participant) => participant.points > 0)
     .map((participant) => ({
       userId: participant._id.toString(),
