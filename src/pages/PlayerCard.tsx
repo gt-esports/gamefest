@@ -216,7 +216,7 @@ const PlayerCard = () => {
       if (theme.id && !unlockedThemes.includes(theme.id)) {
         return;
       }
-      
+      setBackground(theme.classname);
       setBgColor(theme.bgColor || "");
     } else if (themeType === "badges" && badgeIndex !== undefined) {
       setBadges((prev) => {
