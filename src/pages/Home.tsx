@@ -2,7 +2,7 @@ import Carousel from "../components/Carousel";
 import Footer from "../components/Footer";
 import TournamentCard from "../components/TournamentCard";
 import { sponsors } from "../data/sponsors";
-import Avatar from "../components/Avatar";
+// import Avatar from "../components/Avatar";
 
 const tournaments = [
   {

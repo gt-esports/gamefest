@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FaChevronDown } from 'react-icons/fa';
 import SearchBar from './SearchBar';
-import DropDownList from './DropDownList';
+// import DropDownList from './DropDownList';
 
 const Team = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
