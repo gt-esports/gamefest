@@ -28,12 +28,7 @@ const StaffPanel: React.FC = () => {
       }
 
       const data = await res.json();
-      if (Array.isArray(data)) {
-        setStaffList(data);
-      } else {
-        console.error("Expected an array but got:", data);
-        setStaffList([]);
-      }
+      setStaffList(data); // Ensure the data is an array
     };
     fetchStaff();
   }, [getToken]);
