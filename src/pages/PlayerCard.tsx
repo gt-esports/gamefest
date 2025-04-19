@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { FaMinus, FaPlus, FaLock } from "react-icons/fa";
 import { useAuth, useUser } from "@clerk/clerk-react";
 
-
 interface ThemeOption {
   name: string;
   classname: string;
@@ -326,7 +325,7 @@ const PlayerCard = () => {
                   ))}
                 </div>
                 {/* Content */ }
-                <div className="grid grid-cols-4 gap-4 max-h-[100px] overflow-y-auto pr-2">
+                <div className="grid grid-cols-2 gap-4 max-h-[100px] overflow-y-auto pr-2">
                   {themes[tab].map((theme, index) => {
                     const locked = isLocked(theme);
                     return (
@@ -345,12 +344,12 @@ const PlayerCard = () => {
                             }
                           }
                         }}
-                        className={`w-[100px] h-[100px] p-4 border rounded text-lg ${theme.classname} font-bayon relative
+                        className={`p-4 rounded text-lg ${theme.classname} text-white font-bayon relative
                           ${theme.name === "None" ? "border-2 border-gray-700" : ""}
                           ${locked ? "opacity-50 cursor-not-allowed" : ""}`}
                         disabled={locked}
                       >
-                        
+                        {theme.name}
 
                         {locked && (
                           <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 rounded">
