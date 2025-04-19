@@ -18,6 +18,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "framer-motion": "^12.7.4",
     "gtesports-website": "file:",
     "html5-qrcode": "^2.3.8",
     "mongoose": "^8.13.2",

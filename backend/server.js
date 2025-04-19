@@ -10,6 +10,7 @@ import staffRoutes from "./routes/staffRoutes.js";
 import challengeRoutes from "./routes/challengeRoutes.js";
 import bulkRoutes from "./routes/bulkRoutes.js";
 import winnerRoutes from "./routes/winnerRoutes.js";
+import raffleRoutes from "./routes/raffleRoutes.js";
 
 // mongo connection + env setup
 dotenv.config({ path: "../.env" });
@@ -19,7 +20,23 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // middleware
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173", // local dev
+  "https://gamefest.gatechesports.com", // production frontend
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true, // required for Clerk or any auth using cookies
+  })
+);
 app.use(bodyParser.json());
 
 // auth protection
@@ -32,6 +49,7 @@ app.use("/api/staff", staffRoutes);
 app.use("/api/challenges", challengeRoutes);
 app.use("/api/bulk-upload", bulkRoutes);
 app.use("/api/winner", winnerRoutes);
+app.use("/api/raffles", raffleRoutes);
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

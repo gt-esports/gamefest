@@ -14,6 +14,8 @@ const playerSchema = new mongoose.Schema({
   participation: [String],
   log: [String],
   teamAssignments: [teamAssignmentSchema],
+  raffleWinner: { type: Boolean, default: false },
+  rafflePlacing: { type: Number, default: 0 },
 });
 
 const Player = mongoose.model("Player", playerSchema);

@@ -7,9 +7,6 @@ const auth = true; // auth toggle for testing
 export const requireAdmin = async (req, res, next) => {
   try {
     const userId = req.auth?.userId;
-    // console.log(req.auth);
-    // const token = await req.auth?.getToken();
-    // console.log("Token:", token);
 
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
