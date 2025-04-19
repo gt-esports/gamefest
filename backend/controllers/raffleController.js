@@ -80,7 +80,7 @@ const getParticipants = async () => {
 
   return participants
     .sort((a, b) => b.points - a.points)
-    .slice(3)
+      .slice(3)
     .filter((participant) => participant.points > 0)
     .map((participant) => ({
       userId: participant._id.toString(),
