@@ -8,5 +8,6 @@ router.use(requireClerkAuth);
 
 router.post("/pick", requireStaffOrAdmin, raffleController.pickRaffles);
 router.get("/getWinner", raffleController.getWinners);
+router.post("/reset", requireStaffOrAdmin, raffleController.resetWinners);
 
 export default router;

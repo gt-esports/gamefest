@@ -163,7 +163,28 @@ const getWinners = async (req, res) => {
   }
 };
 
+const resetWinners = async (req, res) => {
+  try {
+    await Players.updateMany(
+      {},
+      { $set: { raffleWinner: false, rafflePlacing: 0 } }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Winners reset successfully",
+    });
+  } catch (error) {
+    console.error("Error resetting winners:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to reset winners",
+    });
+  }
+};
+
 export default {
   pickRaffles,
   getWinners,
+  resetWinners
 };
