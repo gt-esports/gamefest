@@ -1,15 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { FaMinus, FaPlus, FaLock } from "react-icons/fa";
-import val_image from "../assets/valorant_theme_img.png";
-import cs2_image from "../assets/CS2_theme_img.png";
-import rl_image from "../assets/Rocket_League_theme_img.png";
-import apex_image from "../assets/Apex_theme_img.png";
 import { useAuth, useUser } from "@clerk/clerk-react";
+
 
 interface ThemeOption {
   name: string;
   classname: string;
-  image: string;
+  image?: string;
   bgColor?: string;
   id?: string;
 }
@@ -34,10 +31,14 @@ interface Theme {
 const themes: Record<ThemeCategory, ThemeOption[]> = {
   background: [
     { name: "None", classname: "", image: "" },
-    { name: "Valorant", classname: "valorant-bg", image: val_image, bgColor: "#0f0c1a", id: "valorant" },
-    { name: "CS2", classname: "cs2-bg", image: cs2_image, bgColor: "#1c1f1d", id: "cs2" },
-    { name: "Rocket League", classname: "rl-bg", image: rl_image, bgColor: "#0a0e1a", id: "rocket_league" },
-    { name: "Apex", classname: "apex-bg", image: apex_image, bgColor: "#1a0d0d", id: "apex" },
+    { name: "Valorant", classname: "valorant-bg", bgColor: "#0f0c1a", id: "valorant" },
+    { name: "Counter Strike 2", classname: "cs2-bg", bgColor: "#1c1f1d", id: "cs2" },
+    { name: "Rocket League", classname: "rl-bg", bgColor: "#0a0e1a", id: "rocket_league" },
+    { name: "Apex Legends ", classname: "apex-bg", bgColor: "#1a0d0d", id: "apex" },
+    { name: "Overwatch 2 ", classname: "ow2-bg", bgColor: "#1a0d0d", id: "ow2" },
+    { name: "Marvel Rivals ", classname: "marvel-bg", bgColor: "#1c1f1d", id: "rival" },
+    { name: "League of Lengends ", classname: "league-bg", bgColor: "#0a0e1a", id: "league" },
+    
   ],
   borders: [
     { name: "None", classname: "", image: "" },
@@ -63,9 +64,27 @@ const themes: Record<ThemeCategory, ThemeOption[]> = {
   ],
   badges: [
     { name: "None", classname: "", image: "" },
-    { name: "Pink to Purple", image: "", classname: "bg-gradient-to-r from-pink-500 to-purple-500" },
-    { name: "Orange to Red", image: "", classname: "bg-gradient-to-r from-orange-300 to-red-600" },
-    { name: "Valorant", classname: "valorant-bg", image: val_image },
+    { name: "Apex", classname: "apex-badge-bg" },
+    { name: "Beat Saber", classname: "beat-badge-bg" },
+    { name: "CS2", classname: "cs2-badge-bg" },
+    { name: "Geogeusser", classname: "geo-badge-bg" },
+    { name: "Guilty Gear", classname: "guilty-badge-bg" },
+    { name: "League of Legends", classname: "league-badge-bg" },
+    { name: "MK8DX", classname: "mk-badge-bg" },
+    { name: "Marvel Rivals", classname: "marvel-badge-bg" },
+    { name: "OSU", classname: "osu-badge-bg" },
+    { name: "Overwatch 2", classname: "ow2-badge-bg" },
+    { name: "Rainbow 6 Siege", classname: "r6-badge-bg" },
+    { name: "Smash", classname: "smash-badge-bg" },
+    { name: "Street Fighter", classname: "street-badge-bg" },
+    { name: "Supercell", classname: "super-badge-bg" },
+    { name: "TFT", classname: "tft-badge-bg" },
+    { name: "Tetris", classname: "tetris-badge-bg" },
+    { name: "Valorant", classname: "valorant-badge-bg" },
+    { name: "Minecraft", classname: "mc-badge-bg" },
+    { name: "Fortnite", classname: "fn-badge-bg" },
+    { name: "VgDev", classname: "vg-badge-bg" },
+
   ],
 };
 
@@ -140,7 +159,7 @@ const PlayerCard = () => {
       try {
         const token = await getToken();
         console.log("token: ", token);
-        const res = await fetch(`/api/players/${user?.username}`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/players/${user?.username}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -153,13 +172,16 @@ const PlayerCard = () => {
           const unlocked = ["none"];
           
           data.participation.forEach((game: string) => {
-            const id = checkId(game);
+            const id = checkId(game).toLowerCase();
             
             // Match participation with ids
             if (id === "valorant") unlocked.push("valorant");
             if (id === "cs2") unlocked.push("cs2");
             if (id === "rocketleague") unlocked.push("rocket_league");
             if (id === "apex") unlocked.push("apex");
+            if (id === "ow2") unlocked.push("ow2");
+            if (id === "rival") unlocked.push("rival");
+            if (id === "league") unlocked.push("league");
           });
           
           setUnlockedThemes(unlocked);
@@ -191,7 +213,7 @@ const PlayerCard = () => {
       if (theme.id && !unlockedThemes.includes(theme.id)) {
         return;
       }
-      setBackground(theme.image);
+      
       setBgColor(theme.bgColor || "");
     } else if (themeType === "badges" && badgeIndex !== undefined) {
       setBadges((prev) => {
@@ -304,7 +326,7 @@ const PlayerCard = () => {
                   ))}
                 </div>
                 {/* Content */ }
-                <div className="grid grid-cols-2 gap-4 max-h-[100px] overflow-y-auto pr-2">
+                <div className="grid grid-cols-4 gap-4 max-h-[100px] overflow-y-auto pr-2">
                   {themes[tab].map((theme, index) => {
                     const locked = isLocked(theme);
                     return (
@@ -323,12 +345,12 @@ const PlayerCard = () => {
                             }
                           }
                         }}
-                        className={`p-4 rounded text-lg ${theme.classname} text-white font-bayon relative
+                        className={`w-[100px] h-[100px] p-4 border rounded text-lg ${theme.classname} font-bayon relative
                           ${theme.name === "None" ? "border-2 border-gray-700" : ""}
                           ${locked ? "opacity-50 cursor-not-allowed" : ""}`}
                         disabled={locked}
                       >
-                        {theme.name}
+                        
 
                         {locked && (
                           <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 rounded">

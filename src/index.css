@@ -171,3 +171,120 @@ body {
   background-size: cover;
   background-position: center;
 }
+
+/* Badges */
+.apex-badge-bg {
+  background-image: url('./assets/Badges/ApexBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.beat-badge-bg {
+  background-image: url('./assets/Badges/BeatSaberBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.cs2-badge-bg {
+  background-image: url('./assets/Badges/CS2Badge.png');
+  background-size: cover;
+  background-position: center;
+}
+.geo-badge-bg {
+  background-image: url('./assets/Badges/GeogeusserBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.guilty-badge-bg {
+  background-image: url('./assets/Badges/GuiltyGearBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.league-badge-bg {
+  background-image: url('./assets/Badges/LeagueBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.mk-badge-bg {
+  background-image: url('./assets/Badges/MK8DXBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.marvel-badge-bg {
+  background-image: url('./assets/Badges/MarvelRivalsBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.osu-badge-bg {
+  background-image: url('./assets/Badges/OsuBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.ow2-badge-bg {
+  background-image: url('./assets/Badges/Overwatch2Badge.png');
+  background-size: cover;
+  background-position: center;
+}
+.r6-badge-bg {
+  background-image: url('./assets/Badges/R6Badge.png');
+  background-size: cover;
+  background-position: center;
+}
+.smash-badge-bg {
+  background-image: url('./assets/Badges/SmashBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.street-badge-bg {
+  background-image: url('./assets/Badges/StreetFighterBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.super-badge-bg {
+  background-image: url('./assets/Badges/SupercellBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.tft-badge-bg {
+  background-image: url('./assets/Badges/TFTBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.tetris-badge-bg {
+  background-image: url('./assets/Badges/TetrisBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.valorant-badge-bg {
+  background-image: url('./assets/Badges/ValorantBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.mc-badge-bg {
+  background-image: url('./assets/Badges/MinecraftBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.fn-badge-bg {
+  background-image: url('./assets/Badges/FortniteBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.vg-badge-bg {
+  background-image: url('./assets/Badges/VgdevBadge.png');
+  background-size: cover;
+  background-position: center;
+}
+.ow2-bg {
+  background-image: url('./assets/ow2.png');
+  background-size: cover;
+  background-position: center;
+}
+.marvel-bg {
+  background-image: url('./assets/rivals.png');
+  background-size: cover;
+  background-position: center;
+}
+.league-bg {
+  background-image: url('./assets/league.png');
+  background-size: cover;
+  background-position: center;
+}
