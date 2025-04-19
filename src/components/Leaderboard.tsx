@@ -111,7 +111,7 @@ const Team = () => {
               className="rounded bg-tech-gold px-4 py-2 font-bayon text-xl text-white hover:bg-tech-gold/90"
               onClick={async () => {
                 const token = await getToken();
-                fetch("/api/raffles/reset", {
+                fetch(`${import.meta.env.VITE_API_URL}/api/raffles/reset`, {
                   method: "POST",
                   headers: {
                     Authorization: `Bearer ${token}`,
@@ -140,7 +140,7 @@ const Team = () => {
               className="rounded bg-tech-gold px-4 py-2 font-bayon text-xl text-white hover:bg-tech-gold/90"
               onClick={async () => {
                 const token = await getToken();
-                fetch("/api/raffles/pick", {
+                fetch(`${import.meta.env.VITE_API_URL}/api/raffles/pick`, {
                   method: "POST",
                   headers: {
                     Authorization: `Bearer ${token}`,
