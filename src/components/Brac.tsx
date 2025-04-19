@@ -54,10 +54,39 @@ function Brac() {
     fetchPlayers();
   }, [getToken]);
 
-  async function getPlayersForTeam(
-    game: string,
-    teamName: string
-  ): Promise<string[]> {
+  useEffect(() => {
+    const fetchWinners = async () => {
+      if (!selectedGame) return;
+      const token = await getToken();
+      const res = await fetch(`/api/winner/${selectedGame}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      const map: { [matchId: string]: string } = {};
+      for (const entry of data) {
+        map[entry.matchId] = entry.winner;
+      }
+      setWinners(map);
+    };
+
+    fetchWinners();
+  }, [selectedGame]);
+
+  const saveWinner = async (matchId: string, winner: string) => {
+    const token = await getToken();
+    await fetch("/api/winner", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ game: selectedGame, matchId, winner }),
+    });
+  };
+
+  async function getPlayersForTeam(game: string, teamName: string): Promise<string[]> {
     const selected = gameData.find((g) => g.name === game);
     const team = selected?.teams.find((t: any) => t.name === teamName);
     return team?.players || [];
@@ -72,11 +101,6 @@ function Brac() {
 
   const generateMatches = () => {
     type Team = { name: string };
-    type Participant = {
-      id: string;
-      name: string;
-      isWinner: boolean | undefined;
-    };
     type Match = {
       id: string;
       name: string;
@@ -84,25 +108,21 @@ function Brac() {
       tournamentRoundText: string;
       startTime: string;
       state: "DONE" | "SCHEDULED";
-      participants: Participant[];
+      participants: { id: string; name: string; isWinner: boolean | undefined }[];
       onClick?: () => void;
     };
 
-    const localWinners: { [matchId: string]: string } = {};
     const matches: Match[] = [];
     let idCounter = 1;
 
     const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(teamNames.length)));
-    const paddedTeams: Team[] = [
-      ...teamNames.map((t: string) => ({ name: t })),
-    ];
+    const paddedTeams: Team[] = [...teamNames.map((t: string) => ({ name: t }))];
     while (paddedTeams.length < nextPowerOfTwo) {
       paddedTeams.push({ name: "BYE" });
     }
 
     let currentRoundTeams: Team[] = paddedTeams;
     let round = 1;
-
     const matchMap: { [round: number]: Match[] } = {};
 
     while (currentRoundTeams.length > 1) {
@@ -115,20 +135,11 @@ function Brac() {
         const id = `${idCounter++}`;
 
         const isBye = team2.name === "BYE";
-        if (isBye) {
-          localWinners[id] = team1.name;
+        if (isBye && !winners[id]) {
+          winners[id] = team1.name;
         }
 
         const winnerName = isBye ? team1.name : winners[id];
-
-        const participants = [
-          { id: `${i}`, name: team1.name, isWinner: winnerName === team1.name },
-          {
-            id: `${i + 1}`,
-            name: team2.name,
-            isWinner: winnerName === team2.name,
-          },
-        ];
 
         const match: Match = {
           id,
@@ -137,12 +148,15 @@ function Brac() {
           tournamentRoundText: `Round ${round}`,
           startTime: new Date().toISOString(),
           state: winnerName ? "DONE" : "SCHEDULED",
-          participants,
+          participants: [
+            { id: `${i}`, name: team1.name, isWinner: winnerName === team1.name },
+            { id: `${i + 1}`, name: team2.name, isWinner: winnerName === team2.name },
+          ],
           onClick: !isBye
             ? () => {
-                const newWinner =
-                  winnerName === team1.name ? team2.name : team1.name;
+                const newWinner = winnerName === team1.name ? team2.name : team1.name;
                 setWinners((prev) => ({ ...prev, [id]: newWinner }));
+                saveWinner(id, newWinner);
               }
             : undefined,
         };
@@ -182,10 +196,7 @@ function Brac() {
     const finalMatch = matches[matches.length - 1];
     const winner = winners[finalMatch?.id];
     if (!winner) return [];
-
-    const secondPlace = finalMatch.participants.find(
-      (p: any) => p.name !== winner
-    )?.name;
+    const secondPlace = finalMatch.participants.find((p: any) => p.name !== winner)?.name;
     return [
       { team: winner, place: 1 },
       ...(secondPlace ? [{ team: secondPlace, place: 2 }] : []),
@@ -193,9 +204,7 @@ function Brac() {
   };
 
   const placements = getFinalPlacements();
-  const allGameKeys = Array.isArray(gameData)
-    ? gameData.map((game) => game.name)
-    : [];
+  const allGameKeys = Array.isArray(gameData) ? gameData.map((game) => game.name) : [];
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center">
@@ -225,11 +234,7 @@ function Brac() {
         {isBoothGame && (
           <div className="mt-4 flex flex-col items-center gap-4 text-white">
             <p>This is a booth game — please find the booth.</p>
-            <img
-              src={eventMap}
-              alt="Event Booth Map"
-              className="h-[520px] max-w-full rounded-lg"
-            />
+            <img src={eventMap} alt="Event Booth Map" className="h-[520px] max-w-full rounded-lg" />
           </div>
         )}
 
@@ -247,55 +252,42 @@ function Brac() {
                   connectorColorHighlight: "#3b82f6",
                 },
               }}
-              svgWrapper={({ children, ...props }: { children: ReactNode }) => (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <SVGViewer
-                    background="transparent"
-                    SVGBackground="transparent"
-                    width={1200}
-                    height={800}
-                    {...props}
+              svgWrapper={({ children, ...props }: { children: ReactNode }) => {
+                const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+              
+                return (
+                  <div
+                    style={{
+                      width: "100%",
+                      overflowX: "auto",
+                      padding: "0 1rem",
+                      display: "flex",
+                      justifyContent: "center",
+                    }}
                   >
-                    {children}
-                  </SVGViewer>
-                </div>
-              )}
-              matchComponent={({
-                match,
-                topParty,
-                bottomParty,
-                topWon,
-                bottomWon,
-                teamNameFallback,
-              }: any) => {
+                    <div style={{ minWidth: isMobile ? "1000px" : "1200px" }}>
+                      <SVGViewer
+                        background="transparent"
+                        SVGBackground="transparent"
+                        width={isMobile ? 1000 : 1200}
+                        height={isMobile ? 700 : 800}
+                        {...props}
+                      >
+                        {children}
+                      </SVGViewer>
+                    </div>
+                  </div>
+                );
+              }}              
+              matchComponent={({ match, topParty, bottomParty, topWon, bottomWon, teamNameFallback }: any) => {
                 const handleNavigate = async () => {
                   const team1 = match.participants[0]?.name;
                   const team2 = match.participants[1]?.name;
 
-                  if (
-                    !team1 ||
-                    !team2 ||
-                    team1 === "BYE" ||
-                    team2 === "BYE" ||
-                    team1 === "TBD" ||
-                    team2 === "TBD"
-                  )
-                    return;
+                  if (!team1 || !team2 || team1 === "BYE" || team2 === "BYE" || team1 === "TBD" || team2 === "TBD") return;
 
-                  const players1 = await getPlayersForTeam(
-                    selectedGame!,
-                    team1
-                  );
-                  const players2 = await getPlayersForTeam(
-                    selectedGame!,
-                    team2
-                  );
+                  const players1 = await getPlayersForTeam(selectedGame!, team1);
+                  const players2 = await getPlayersForTeam(selectedGame!, team2);
 
                   navigate(`/match/${match.id}`, {
                     state: {
@@ -362,9 +354,7 @@ function Brac() {
                             opacity: isBYE ? 0.5 : 1,
                             fontSize: "0.9rem",
                             padding: "4px 0",
-                            borderLeft: isWinner
-                              ? "4px solid #1e3a8a"
-                              : "4px solid transparent",
+                            borderLeft: isWinner ? "4px solid #1e3a8a" : "4px solid transparent",
                             paddingLeft: "8px",
                             cursor: "pointer",
                           }}
@@ -382,9 +372,7 @@ function Brac() {
 
         {placements.length > 0 && (
           <div className="mt-6 text-center">
-            <h2 className="mb-2 text-lg font-semibold text-white">
-              Final Placements
-            </h2>
+            <h2 className="mb-2 text-lg font-semibold text-white">Final Placements</h2>
             {placements.map((p) => (
               <div key={p.team} className="text-white">
                 {p.place}. {p.team}
