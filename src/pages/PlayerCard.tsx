@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { FaMinus, FaPlus, FaLock } from "react-icons/fa";
 import { useAuth, useUser } from "@clerk/clerk-react";
 
-
 interface ThemeOption {
   name: string;
   classname: string;
@@ -31,14 +30,48 @@ interface Theme {
 const themes: Record<ThemeCategory, ThemeOption[]> = {
   background: [
     { name: "None", classname: "", image: "" },
-    { name: "Valorant", classname: "valorant-bg", bgColor: "#0f0c1a", id: "valorant" },
-    { name: "Counter Strike 2", classname: "cs2-bg", bgColor: "#1c1f1d", id: "cs2" },
-    { name: "Rocket League", classname: "rl-bg", bgColor: "#0a0e1a", id: "rocket_league" },
-    { name: "Apex Legends ", classname: "apex-bg", bgColor: "#1a0d0d", id: "apex" },
-    { name: "Overwatch 2 ", classname: "ow2-bg", bgColor: "#1a0d0d", id: "ow2" },
-    { name: "Marvel Rivals ", classname: "marvel-bg", bgColor: "#1c1f1d", id: "rival" },
-    { name: "League of Lengends ", classname: "league-bg", bgColor: "#0a0e1a", id: "league" },
-    
+    {
+      name: "Valorant",
+      classname: "valorant-bg",
+      bgColor: "#0f0c1a",
+      id: "valorant",
+    },
+    {
+      name: "Counter Strike 2",
+      classname: "cs2-bg",
+      bgColor: "#1c1f1d",
+      id: "cs2",
+    },
+    {
+      name: "Rocket League",
+      classname: "rl-bg",
+      bgColor: "#0a0e1a",
+      id: "rocket_league",
+    },
+    {
+      name: "Apex Legends ",
+      classname: "apex-bg",
+      bgColor: "#1a0d0d",
+      id: "apex",
+    },
+    {
+      name: "Overwatch 2 ",
+      classname: "ow2-bg",
+      bgColor: "#1a0d0d",
+      id: "ow2",
+    },
+    {
+      name: "Marvel Rivals ",
+      classname: "marvel-bg",
+      bgColor: "#1c1f1d",
+      id: "rival",
+    },
+    {
+      name: "League of Lengends ",
+      classname: "league-bg",
+      bgColor: "#0a0e1a",
+      id: "league",
+    },
   ],
   borders: [
     { name: "None", classname: "", image: "" },
@@ -50,47 +83,75 @@ const themes: Record<ThemeCategory, ThemeOption[]> = {
     { name: "Pink", image: "", classname: "border-4 border-pink-500" },
     { name: "Black", image: "", classname: "border-4 border-black" },
     { name: "White", image: "", classname: "border-4 border-white" },
-    { name: "Dashed Gray", image: "", classname: "border-4 border-dashed border-gray-500" },
-    { name: "Dotted Blue", image: "", classname: "border-4 border-dotted border-blue-400" },
-    { name: "Hover Glow", image: "", classname: "border-4 border-tech-gold hover:shadow-lg hover:shadow-tech-gold transition-shadow duration-300" },
-  ],  
-  
+    {
+      name: "Dashed Gray",
+      image: "",
+      classname: "border-4 border-dashed border-gray-500",
+    },
+    {
+      name: "Dotted Blue",
+      image: "",
+      classname: "border-4 border-dotted border-blue-400",
+    },
+    {
+      name: "Hover Glow",
+      image: "",
+      classname:
+        "border-4 border-tech-gold hover:shadow-lg hover:shadow-tech-gold transition-shadow duration-300",
+    },
+  ],
+
   card: [
     { name: "Navy Blue", classname: "bg-[#0F1F3C] bg-opacity-60", image: "" },
-    { name: "Valorant", image: "", classname: "bg-gradient-to-br from-red-900/80 to-navy-blue/80" },
-    { name: "CS2", image: "", classname: "bg-gradient-to-bl from-black/80 to-white/80" },
-    { name: "Rocket League", image: "", classname: "bg-gradient-to-br from-blue-900/80 to-green-900/80" },
-    { name: "Apex", image: "", classname: "bg-gradient-to-tl from-green-400/80 to-gray-400/80" },
+    {
+      name: "Valorant",
+      image: "",
+      classname: "bg-gradient-to-br from-red-900/80 to-navy-blue/80",
+    },
+    {
+      name: "CS2",
+      image: "",
+      classname: "bg-gradient-to-bl from-black/80 to-white/80",
+    },
+    {
+      name: "Rocket League",
+      image: "",
+      classname: "bg-gradient-to-br from-blue-900/80 to-green-900/80",
+    },
+    {
+      name: "Apex",
+      image: "",
+      classname: "bg-gradient-to-tl from-green-400/80 to-gray-400/80",
+    },
   ],
   badges: [
     { name: "None", classname: "", image: "", id: "none" },
     { name: "Apex", classname: "apex-badge-bg", id: "apex" },
     { name: "Beat Saber", classname: "beat-badge-bg", id: "beat saber" },
     { name: "CS2", classname: "cs2-badge-bg", id: "cs2" },
-    { name: "Geogeusser", classname: "geo-badge-bg", id: 'geo' },
-    { name: "Guilty Gear", classname: "guilty-badge-bg", id: 'gg' },
-    { name: "League of Legends", classname: "league-badge-bg", id:'league' },
-    { name: "MK8DX", classname: "mk-badge-bg", id: 'mk' },
-    { name: "Marvel Rivals", classname: "marvel-badge-bg", id:'marvel'},
-    { name: "OSU", classname: "osu-badge-bg", id:'osu' },
-    { name: "Overwatch 2", classname: "ow2-badge-bg",id:'ow2' },
-    { name: "Rainbow 6 Siege", classname: "r6-badge-bg", id:'r6' },
-    { name: "Smash", classname: "smash-badge-bg", id: 'smash' },
-    { name: "Street Fighter", classname: "street-badge-bg", id: 'street' },
-    { name: "Supercell", classname: "super-badge-bg", id:'supercell' },
-    { name: "TFT", classname: "tft-badge-bg", id:'tft' },
-    { name: "Tetris", classname: "tetris-badge-bg",id:'tetris' },
-    { name: "Valorant", classname: "valorant-badge-bg", id:'valorant' },
-    { name: "Minecraft", classname: "mc-badge-bg", id:"mc" },
-    { name: "Fortnite", classname: "fn-badge-bg" , id:'fn'},
-    { name: "VgDev", classname: "vg-badge-bg",id :"vg" },
-
+    { name: "Geogeusser", classname: "geo-badge-bg", id: "geo" },
+    { name: "Guilty Gear", classname: "guilty-badge-bg", id: "gg" },
+    { name: "League of Legends", classname: "league-badge-bg", id: "league" },
+    { name: "MK8DX", classname: "mk-badge-bg", id: "mk" },
+    { name: "Marvel Rivals", classname: "marvel-badge-bg", id: "marvel" },
+    { name: "OSU", classname: "osu-badge-bg", id: "osu" },
+    { name: "Overwatch 2", classname: "ow2-badge-bg", id: "ow2" },
+    { name: "Rainbow 6 Siege", classname: "r6-badge-bg", id: "r6" },
+    { name: "Smash", classname: "smash-badge-bg", id: "smash" },
+    { name: "Street Fighter", classname: "street-badge-bg", id: "street" },
+    { name: "Supercell", classname: "super-badge-bg", id: "supercell" },
+    { name: "TFT", classname: "tft-badge-bg", id: "tft" },
+    { name: "Tetris", classname: "tetris-badge-bg", id: "tetris" },
+    { name: "Valorant", classname: "valorant-badge-bg", id: "valorant" },
+    { name: "Minecraft", classname: "mc-badge-bg", id: "mc" },
+    { name: "Fortnite", classname: "fn-badge-bg", id: "fn" },
+    { name: "VgDev", classname: "vg-badge-bg", id: "vg" },
   ],
 };
 
 // use to check ids for lock/unlock
 const checkId = (id: string): string => {
-  return id.toLowerCase().replace(/[\s_-]/g, '');
+  return id.toLowerCase().replace(/[\s_-]/g, "");
 };
 
 const PlayerCard = () => {
@@ -116,7 +177,7 @@ const PlayerCard = () => {
   useEffect(() => {
     const savedProfile = () => {
       try {
-        const savedThemeJson = localStorage.getItem('playerCard');
+        const savedThemeJson = localStorage.getItem("playerCard");
         if (savedThemeJson) {
           const savedTheme: Theme = JSON.parse(savedThemeJson);
           setBackground(savedTheme.background || "");
@@ -131,7 +192,7 @@ const PlayerCard = () => {
         setProfileLoaded(true);
       }
     };
-    
+
     savedProfile();
   }, []);
 
@@ -143,11 +204,11 @@ const PlayerCard = () => {
         borderStyle,
         badges,
         bgColor,
-        bgCard
+        bgCard,
       };
-      
+
       try {
-        localStorage.setItem('playerCard', JSON.stringify(save));
+        localStorage.setItem("playerCard", JSON.stringify(save));
       } catch (error) {
         console.error("Error saving:", error);
       }
@@ -163,68 +224,71 @@ const PlayerCard = () => {
         const discordName = user?.externalAccounts?.find(
           (acc) => acc.provider === "discord"
         )?.username;
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/players/${discordName}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/players/${discordName}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const data = await res.json();
         console.log("data", data);
         setPlayers(data);
         console.log("players:", data);
-        
+
         // Set unlocked themes and badges based on participation
         if (data && data.participation && Array.isArray(data.participation)) {
           const unlockedThemes = ["none"];
           const unlockedBadges = ["none"];
-          
+
           data.participation.forEach((game: string) => {
             const id = checkId(game).toLowerCase();
-            
+
             // Match participation with theme ids
             if (id === "valorant") {
               unlockedThemes.push("valorant");
               unlockedBadges.push("valorant");
             }
-            if (id === "cs2") {
+            if (id === "counter strike 2") {
               unlockedThemes.push("cs2");
               unlockedBadges.push("cs2");
             }
-            if (id === "rocketleague") {
+            if (id === "rocket league") {
               unlockedThemes.push("rocket_league");
               unlockedBadges.push("mk");
             }
-            if (id === "apex") {
+            if (id === "apex legends") {
               unlockedThemes.push("apex");
               unlockedBadges.push("apex");
             }
-            if (id === "ow2") {
+            if (id === "overwatch 2") {
               unlockedThemes.push("ow2");
               unlockedBadges.push("ow2");
             }
-            if (id === "rival") {
+            if (id === "marvel rivals") {
               unlockedThemes.push("rival");
               unlockedBadges.push("marvel");
             }
-            if (id === "league") {
+            if (id === "league of legends") {
               unlockedThemes.push("league");
               unlockedBadges.push("league");
             }
-            
+
             // Add badge-specific unlocks based on participation
-            if (id === "beatsaber") unlockedBadges.push("beat saber");
-            if (id === "geoguesser") unlockedBadges.push("geo");
-            if (id === "guiltygear") unlockedBadges.push("gg");
-            if (id === "rainbow6siege") unlockedBadges.push("r6");
-            if (id === "smash") unlockedBadges.push("smash");
-            if (id === "streetfighter") unlockedBadges.push("street");
+            if (id === "beat saber") unlockedBadges.push("beat saber");
+            if (id === "geoguessr") unlockedBadges.push("geo");
+            if (id === "guilty gear strive") unlockedBadges.push("gg");
+            if (id === "rainbow 6 siege") unlockedBadges.push("r6");
+            if (id === "smash ultimate") unlockedBadges.push("smash");
+            if (id === "street fighter 6") unlockedBadges.push("street");
             if (id === "supercell") unlockedBadges.push("supercell");
-            if (id === "tft") unlockedBadges.push("tft");
+            if (id === "teamfight tactics") unlockedBadges.push("tft");
             if (id === "tetris") unlockedBadges.push("tetris");
             if (id === "minecraft") unlockedBadges.push("mc");
             if (id === "fortnite") unlockedBadges.push("fn");
             if (id === "vgdev") unlockedBadges.push("vg");
-            if (id === "osu") unlockedBadges.push("osu");
+            if (id === "osu!") unlockedBadges.push("osu");
           });
-          
+
           setUnlockedThemes(unlockedThemes);
           setUnlockedBadges(unlockedBadges);
         }
@@ -239,7 +303,10 @@ const PlayerCard = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (badgeRef.current && !badgeRef.current.contains(event.target as Node)) {
+      if (
+        badgeRef.current &&
+        !badgeRef.current.contains(event.target as Node)
+      ) {
         if (tab === "badges") {
           setTab("background");
           setActiveBadge(null);
@@ -250,7 +317,11 @@ const PlayerCard = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [tab]);
 
-  const handleThemeSelection = (themeType: ThemeCategory, theme: ThemeOption, badgeIndex?: number) => {
+  const handleThemeSelection = (
+    themeType: ThemeCategory,
+    theme: ThemeOption,
+    badgeIndex?: number
+  ) => {
     if (themeType === "background") {
       if (theme.id && !unlockedThemes.includes(theme.id)) {
         return;
@@ -277,46 +348,49 @@ const PlayerCard = () => {
   // Check if a theme is locked
   const isLocked = (theme: ThemeOption): boolean => {
     if (!theme.id) return false;
-    
+
     if (tab === "background") {
       return !unlockedThemes.includes(theme.id);
     } else if (tab === "badges") {
       return !unlockedBadges.includes(theme.id);
     }
-    
+
     return false;
   };
 
   return (
-    <div className="flex justify-center items-center">
+    <div className="flex items-center justify-center">
       <div className="w-full">
         <div
-          className={`${background} relative w-full h-[500px] rounded-xl bg-cover bg-center transition-all duration-500 ease-in-out`}
+          className={`${background} relative h-[500px] w-full rounded-xl bg-cover bg-center transition-all duration-500 ease-in-out`}
           style={{
-            backgroundColor: bgColor || 'transparent',
-            backgroundBlendMode: 'screen',
+            backgroundColor: bgColor || "transparent",
+            backgroundBlendMode: "screen",
           }}
         >
-          <div className="flex justify-center h-[400px] pt-6">
+          <div className="flex h-[400px] justify-center pt-6">
             {/* Player Card */}
             <div
-              className={`w-[340px] h-[300px] mt-16 rounded-xl flex flex-col justify-center items-center space-y-8 ${borderStyle}`}
+              className={`mt-16 flex h-[300px] w-[340px] flex-col items-center justify-center space-y-8 rounded-xl ${borderStyle}`}
             >
               <div
-                className={`flex flex-col justify-center items-center rounded-tl-lg rounded-tr-lg ${bgCard} text-white px-4`}
+                className={`flex flex-col items-center justify-center rounded-tl-lg rounded-tr-lg ${bgCard} px-4 text-white`}
                 style={{
                   width: "320px",
                   height: "150px",
-                  clipPath: "polygon(0 0, 0 70%, 20% 100%, 80% 100%, 100% 70%, 100% 100%, 100% 0)",
+                  clipPath:
+                    "polygon(0 0, 0 70%, 20% 100%, 80% 100%, 100% 70%, 100% 100%, 100% 0)",
                 }}
               >
                 {/* Display user name and token */}
                 {isLoading ? (
-                  <p className="text-gray-400 animate-pulse">Loading player data...</p>
+                  <p className="animate-pulse text-gray-400">
+                    Loading player data...
+                  </p>
                 ) : (
                   <div className="text-center">
-                    <p className="text-4xl font-bayon">{players?.name}</p>
-                    <p className="text-xl text-[#eecf5d] font-bayon">
+                    <p className="font-bayon text-4xl">{players?.name}</p>
+                    <p className="font-bayon text-xl text-[#eecf5d]">
                       TOKENS: {players ? players.points : "N/A"}
                     </p>
                   </div>
@@ -326,7 +400,7 @@ const PlayerCard = () => {
               {/* Badges */}
               <div
                 ref={badgeRef}
-                className={`flex w-[320px] space-x-6 justify-center ${bgCard} py-6 rounded-xl`}
+                className={`flex w-[320px] justify-center space-x-6 ${bgCard} rounded-xl py-6`}
               >
                 {badges.map((badge, index) => (
                   <button
@@ -335,9 +409,15 @@ const PlayerCard = () => {
                       setTab("badges");
                       setActiveBadge(index);
                     }}
-                    className={`w-12 h-12 rounded flex items-center border-2 justify-center transition
-                    ${badge || badge === "" ? `${badge}` : "border-2 text-gray-200 hover:bg-gray-700"} 
-                    ${activeBadge === index ? "border-b-4 border-tech-gold" : ""} duration-1000 ease-in-out`}
+                    className={`flex h-12 w-12 items-center justify-center rounded border-2 transition
+                    ${
+                      badge || badge === ""
+                        ? `${badge}`
+                        : "border-2 text-gray-200 hover:bg-gray-700"
+                    } 
+                    ${
+                      activeBadge === index ? "border-b-4 border-tech-gold" : ""
+                    } duration-1000 ease-in-out`}
                     title="Add or edit badge"
                   >
                     <div className="text-white">{badge ? null : "+"}</div>
@@ -350,16 +430,18 @@ const PlayerCard = () => {
           {/* Bottom panel */}
           <div className="pb-2">
             {panelOpen ? (
-              <div className="w-full h-full bg-opacity-50 border-white/20 bg-gradient-to-br from-[#2e1d1d] to-[#101c3b] shadow-lg border rounded-2xl p-4">
+              <div className="h-full w-full rounded-2xl border border-white/20 bg-opacity-50 bg-gradient-to-br from-[#2e1d1d] to-[#101c3b] p-4 shadow-lg">
                 <button
                   onClick={() => setPanelOpen(false)}
-                  className="flex justify-center items-center w-[20px] h-[20px] rounded-xl ml-auto p-4 text-white font-bold bg-tech-gold"
+                  className="ml-auto flex h-[20px] w-[20px] items-center justify-center rounded-xl bg-tech-gold p-4 font-bold text-white"
                 >
-                  <div><FaMinus /></div>
+                  <div>
+                    <FaMinus />
+                  </div>
                 </button>
 
                 {/* Tabs */}
-                <div className="flex space-x-4 mb-4 justify-center">
+                <div className="mb-4 flex justify-center space-x-4">
                   {Object.keys(themes).map((key) => (
                     <button
                       key={key}
@@ -368,17 +450,21 @@ const PlayerCard = () => {
                           setTab(key as ThemeCategory);
                         }
                       }}
-                      className={`px-4 py-2 rounded text-lg font-bayon text-white 
+                      className={`rounded px-4 py-2 font-bayon text-lg text-white 
                         ${tab === key ? "bg-tech-gold" : "bg-transparent"} 
-                        ${key === "badges" && activeBadge === null ? "text-gray-500 cursor-not-allowed" : ""}`}
+                        ${
+                          key === "badges" && activeBadge === null
+                            ? "cursor-not-allowed text-gray-500"
+                            : ""
+                        }`}
                       disabled={key === "badges" && activeBadge === null}
                     >
                       {key.charAt(0).toUpperCase() + key.slice(1)}
                     </button>
                   ))}
                 </div>
-                {/* Content */ }
-                <div className="grid grid-cols-4 gap-4 max-h-[100px] overflow-y-auto pr-2">
+                {/* Content */}
+                <div className="grid max-h-[100px] grid-cols-4 gap-4 overflow-y-auto pr-2">
                   {themes[tab].map((theme, index) => {
                     const locked = isLocked(theme);
                     return (
@@ -387,7 +473,11 @@ const PlayerCard = () => {
                         onClick={() => {
                           if (!locked) {
                             if (tab === "badges" && activeBadge !== null) {
-                              handleThemeSelection("badges", theme, activeBadge);
+                              handleThemeSelection(
+                                "badges",
+                                theme,
+                                activeBadge
+                              );
                             } else if (tab === "borders") {
                               handleThemeSelection("borders", theme);
                             } else if (tab === "background") {
@@ -397,14 +487,20 @@ const PlayerCard = () => {
                             }
                           }
                         }}
-                        className={`w-[100px] h-[100px] p-4 border rounded text-lg ${theme.classname} font-bayon relative
-                          ${theme.name === "None" ? "border-2 border-gray-700" : ""}
-                          ${locked ? "opacity-50 cursor-not-allowed" : ""}`}
+                        className={`h-[100px] w-[100px] rounded border p-4 text-lg ${
+                          theme.classname
+                        } relative font-bayon
+                          ${
+                            theme.name === "None"
+                              ? "border-2 border-gray-700"
+                              : ""
+                          }
+                          ${locked ? "cursor-not-allowed opacity-50" : ""}`}
                         disabled={locked}
                       >
                         {locked && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 rounded">
-                            <FaLock className="text-white text-2xl" />
+                          <div className="absolute inset-0 flex items-center justify-center rounded bg-black bg-opacity-30">
+                            <FaLock className="text-2xl text-white" />
                           </div>
                         )}
                       </button>
@@ -413,12 +509,14 @@ const PlayerCard = () => {
                 </div>
               </div>
             ) : (
-              <div className="flex mt-32 bg-opacity-50 border-white/20 bg-gradient-to-br from-[#2e1d1d] to-[#101c3b] shadow-lg border-t rounded-2xl p-4">
+              <div className="mt-32 flex rounded-2xl border-t border-white/20 bg-opacity-50 bg-gradient-to-br from-[#2e1d1d] to-[#101c3b] p-4 shadow-lg">
                 <button
                   onClick={() => setPanelOpen(true)}
-                  className="flex justify-center items-center bg-tech-gold w-[20px] h-[20px] text-white p-4 rounded-xl ml-auto"
+                  className="ml-auto flex h-[20px] w-[20px] items-center justify-center rounded-xl bg-tech-gold p-4 text-white"
                 >
-                  <div><FaPlus /></div>
+                  <div>
+                    <FaPlus />
+                  </div>
                 </button>
               </div>
             )}
