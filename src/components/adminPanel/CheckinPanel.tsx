@@ -13,6 +13,7 @@ const PlayerCheckinPanel: React.FC = () => {
   const { getToken } = useAuth();
   const [players, setPlayers] = useState<Player[]>([]);
   const [newPlayer, setNewPlayer] = useState("");
+  const [originalName, setOriginalName] = useState("");
   // const [assignments, setAssignments] = useState<
   //   { game: string; team: string }[]
   // >([]);
@@ -91,32 +92,53 @@ const PlayerCheckinPanel: React.FC = () => {
     // setAssignments([]);
   };
 
-  const updatePlayer = async (player: Player) => {
+  // inside PlayerCheckinPanel, alongside addPlayer/updatePlayer…
+  const removePlayer = async (playerName: string) => {
+    if (!window.confirm(`Really remove ${playerName}? This is permanent.`)) return;
+
+    const token = await getToken();
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/players/${encodeURIComponent(playerName)}`,
+        { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!res.ok) throw new Error("Delete failed");
+      // remove from UI
+      setPlayers((prev) => prev.filter((p) => p.name !== playerName));
+      setSelectedPlayer(null);
+      alert(`${playerName} removed.`);
+    } catch (err) {
+      console.error(err);
+      alert("Could not remove player. Try again.");
+    }
+  };
+
+  // before: const updatePlayer = async (player: Player) => { … }
+  const updatePlayer = async (player: Player, oldName: string) => {
     setSaveStatus("saving");
     const token = await getToken();
 
-    // Clone player and update log
+    // build the updated log, participation, etc.
     const now = new Date();
     const formattedTime = now.toLocaleString(undefined, {
       dateStyle: "medium",
       timeStyle: "short",
     });
-
     const editor = user?.username || user?.fullName || "Unknown User";
 
     const updatedPlayer: Player = {
       ...player,
       log: [
         ...(player.log || []),
-        `Player profile updated by ${editor} on ${formattedTime}`,
+        `Player renamed/updated by ${editor} on ${formattedTime}`,
       ],
-      participation: player.participation,
-      teamAssignments: player.teamAssignments,
+      // participation & teamAssignments untouched
     };
 
     try {
+      // use oldName in the URL, but send the payload with player.name = newName
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/players/${player.name}`,
+        `${import.meta.env.VITE_API_URL}/api/players/${encodeURIComponent(oldName)}`,
         {
           method: "PUT",
           headers: {
@@ -126,26 +148,26 @@ const PlayerCheckinPanel: React.FC = () => {
           body: JSON.stringify(updatedPlayer),
         }
       );
-
       const data = await res.json();
+      if (!res.ok || !data.name) throw new Error(data?.message || "Update failed");
 
-      if (!res.ok || !data || !data.name) {
-        throw new Error(data?.message || "Failed to update player.");
-      }
-
-      console.log("✅ Player updated:", data);
-
+      // success: swap it into both selectedPlayer and players[]
       setSelectedPlayer(data);
-      setPlayers((prev) => prev.map((p) => (p.name === data.name ? data : p)));
+      setPlayers(ps =>
+        ps.map(p => (p.name === oldName ? data : p))
+      );
+      setOriginalName(data.name);     // now our “oldName” for future edits
       setSaveStatus("saved");
     } catch (err) {
-      console.error("❌ Failed to update player:", err);
-      alert("There was an error saving the player.");
+      console.error(err);
+      alert("Could not save changes.");
       setSaveStatus("idle");
     }
 
+    // reset status after a moment
     setTimeout(() => setSaveStatus("idle"), 3000);
   };
+
 
   return (
     <div>
@@ -235,6 +257,7 @@ const PlayerCheckinPanel: React.FC = () => {
                 key={player.name}
                 onClick={() => {
                   setSelectedPlayer(player);
+                  setOriginalName(player.name);
                   setQuery("");
                   setSuggestions([]);
                 }}
@@ -249,8 +272,28 @@ const PlayerCheckinPanel: React.FC = () => {
 
       {selectedPlayer && (
         <div className="mt-4 border-t pt-4">
-          <h3 className="text-lg font-semibold">{selectedPlayer.name}</h3>
+          <h3 className="text-lg font-semibold">
+            <input
+              type="text"
+              value={selectedPlayer.name}
+              onChange={(e) => {
+                setSelectedPlayer({
+                  ...selectedPlayer,
+                  name: e.target.value,
+                });
+              }}
+              className="w-full rounded border p-2"
+              placeholder="Player Name"
+            />
+          </h3>
 
+          <button
+            onClick={() => removePlayer(selectedPlayer.name)}
+            className="mt-4 mr-4 rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600"
+          >
+            Remove Player
+          </button>
+          
           <button
             onClick={() => setSelectedPlayer(null)}
             className="mt-1 text-sm text-blue-600 underline"
@@ -420,7 +463,7 @@ const PlayerCheckinPanel: React.FC = () => {
           </div>
 
           <button
-            onClick={() => updatePlayer(selectedPlayer)}
+            onClick={() => updatePlayer(selectedPlayer, originalName)}
             className="mt-4 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
             Save Changes
