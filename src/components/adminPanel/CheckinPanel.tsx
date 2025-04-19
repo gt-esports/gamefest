@@ -272,8 +272,6 @@ const PlayerCheckinPanel: React.FC = () => {
 
       {selectedPlayer && (
         <div className="mt-4 border-t pt-4">
-          <h3 className="text-lg font-semibold">{selectedPlayer.name}</h3>
-
           <h3 className="text-lg font-semibold">
             <input
               type="text"
