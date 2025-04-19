@@ -159,7 +159,10 @@ const PlayerCard = () => {
       try {
         const token = await getToken();
         console.log("token: ", token);
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/players/${user?.username}`, {
+        const discordName = user?.externalAccounts?.find(
+          (acc) => acc.provider === "discord"
+        )?.username;
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/players/${discordName}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
