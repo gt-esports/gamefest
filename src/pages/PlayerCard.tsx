@@ -379,8 +379,10 @@ const PlayerCard = () => {
                     </button>
                   ))}
                 </div>
-                {/* Content */}
-                <div className="grid max-h-[100px] grid-cols-2 gap-4 overflow-y-auto pr-2">
+
+                {/* Content */ }
+                <div className="grid grid-cols-4 gap-4 max-h-[100px] overflow-y-auto pr-2">
+
                   {themes[tab].map((theme, index) => {
                     const locked = isLocked(theme);
                     return (
@@ -403,18 +405,12 @@ const PlayerCard = () => {
                             }
                           }
                         }}
-                        className={`rounded p-4 text-lg ${
-                          theme.classname
-                        } relative font-bayon text-white
-                          ${
-                            theme.name === "None"
-                              ? "border-2 border-gray-700"
-                              : ""
-                          }
-                          ${locked ? "cursor-not-allowed opacity-50" : ""}`}
+                        className={`w-[100px]  h-[100px] p-4 rounded text-lg ${theme.classname} font-bayon relative
+                          ${theme.name === "None" ? "border-2 border-gray-700" : ""}
+                          ${locked ? "opacity-50 cursor-not-allowed" : ""}`}
+
                         disabled={locked}
                       >
-                        {theme.name}
 
                         {locked && (
                           <div className="absolute inset-0 flex items-center justify-center rounded bg-black bg-opacity-30">
