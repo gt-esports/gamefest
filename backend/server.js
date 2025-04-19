@@ -50,7 +50,7 @@ app.use("/api/staff", staffRoutes);
 app.use("/api/challenges", challengeRoutes);
 app.use("/api/bulk", bulkRoutes);
 app.use("/api/winners", winnerRoutes);
-app.use("/api/raffle", raffleRoutes);
+app.use("/api/raffles", raffleRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
