@@ -63,27 +63,27 @@ const themes: Record<ThemeCategory, ThemeOption[]> = {
     { name: "Apex", image: "", classname: "bg-gradient-to-tl from-green-400/80 to-gray-400/80" },
   ],
   badges: [
-    { name: "None", classname: "", image: "" },
-    { name: "Apex", classname: "apex-badge-bg" },
-    { name: "Beat Saber", classname: "beat-badge-bg" },
-    { name: "CS2", classname: "cs2-badge-bg" },
-    { name: "Geogeusser", classname: "geo-badge-bg" },
-    { name: "Guilty Gear", classname: "guilty-badge-bg" },
-    { name: "League of Legends", classname: "league-badge-bg" },
-    { name: "MK8DX", classname: "mk-badge-bg" },
-    { name: "Marvel Rivals", classname: "marvel-badge-bg" },
-    { name: "OSU", classname: "osu-badge-bg" },
-    { name: "Overwatch 2", classname: "ow2-badge-bg" },
-    { name: "Rainbow 6 Siege", classname: "r6-badge-bg" },
-    { name: "Smash", classname: "smash-badge-bg" },
-    { name: "Street Fighter", classname: "street-badge-bg" },
-    { name: "Supercell", classname: "super-badge-bg" },
-    { name: "TFT", classname: "tft-badge-bg" },
-    { name: "Tetris", classname: "tetris-badge-bg" },
-    { name: "Valorant", classname: "valorant-badge-bg" },
-    { name: "Minecraft", classname: "mc-badge-bg" },
-    { name: "Fortnite", classname: "fn-badge-bg" },
-    { name: "VgDev", classname: "vg-badge-bg" },
+    { name: "None", classname: "", image: "", id: "none" },
+    { name: "Apex", classname: "apex-badge-bg", id: "apex" },
+    { name: "Beat Saber", classname: "beat-badge-bg", id: "beat saber" },
+    { name: "CS2", classname: "cs2-badge-bg", id: "cs2" },
+    { name: "Geogeusser", classname: "geo-badge-bg", id: 'geo' },
+    { name: "Guilty Gear", classname: "guilty-badge-bg", id: 'gg' },
+    { name: "League of Legends", classname: "league-badge-bg", id:'league' },
+    { name: "MK8DX", classname: "mk-badge-bg", id: 'mk' },
+    { name: "Marvel Rivals", classname: "marvel-badge-bg", id:'marvel'},
+    { name: "OSU", classname: "osu-badge-bg", id:'osu' },
+    { name: "Overwatch 2", classname: "ow2-badge-bg",id:'ow2' },
+    { name: "Rainbow 6 Siege", classname: "r6-badge-bg", id:'r6' },
+    { name: "Smash", classname: "smash-badge-bg", id: 'smash' },
+    { name: "Street Fighter", classname: "street-badge-bg", id: 'street' },
+    { name: "Supercell", classname: "super-badge-bg", id:'supercell' },
+    { name: "TFT", classname: "tft-badge-bg", id:'tft' },
+    { name: "Tetris", classname: "tetris-badge-bg",id:'tetris' },
+    { name: "Valorant", classname: "valorant-badge-bg", id:'valorant' },
+    { name: "Minecraft", classname: "mc-badge-bg", id:"mc" },
+    { name: "Fortnite", classname: "fn-badge-bg" , id:'fn'},
+    { name: "VgDev", classname: "vg-badge-bg",id :"vg" },
 
   ],
 };
@@ -107,6 +107,7 @@ const PlayerCard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [unlockedThemes, setUnlockedThemes] = useState<string[]>(["none"]);
+  const [unlockedBadges, setUnlockedBadges] = useState<string[]>(["none"]);
 
   const { getToken } = useAuth();
   const { user } = useUser();
@@ -170,24 +171,62 @@ const PlayerCard = () => {
         setPlayers(data);
         console.log("players:", data);
         
-        // Set unlocked themes based on participation
+        // Set unlocked themes and badges based on participation
         if (data && data.participation && Array.isArray(data.participation)) {
-          const unlocked = ["none"];
+          const unlockedThemes = ["none"];
+          const unlockedBadges = ["none"];
           
           data.participation.forEach((game: string) => {
             const id = checkId(game).toLowerCase();
             
-            // Match participation with ids
-            if (id === "valorant") unlocked.push("valorant");
-            if (id === "cs2") unlocked.push("cs2");
-            if (id === "rocketleague") unlocked.push("rocket_league");
-            if (id === "apex") unlocked.push("apex");
-            if (id === "ow2") unlocked.push("ow2");
-            if (id === "rival") unlocked.push("rival");
-            if (id === "league") unlocked.push("league");
+            // Match participation with theme ids
+            if (id === "valorant") {
+              unlockedThemes.push("valorant");
+              unlockedBadges.push("valorant");
+            }
+            if (id === "cs2") {
+              unlockedThemes.push("cs2");
+              unlockedBadges.push("cs2");
+            }
+            if (id === "rocketleague") {
+              unlockedThemes.push("rocket_league");
+              unlockedBadges.push("mk");
+            }
+            if (id === "apex") {
+              unlockedThemes.push("apex");
+              unlockedBadges.push("apex");
+            }
+            if (id === "ow2") {
+              unlockedThemes.push("ow2");
+              unlockedBadges.push("ow2");
+            }
+            if (id === "rival") {
+              unlockedThemes.push("rival");
+              unlockedBadges.push("marvel");
+            }
+            if (id === "league") {
+              unlockedThemes.push("league");
+              unlockedBadges.push("league");
+            }
+            
+            // Add badge-specific unlocks based on participation
+            if (id === "beatsaber") unlockedBadges.push("beat saber");
+            if (id === "geoguesser") unlockedBadges.push("geo");
+            if (id === "guiltygear") unlockedBadges.push("gg");
+            if (id === "rainbow6siege") unlockedBadges.push("r6");
+            if (id === "smash") unlockedBadges.push("smash");
+            if (id === "streetfighter") unlockedBadges.push("street");
+            if (id === "supercell") unlockedBadges.push("supercell");
+            if (id === "tft") unlockedBadges.push("tft");
+            if (id === "tetris") unlockedBadges.push("tetris");
+            if (id === "minecraft") unlockedBadges.push("mc");
+            if (id === "fortnite") unlockedBadges.push("fn");
+            if (id === "vgdev") unlockedBadges.push("vg");
+            if (id === "osu") unlockedBadges.push("osu");
           });
           
-          setUnlockedThemes(unlocked);
+          setUnlockedThemes(unlockedThemes);
+          setUnlockedBadges(unlockedBadges);
         }
       } catch (error) {
         console.error("Error fetching player data:", error);
@@ -219,6 +258,10 @@ const PlayerCard = () => {
       setBackground(theme.classname);
       setBgColor(theme.bgColor || "");
     } else if (themeType === "badges" && badgeIndex !== undefined) {
+      // Check if badge is unlocked before applying
+      if (theme.id && !unlockedBadges.includes(theme.id)) {
+        return;
+      }
       setBadges((prev) => {
         const newBadges = [...prev];
         newBadges[badgeIndex] = theme.classname;
@@ -231,10 +274,17 @@ const PlayerCard = () => {
     }
   };
 
-  // Check if a background is locked
+  // Check if a theme is locked
   const isLocked = (theme: ThemeOption): boolean => {
-    if (tab !== "background" || !theme.id) return false;
-    return !unlockedThemes.includes(theme.id);
+    if (!theme.id) return false;
+    
+    if (tab === "background") {
+      return !unlockedThemes.includes(theme.id);
+    } else if (tab === "badges") {
+      return !unlockedBadges.includes(theme.id);
+    }
+    
+    return false;
   };
 
   return (
@@ -243,7 +293,6 @@ const PlayerCard = () => {
         <div
           className={`${background} relative w-full h-[500px] rounded-xl bg-cover bg-center transition-all duration-500 ease-in-out`}
           style={{
-            
             backgroundColor: bgColor || 'transparent',
             backgroundBlendMode: 'screen',
           }}
@@ -353,8 +402,6 @@ const PlayerCard = () => {
                           ${locked ? "opacity-50 cursor-not-allowed" : ""}`}
                         disabled={locked}
                       >
-                        
-
                         {locked && (
                           <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 rounded">
                             <FaLock className="text-white text-2xl" />
