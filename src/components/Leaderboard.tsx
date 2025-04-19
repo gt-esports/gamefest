@@ -17,7 +17,8 @@ const Team = () => {
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        const response = await fetch("/api/players");
+        // setLoading(true);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/players`);
         if (!response.ok) {
           throw new Error("Failed to fetch players data");
         }
@@ -34,14 +35,18 @@ const Team = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const playersResponse = await fetch("/api/players");
+        const playersResponse = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/players`
+        );
         if (!playersResponse.ok) {
           throw new Error("Failed to fetch players data");
         }
         const playersData = await playersResponse.json();
         setPlayers(playersData);
 
-        const winnersResponse = await fetch("/api/raffles/getWinner");
+        const winnersResponse = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/raffles/getWinner`
+        );
         if (winnersResponse.ok) {
           const winnersData = await winnersResponse.json();
           setRaffleWinners(winnersData.data.winners);
