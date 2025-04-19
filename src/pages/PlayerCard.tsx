@@ -200,7 +200,7 @@ const PlayerCard = () => {
       setIsLoading(true);
       try {
         const token = await getToken();
-        console.log("token: ", token);
+        // console.log("token: ", token);
         const discordName = user?.externalAccounts?.find(
           (a) => a.provider === "discord"
         )?.username;
