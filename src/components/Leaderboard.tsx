@@ -17,7 +17,9 @@ const Team = () => {
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        const response = await fetch("/api/players");
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/players`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch players data");
         }
@@ -34,14 +36,18 @@ const Team = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const playersResponse = await fetch("/api/players");
+        const playersResponse = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/players`
+        );
         if (!playersResponse.ok) {
           throw new Error("Failed to fetch players data");
         }
         const playersData = await playersResponse.json();
         setPlayers(playersData);
 
-        const winnersResponse = await fetch("/api/raffles/getWinner");
+        const winnersResponse = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/raffles/getWinner`
+        );
         if (winnersResponse.ok) {
           const winnersData = await winnersResponse.json();
           setRaffleWinners(winnersData.data.winners);
@@ -99,7 +105,7 @@ const Team = () => {
             className="rounded bg-tech-gold px-4 py-2 font-bayon text-xl text-white hover:bg-tech-gold/90"
             onClick={async () => {
               const token = await getToken();
-              fetch("/api/raffles/pick", {
+              fetch(`${import.meta.env.VITE_API_URL}/api/raffles/pick`, {
                 method: "POST",
                 headers: {
                   Authorization: `Bearer ${token}`,
