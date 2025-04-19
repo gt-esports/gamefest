@@ -8,7 +8,7 @@ const Team = () => {
   const { user } = useUser();
 
   const [players, setPlayers] = useState<Array<{ name: string; points: number }>>([]);
-  const [raffleWinner, setRaffleWinner] = useState<{name: string; points: number} | null>(null);
+  const [raffleWinners, setRaffleWinners] = useState<Array<{name: string; points: number; place: string}>>([]);
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -20,10 +20,7 @@ const Team = () => {
         const data = await response.json();
         setPlayers(data);
       } catch (err) {
-        // setError(err instanceof Error ? err.message : 'An error occurred');
         console.error('Error fetching teams:', err);
-      } finally {
-        // setLoading(false);
       }
     };
 
@@ -33,8 +30,6 @@ const Team = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // setLoading(true);
-
         const playersResponse = await fetch('/api/players');
         if (!playersResponse.ok) {
           throw new Error('Failed to fetch players data');
@@ -42,26 +37,16 @@ const Team = () => {
         const playersData = await playersResponse.json();
         setPlayers(playersData);
 
-        const winnersResponse = await fetch('/api/raffles/raffles');
+        const winnersResponse = await fetch('/api/raffles/getWinner');
         if (winnersResponse.ok) {
           const winnersData = await winnersResponse.json();
-          
-          if (winnersData.success && winnersData.data?.winners?.length > 0) {
-            // if the raffle is run more than once,
-            // there might be more than one winner
-            // so we take the first one in the list
-            const winner = winnersData.data.winners[0];
-            setRaffleWinner({
-              name: winner.name,
-              points: winner.points
-            });
-          }
+          setRaffleWinners(winnersData.data.winners);
+        } else {
+          // reset winners
+          setRaffleWinners([]);
         }
       } catch (err) {
-        // setError(err instanceof Error ? err.message : 'An error occurred');
         console.error('Error fetching data:', err);
-      } finally {
-        // setLoading(false);
       }
     };
 
@@ -110,13 +95,18 @@ const Team = () => {
                   'Authorization': `Bearer ${token}`,
                   'Content-Type': 'application/json'
                 },
+<<<<<<< HEAD
                 body: JSON.stringify({ count: 1 }) 
+=======
+                body: JSON.stringify({ count: 3 }) 
+>>>>>>> 64c8f43a281022dbbb6f46e10d97419183fde6b0
               })
               .then(response => {
                 if (!response.ok) throw new Error('Failed to pick raffle winner');
                 return response.json();
               })
               .then(data => {
+<<<<<<< HEAD
                 const winner = data.winner;
                 setRaffleWinner(winner);
                 alert(`Raffle winner selected: ${winner.name}`);
@@ -128,11 +118,29 @@ const Team = () => {
             }}
           >
             Pick Raffle Winner
+=======
+                if (data.success && data.winners) {
+                  setRaffleWinners(data.winners);
+                  alert(`Raffle winners: ${data.winners.map((w: { name: string }) => w.name).join(', ')}`);
+                }
+              })
+              .catch(err => {
+                console.error('Error picking raffle winners:', err);
+                alert('Failed to pick raffle winners');
+              });
+            }}
+          >
+            Pick Raffle Winners
+>>>>>>> 64c8f43a281022dbbb6f46e10d97419183fde6b0
           </button>
         )}
       </div>
 
+<<<<<<< HEAD
       {raffleWinner && (
+=======
+      {raffleWinners.length > 0 && (
+>>>>>>> 64c8f43a281022dbbb6f46e10d97419183fde6b0
         <motion.div 
           className="my-4 p-4 bg-tech-gold/20 border border-tech-gold rounded-lg text-white text-center"
           initial={{ scale: 0.8, opacity: 0 }}
@@ -143,8 +151,35 @@ const Team = () => {
             damping: 20,
           }}
         >
+<<<<<<< HEAD
           <h1 className="text-3xl font-bayon">🎉 Raffle Winner 🎉</h1>
           <p className="text-xl mt-2">{raffleWinner.name} - {raffleWinner.points} Tokens</p>
+=======
+          <h1 className="text-3xl font-bayon text-center mb-4">🎉 Raffle Winners 🎉</h1>
+          <div className="grid grid-cols-3 gap-4">
+            {raffleWinners
+              .sort((a, b) => {
+              const placeOrder = { '1st': 1, '2nd': 2, '3rd': 3 };
+              return placeOrder[a.place as keyof typeof placeOrder] - placeOrder[b.place as keyof typeof placeOrder];
+              })
+              .map((winner, index) => (
+              <div 
+                key={index} 
+                className={`p-4 rounded-lg ${
+                winner.place === '1st' ? 'bg-tech-gold/30 border border-tech-gold' : 
+                winner.place === '2nd' ? 'bg-[#C0C0C0]/20 border border-[#C0C0C0]' : 
+                'bg-[#CD7F32]/20 border border-[#CD7F32]'
+                } text-center`}
+              >
+                <div className="text-2xl font-bayon mb-2">
+                {winner.place === '1st' ? '🥇' : winner.place === '2nd' ? '🥈' : '🥉'}
+                </div>
+                <div className="text-xl">{winner.name}</div>
+                <div className="text-md">{winner.points} Tokens</div>
+              </div>
+              ))}
+          </div>
+>>>>>>> 64c8f43a281022dbbb6f46e10d97419183fde6b0
         </motion.div>
       )}
 
@@ -159,6 +194,7 @@ const Team = () => {
             <div>
               {[...players]
                 .sort((a, b) => b.points - a.points)
+<<<<<<< HEAD
                 .map((player, index) => (
                   <div 
                     className={`grid grid-cols-3 text-center text-md ${
@@ -174,6 +210,38 @@ const Team = () => {
                     <p className="py-4">{player.points}</p>
                   </div>
                 ))}
+=======
+                .map((player, index) => {
+                  // Find if this player is a winner
+                  const winnerEntry = raffleWinners.find(w => w.name === player.name);
+                  const isWinner = winnerEntry !== undefined;
+                  const place = winnerEntry?.place || '';
+
+                  return (
+                    <div 
+                      className={`grid grid-cols-3 text-center text-md ${
+                        isWinner 
+                          ? place === '1st' ? 'text-tech-gold font-bold bg-tech-gold/10' :
+                            place === '2nd' ? 'text-[#C0C0C0] font-bold bg-[#C0C0C0]/10' :
+                            'text-[#CD7F32] font-bold bg-[#CD7F32]/10'
+                          : 'text-white hover:text-tech-gold'
+                      }`}
+                      key={player.name}
+                      id={player.name.trim().replace(/\s+/g, "-").toLowerCase()}
+                    >
+                      <p className="py-4">
+                        {index + 1} {isWinner && 
+                          <span className="ml-1">
+                            {place === '1st' ? '🥇' : place === '2nd' ? '🥈' : '🥉'}
+                          </span>
+                        }
+                      </p>
+                      <p className="py-4">{player.name}</p>
+                      <p className="py-4">{player.points}</p>
+                    </div>
+                  );
+                })}
+>>>>>>> 64c8f43a281022dbbb6f46e10d97419183fde6b0
             </div>
         </div>        
       </div>
