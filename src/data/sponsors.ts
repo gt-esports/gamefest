@@ -1,32 +1,97 @@
+import extra_life from "../assets/sponsor-logos/ExtraLifeLogoSmall.png";
+import dreamhack from "../assets/sponsor-logos/DreamHackLogoSmall.png";
+import alienware from "../assets/sponsor-logos/Alienwarelogosmall.png";
+import coke from "../assets/sponsor-logos/CocaColaLogoSmall.png";
+import t_lab from "../assets/sponsor-logos/TLabLogoSmall.png";
+import xbox from "../assets/sponsor-logos/XboxLogoSmall.png";
+
 export const sponsors = [
   {
-    src: "https://coingate.com/app/uploads/2023/11/Logo_NordVPN_grey.png",
-    alt: "A",
-    link: "htps://www.example.com",
+    src: extra_life,
+    alt: "ExtraLifeATL",
+    link: "https://www.extra-life.org/",
   },
   {
-    src: "https://coingate.com/app/uploads/2023/11/Logo_Hostinger_grey.png",
-    alt: "B",
-    link: "https://www.example.com",
+    src: dreamhack,
+    alt: "DreamHack",
+    link: "https://dreamhack.com/",
   },
   {
-    src: "https://coingate.com/app/uploads/2023/11/Logo_Cherry-servers_grey.png",
-    alt: "C",
-    link: "https://www.example.com",
+    src: alienware,
+    alt: "Alienware",
+    link: "https://www.dell.com/en-us/gaming/alienware",
   },
   {
-    src: "https://coingate.com/app/uploads/2024/07/Coinzilla_image-1.png",
-    alt: "D",
-    link: "https://www.example.com",
+    src: coke,
+    alt: "Coke Zero",
+    link: "https://www.coca-cola.com/us/en",
   },
   {
-    src: "https://coingate.com/app/uploads/2023/11/Logo_Surfshark_grey.png",
-    alt: "E",
-    link: "https://www.example.com",
+    src: t_lab,
+    alt: "TLAB",
+    link: "https://www.thetlab.org/",
   },
   {
-    src: "https://coingate.com/app/uploads/2023/11/Logo_Alternative-Airlines_grey.png",
-    alt: "E",
-    link: "https://www.example.com",
+    src: xbox,
+    alt: "Xbox",
+    link: "https://www.xbox.com/en-US",
+  },  {
+    src: extra_life,
+    alt: "ExtraLifeATL",
+    link: "https://www.extra-life.org/",
+  },
+  {
+    src: dreamhack,
+    alt: "DreamHack",
+    link: "https://dreamhack.com/",
+  },
+  {
+    src: alienware,
+    alt: "Alienware",
+    link: "https://www.dell.com/en-us/gaming/alienware",
+  },
+  {
+    src: coke,
+    alt: "Coke Zero",
+    link: "https://www.coca-cola.com/us/en",
+  },
+  {
+    src: t_lab,
+    alt: "TLAB",
+    link: "https://www.thetlab.org/",
+  },
+  {
+    src: xbox,
+    alt: "Xbox",
+    link: "https://www.xbox.com/en-US",
+  },  {
+    src: extra_life,
+    alt: "ExtraLifeATL",
+    link: "https://www.extra-life.org/",
+  },
+  {
+    src: dreamhack,
+    alt: "DreamHack",
+    link: "https://dreamhack.com/",
+  },
+  {
+    src: alienware,
+    alt: "Alienware",
+    link: "https://www.dell.com/en-us/gaming/alienware",
+  },
+  {
+    src: coke,
+    alt: "Coke Zero",
+    link: "https://www.coca-cola.com/us/en",
+  },
+  {
+    src: t_lab,
+    alt: "TLAB",
+    link: "https://www.thetlab.org/",
+  },
+  {
+    src: xbox,
+    alt: "Xbox",
+    link: "https://www.xbox.com/en-US",
   },
 ];

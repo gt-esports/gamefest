@@ -9,6 +9,7 @@ import Matches from "./pages/Matches.tsx";
 import Teams from "./pages/Teams.tsx";
 import Schools from "./pages/Schools.tsx";
 import Leaderboard from "./pages/Leaderboard.tsx";
+import Information from "./pages/Information.tsx";
 import Sponsor from "./pages/Sponsor.tsx";
 import About from "./pages/About.tsx";
 import AdminPanel from "./pages/AdminPanel.tsx";
@@ -48,10 +49,11 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/home" element={<Home />} />
             <Route path="/brackets" element={<Brackets />} />
-            <Route path="/matches" element={<Matches />} />
+            <Route path="/match/:id" element={<Matches />} />
             <Route path="/teams" element={<Teams />} />
             <Route path="/schools" element={<Schools />} />
             <Route path="/sponsor" element={<Sponsor />} />
+            <Route path="/information" element={<Information />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="*" element={<Navigate to="/home" />} />
             <Route path="/admin" element={<AdminPanel />} />

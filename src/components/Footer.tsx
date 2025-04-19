@@ -13,7 +13,7 @@ function Footer() {
   const links = [
     { name: "HOME", link: "/home" },
     { name: "BRACKETS", link: "/brackets" },
-    { name: "MATCHES", link: "/matches" },
+    // { name: "MATCHES", link: "/matches" },
     { name: "TEAMS", link: "/teams" },
     { name: "SPONSORS", link: "/sponsor" },
     { name: "ABOUT", link: "/about" },
@@ -74,6 +74,15 @@ function Footer() {
               </li>
             ))}
           </ul>
+          <a
+            href="https://gatechesports.com/ourteam"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block bg-tech-gold text-black font-bold px-4 py-2 rounded-lg hover:bg-yellow-500 transition"
+
+          >
+            Meet Our Team
+          </a>
         </div>
       </div>
 

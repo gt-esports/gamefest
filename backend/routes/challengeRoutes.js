@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.use(requireClerkAuth);
 
-router.get("/", requireStaffOrAdmin, challengeController.getAllChallenges);
+router.get("/", challengeController.getAllChallenges);
 router.put("/:name", requireAdmin, challengeController.updateChallenge);
 router.post("/", requireAdmin, challengeController.createChallenge);
 router.delete("/:name", requireAdmin, challengeController.deleteChallenge);

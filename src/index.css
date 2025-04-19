@@ -110,7 +110,7 @@ body {
 
 .animate-scroll-sponsors {
   display: flex;
-  animation: scroll-sponsors 20s linear infinite;
+  animation: scroll-sponsors 60s linear infinite;
 }
 
 .sponsor-carousel-container {

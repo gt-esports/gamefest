@@ -58,6 +58,7 @@ function Navbar() {
 
   const links = [
     { name: "HOME", link: "/home" },
+    { name: "INFORMATION", link: "/information" },
     { name: "BRACKETS", link: "/brackets" },
     // { name: "MATCHES", link: "/matches" },
     { name: "TEAMS", link: "/teams" },
@@ -90,7 +91,7 @@ function Navbar() {
       </div>
       <div
         onClick={() => setOpen(!open)}
-        className="z-[2] mr-2 cursor-pointer text-3xl text-bright-buzz md:hidden"
+        className="z-[2] mr-2 cursor-pointer text-3xl text-bright-buzz mlg:hidden"
       >
         {!open ? <RxHamburgerMenu /> : <TfiClose />}
       </div>
@@ -98,7 +99,7 @@ function Navbar() {
       {/* Mobile Menu */}
       <ul
         ref={menuRef}
-        className={`fixed right-0 top-0 z-[1] h-screen w-2/5 bg-black/90 pt-14 transition-all duration-300 ease-in md:hidden ${
+        className={`fixed right-0 top-0 z-[1] h-screen w-2/5 bg-black/90 pt-14 transition-all duration-300 ease-in mlg:hidden ${
           open ? "translate-x-0 px-4" : "translate-x-full opacity-0"
         }`}
       >
@@ -147,7 +148,7 @@ function Navbar() {
       </ul>
 
       {/* Desktop Menu */}
-      <ul className="hidden md:static md:z-auto md:flex md:items-center md:space-x-4">
+      <ul className="hidden mlg:static mlg:z-auto mlg:flex mlg:items-center mlg:space-x-4">
         {links.map((link, index) => (
           <li
             key={link.name}
