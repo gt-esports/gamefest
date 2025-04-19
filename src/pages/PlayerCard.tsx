@@ -215,7 +215,7 @@ const PlayerCard = () => {
             if (id === "rival") unlocked.push("rival");
             if (id === "league") unlocked.push("league");
           });
-
+          
           setUnlockedThemes(unlocked);
         }
       } catch (error) {
@@ -252,6 +252,7 @@ const PlayerCard = () => {
       if (theme.id && !unlockedThemes.includes(theme.id)) {
         return;
       }
+      setBackground(theme.classname);
       
       setBgColor(theme.bgColor || "");
     } else if (themeType === "badges" && badgeIndex !== undefined) {
@@ -379,10 +380,8 @@ const PlayerCard = () => {
                     </button>
                   ))}
                 </div>
-
-                {/* Content */ }
-                <div className="grid grid-cols-4 gap-4 max-h-[100px] overflow-y-auto pr-2">
-
+                {/* Content */}
+                <div className="grid max-h-[100px] grid-cols-4 gap-4 overflow-y-auto pr-2">
                   {themes[tab].map((theme, index) => {
                     const locked = isLocked(theme);
                     return (
@@ -405,10 +404,15 @@ const PlayerCard = () => {
                             }
                           }
                         }}
-                        className={`w-[100px]  h-[100px] p-4 rounded text-lg ${theme.classname} font-bayon relative
-                          ${theme.name === "None" ? "border-2 border-gray-700" : ""}
-                          ${locked ? "opacity-50 cursor-not-allowed" : ""}`}
-
+                        className={`w-[100px] h-[100px] rounded p-4 text-lg ${
+                          theme.classname
+                        } relative font-bayon text-white
+                          ${
+                            theme.name === "None"
+                              ? "border-2 border-gray-700"
+                              : ""
+                          }
+                          ${locked ? "cursor-not-allowed opacity-50" : ""}`}
                         disabled={locked}
                       >
 
