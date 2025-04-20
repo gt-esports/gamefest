@@ -248,40 +248,40 @@ const PlayerCard = () => {
               unlockedThemes.push("valorant");
               unlockedBadges.push("valorant");
             }
-            if (id === "counter strike 2") {
+            if (id === "counterstrike2") {
               unlockedThemes.push("cs2");
               unlockedBadges.push("cs2");
             }
-            if (id === "rocket league") {
+            if (id === "rocketleague") {
               unlockedThemes.push("rocket_league");
               unlockedBadges.push("mk");
             }
-            if (id === "apex legends") {
+            if (id === "apexlegends") {
               unlockedThemes.push("apex");
               unlockedBadges.push("apex");
             }
-            if (id === "overwatch 2") {
+            if (id === "overwatch2") {
               unlockedThemes.push("ow2");
               unlockedBadges.push("ow2");
             }
-            if (id === "marvel rivals") {
+            if (id === "marvelrivals") {
               unlockedThemes.push("rival");
               unlockedBadges.push("marvel");
             }
-            if (id === "league of legends") {
+            if (id === "leagueoflegends") {
               unlockedThemes.push("league");
               unlockedBadges.push("league");
             }
 
             // Add badge-specific unlocks based on participation
-            if (id === "beat saber") unlockedBadges.push("beat saber");
+            if (id === "beatsaber") unlockedBadges.push("beat saber");
             if (id === "geoguessr") unlockedBadges.push("geo");
-            if (id === "guilty gear strive") unlockedBadges.push("gg");
-            if (id === "rainbow 6 siege") unlockedBadges.push("r6");
-            if (id === "smash ultimate") unlockedBadges.push("smash");
-            if (id === "street fighter 6") unlockedBadges.push("street");
+            if (id === "guiltygearstrive") unlockedBadges.push("gg");
+            if (id === "rainbow6siege") unlockedBadges.push("r6");
+            if (id === "smashultimate") unlockedBadges.push("smash");
+            if (id === "streetfighter 6") unlockedBadges.push("street");
             if (id === "supercell") unlockedBadges.push("supercell");
-            if (id === "teamfight tactics") unlockedBadges.push("tft");
+            if (id === "teamfighttactics") unlockedBadges.push("tft");
             if (id === "tetris") unlockedBadges.push("tetris");
             if (id === "minecraft") unlockedBadges.push("mc");
             if (id === "fortnite") unlockedBadges.push("fn");
