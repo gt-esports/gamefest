@@ -1,16 +1,7 @@
 import Footer from "../components/Footer";
 import AboutInformation from "../components/AboutInformation";
-import { useEffect } from "react";
-import axios from "axios";
-function About() {
-  const fetchAPI = async () => {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}`);
-    console.log(response.data.about);
-  };
 
-  useEffect(() => {
-    fetchAPI();
-  }, []);
+function About() {
   return (
     <div className="flex w-full flex-col items-center justify-center bg-streak bg-cover pt-36">
       <div className="flex items-center justify-center">

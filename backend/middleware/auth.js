@@ -30,7 +30,6 @@ export const requireAdmin = async (req, res, next) => {
 export const requireStaffOrAdmin = async (req, res, next) => {
   try {
     const userId = req.auth?.userId;
-    console.log(req.auth);
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
