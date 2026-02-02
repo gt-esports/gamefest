@@ -1,110 +1,52 @@
-import React, { useEffect, useState } from "react";
-import { useAuth, useUser } from "@clerk/clerk-react";
-
-interface Player {
-  name: string;
-  points: number;
-  participation: string[];
-  teamAssignments: { game: string; team: string }[];
-  log: string[];
-}
+import React, { useMemo, useState } from "react";
+import { useUser } from "../../hooks/useAuth";
+import { useGames } from "../../hooks/useGames";
+import { type Player, usePlayers } from "../../hooks/usePlayers";
+import { useUserRoles } from "../../hooks/useUserRoles";
 
 const PlayerCheckinPanel: React.FC = () => {
-  const { getToken } = useAuth();
-  const [players, setPlayers] = useState<Player[]>([]);
+  const { user } = useUser();
+  const { players, addPlayer, patchPlayerByName, removePlayerByName } = usePlayers();
+  const { games } = useGames();
+  const { isAdmin } = useUserRoles();
+
   const [newPlayer, setNewPlayer] = useState("");
   const [originalName, setOriginalName] = useState("");
-  // const [assignments, setAssignments] = useState<
-  //   { game: string; team: string }[]
-  // >([]);
   const [newPlayerTeam, setNewPlayerTeam] = useState("");
   const [newPlayerGame, setNewPlayerGame] = useState("");
   const [query, setQuery] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [suggestions, setSuggestions] = useState<Player[]>([]);
-  const [games, setGames] = useState<string[]>([]);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
 
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
-    "idle"
-  );
-  const { user } = useUser();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const gameNames = useMemo(() => games.map((game) => game.name), [games]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = await getToken();
-
-      const [playerRes, gamesRes, staffRes] = await Promise.all([
-        fetch(`${import.meta.env.VITE_API_URL}/api/players`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${import.meta.env.VITE_API_URL}/api/games`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${import.meta.env.VITE_API_URL}/api/staff`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      const playersData = await playerRes.json();
-      const gamesData = await gamesRes.json(); // should be an array of game names
-      const staffData = await staffRes.json(); // must include your `isAdmin` field
-
-      setPlayers(playersData);
-      setGames(gamesData.map((g: { name: string }) => g.name)); // adapt this based on your Game model
-
-      const discordName = user?.externalAccounts?.find(
-        (a) => a.provider === "discord"
-      )?.username;
-      const currentUser =
-        discordName || user?.username || user?.firstName || "";
-      const me = staffData.find((s: any) => s.name === currentUser);
-
-      setIsAdmin(me.isAdmin || false);
-    };
-
-    fetchData();
-  }, [getToken]);
-
-  const addPlayer = async () => {
-    const token = await getToken();
+  const addNewPlayer = async () => {
+    if (!newPlayer.trim()) return;
 
     const teamAssignments =
-      newPlayerGame && newPlayerTeam
-        ? [{ game: newPlayerGame, team: newPlayerTeam }]
-        : [];
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/players`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
+      newPlayerGame && newPlayerTeam ? [{ game: newPlayerGame, team: newPlayerTeam }] : [];
+
+    try {
+      await addPlayer({
         name: newPlayer,
-        teamAssignments: teamAssignments,
-      }),
-    });
-    const data = await res.json();
-    setPlayers((prev) => [...prev, data]);
-    setNewPlayer("");
-    setNewPlayerTeam("");
-    setNewPlayerGame("");
-    // setAssignments([]);
+        teamAssignments,
+      });
+
+      setNewPlayer("");
+      setNewPlayerTeam("");
+      setNewPlayerGame("");
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "Failed to add player");
+    }
   };
 
-  // inside PlayerCheckinPanel, alongside addPlayer/updatePlayer…
   const removePlayer = async (playerName: string) => {
     if (!window.confirm(`Really remove ${playerName}? This is permanent.`)) return;
 
-    const token = await getToken();
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/players/${encodeURIComponent(playerName)}`,
-        { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (!res.ok) throw new Error("Delete failed");
-      // remove from UI
-      setPlayers((prev) => prev.filter((p) => p.name !== playerName));
+      await removePlayerByName(playerName);
       setSelectedPlayer(null);
       alert(`${playerName} removed.`);
     } catch (err) {
@@ -113,12 +55,9 @@ const PlayerCheckinPanel: React.FC = () => {
     }
   };
 
-  // before: const updatePlayer = async (player: Player) => { … }
   const updatePlayer = async (player: Player, oldName: string) => {
     setSaveStatus("saving");
-    const token = await getToken();
 
-    // build the updated log, participation, etc.
     const now = new Date();
     const formattedTime = now.toLocaleString(undefined, {
       dateStyle: "medium",
@@ -126,37 +65,22 @@ const PlayerCheckinPanel: React.FC = () => {
     });
     const editor = user?.username || user?.fullName || "Unknown User";
 
-    const updatedPlayer: Player = {
+    const updatedPlayer = {
       ...player,
-      log: [
-        ...(player.log || []),
-        `Player renamed/updated by ${editor} on ${formattedTime}`,
-      ],
-      // participation & teamAssignments untouched
+      log: [...(player.log || []), `Player renamed/updated by ${editor} on ${formattedTime}`],
     };
 
     try {
-      // use oldName in the URL, but send the payload with player.name = newName
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/players/${encodeURIComponent(oldName)}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(updatedPlayer),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok || !data.name) throw new Error(data?.message || "Update failed");
+      const updated = await patchPlayerByName(oldName, {
+        name: updatedPlayer.name,
+        points: updatedPlayer.points,
+        log: updatedPlayer.log,
+        participation: updatedPlayer.participation,
+        teamAssignments: updatedPlayer.teamAssignments,
+      });
 
-      // success: swap it into both selectedPlayer and players[]
-      setSelectedPlayer(data);
-      setPlayers(ps =>
-        ps.map(p => (p.name === oldName ? data : p))
-      );
-      setOriginalName(data.name);     // now our “oldName” for future edits
+      setSelectedPlayer(updated);
+      setOriginalName(updated.name);
       setSaveStatus("saved");
     } catch (err) {
       console.error(err);
@@ -164,10 +88,8 @@ const PlayerCheckinPanel: React.FC = () => {
       setSaveStatus("idle");
     }
 
-    // reset status after a moment
     setTimeout(() => setSaveStatus("idle"), 3000);
   };
-
 
   return (
     <div>
@@ -178,17 +100,17 @@ const PlayerCheckinPanel: React.FC = () => {
             type="text"
             placeholder="Player Name"
             value={newPlayer}
-            onChange={(e) => setNewPlayer(e.target.value)}
+            onChange={(event) => setNewPlayer(event.target.value)}
             className=" rounded border p-2"
           />
 
           <select
             value={newPlayerGame}
-            onChange={(e) => setNewPlayerGame(e.target.value)}
+            onChange={(event) => setNewPlayerGame(event.target.value)}
             className="rounded border p-2"
           >
             <option value="">Select Game (optional)</option>
-            {games.map((game) => (
+            {gameNames.map((game) => (
               <option key={game} value={game}>
                 {game}
               </option>
@@ -199,12 +121,14 @@ const PlayerCheckinPanel: React.FC = () => {
             type="text"
             placeholder="Team Name (optional)"
             value={newPlayerTeam}
-            onChange={(e) => setNewPlayerTeam(e.target.value)}
+            onChange={(event) => setNewPlayerTeam(event.target.value)}
             className="rounded border p-2"
           />
 
           <button
-            onClick={addPlayer}
+            onClick={() => {
+              void addNewPlayer();
+            }}
             className="rounded bg-green-500 p-2 text-white hover:bg-green-600"
           >
             Add Player
@@ -220,27 +144,25 @@ const PlayerCheckinPanel: React.FC = () => {
         value={query}
         onFocus={() => {
           const top = players
-            .filter((p) => !selectedPlayer || p.name !== selectedPlayer.name)
+            .filter((player) => !selectedPlayer || player.name !== selectedPlayer.name)
             .sort((a, b) => b.points - a.points)
             .slice(0, 1000);
 
           setSuggestions(top);
         }}
-        onChange={(e) => {
-          const val = e.target.value;
-          setQuery(val);
+        onChange={(event) => {
+          const value = event.target.value;
+          setQuery(value);
 
           const filtered =
-            val.length > 0
+            value.length > 0
               ? players.filter(
-                  (p) =>
-                    p.name.toLowerCase().includes(val.toLowerCase()) &&
-                    (!selectedPlayer || p.name !== selectedPlayer.name)
+                  (player) =>
+                    player.name.toLowerCase().includes(value.toLowerCase()) &&
+                    (!selectedPlayer || player.name !== selectedPlayer.name)
                 )
               : players
-                  .filter(
-                    (p) => !selectedPlayer || p.name !== selectedPlayer.name
-                  )
+                  .filter((player) => !selectedPlayer || player.name !== selectedPlayer.name)
                   .sort((a, b) => b.points - a.points)
                   .slice(0, 5);
 
@@ -254,7 +176,7 @@ const PlayerCheckinPanel: React.FC = () => {
           <ul>
             {suggestions.map((player) => (
               <li
-                key={player.name}
+                key={player.id}
                 onClick={() => {
                   setSelectedPlayer(player);
                   setOriginalName(player.name);
@@ -276,10 +198,10 @@ const PlayerCheckinPanel: React.FC = () => {
             <input
               type="text"
               value={selectedPlayer.name}
-              onChange={(e) => {
+              onChange={(event) => {
                 setSelectedPlayer({
                   ...selectedPlayer,
-                  name: e.target.value,
+                  name: event.target.value,
                 });
               }}
               className="w-full rounded border p-2"
@@ -288,12 +210,14 @@ const PlayerCheckinPanel: React.FC = () => {
           </h3>
 
           <button
-            onClick={() => removePlayer(selectedPlayer.name)}
+            onClick={() => {
+              void removePlayer(originalName || selectedPlayer.name);
+            }}
             className="mt-4 mr-4 rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600"
           >
             Remove Player
           </button>
-          
+
           <button
             onClick={() => setSelectedPlayer(null)}
             className="mt-1 text-sm text-blue-600 underline"
@@ -307,18 +231,14 @@ const PlayerCheckinPanel: React.FC = () => {
 
           <div className="mt-3">
             <h4 className="font-medium">Logs</h4>
-            {selectedPlayer.log.length === 0 && (
-              <p className="text-sm text-gray-500">No logs</p>
-            )}
+            {selectedPlayer.log.length === 0 && <p className="text-sm text-gray-500">No logs</p>}
             {selectedPlayer.log.map((entry, idx) => (
-              <div key={idx} className="mb-2 flex items-center justify-between">
+              <div key={`${entry}-${idx}`} className="mb-2 flex items-center justify-between">
                 <span className="text-sm">{entry}</span>
                 {isAdmin && (
                   <button
                     onClick={() => {
-                      const newLogs = selectedPlayer.log.filter(
-                        (_, i) => i !== idx
-                      );
+                      const newLogs = selectedPlayer.log.filter((_, index) => index !== idx);
                       setSelectedPlayer({ ...selectedPlayer, log: newLogs });
                     }}
                     className="text-sm text-red-500 hover:underline"
@@ -338,14 +258,14 @@ const PlayerCheckinPanel: React.FC = () => {
             )}
 
             {selectedPlayer.participation.map((entry, idx) => (
-              <div key={idx} className="mb-2 flex items-center gap-2">
+              <div key={`${entry}-${idx}`} className="mb-2 flex items-center gap-2">
                 {isAdmin ? (
                   <input
                     type="text"
                     value={entry}
-                    onChange={(e) => {
+                    onChange={(event) => {
                       const updated = [...selectedPlayer.participation];
-                      updated[idx] = e.target.value;
+                      updated[idx] = event.target.value;
                       setSelectedPlayer({
                         ...selectedPlayer,
                         participation: updated,
@@ -361,9 +281,7 @@ const PlayerCheckinPanel: React.FC = () => {
                 {isAdmin && (
                   <button
                     onClick={() => {
-                      const filtered = selectedPlayer.participation.filter(
-                        (_, i) => i !== idx
-                      );
+                      const filtered = selectedPlayer.participation.filter((_, index) => index !== idx);
                       setSelectedPlayer({
                         ...selectedPlayer,
                         participation: filtered,
@@ -394,13 +312,13 @@ const PlayerCheckinPanel: React.FC = () => {
 
           <div className="mt-3">
             <h4 className="font-medium">Team Assignments</h4>
-            {selectedPlayer.teamAssignments.map((ta, idx) => (
-              <div key={idx} className="mb-2 flex items-center gap-2">
+            {selectedPlayer.teamAssignments.map((assignment, idx) => (
+              <div key={`${assignment.game}-${assignment.team}-${idx}`} className="mb-2 flex items-center gap-2">
                 <select
-                  value={ta.game}
-                  onChange={(e) => {
+                  value={assignment.game}
+                  onChange={(event) => {
                     const updated = [...selectedPlayer.teamAssignments];
-                    updated[idx].game = e.target.value;
+                    updated[idx].game = event.target.value;
                     setSelectedPlayer({
                       ...selectedPlayer,
                       teamAssignments: updated,
@@ -409,7 +327,7 @@ const PlayerCheckinPanel: React.FC = () => {
                   className="w-full flex-1 rounded border p-1"
                 >
                   <option value="">Select Game</option>
-                  {games.map((game) => (
+                  {gameNames.map((game) => (
                     <option key={game} value={game}>
                       {game}
                     </option>
@@ -417,10 +335,10 @@ const PlayerCheckinPanel: React.FC = () => {
                 </select>
 
                 <input
-                  value={ta.team}
-                  onChange={(e) => {
+                  value={assignment.team}
+                  onChange={(event) => {
                     const updated = [...selectedPlayer.teamAssignments];
-                    updated[idx].team = e.target.value;
+                    updated[idx].team = event.target.value;
                     setSelectedPlayer({
                       ...selectedPlayer,
                       teamAssignments: updated,
@@ -433,7 +351,7 @@ const PlayerCheckinPanel: React.FC = () => {
                 <button
                   onClick={() => {
                     const newTeams = selectedPlayer.teamAssignments.filter(
-                      (_, i) => i !== idx
+                      (_, index) => index !== idx
                     );
                     setSelectedPlayer({
                       ...selectedPlayer,
@@ -450,10 +368,7 @@ const PlayerCheckinPanel: React.FC = () => {
               onClick={() =>
                 setSelectedPlayer({
                   ...selectedPlayer,
-                  teamAssignments: [
-                    ...selectedPlayer.teamAssignments,
-                    { game: "", team: "" },
-                  ],
+                  teamAssignments: [...selectedPlayer.teamAssignments, { game: "", team: "" }],
                 })
               }
               className="text-sm text-blue-500 underline"
@@ -463,17 +378,15 @@ const PlayerCheckinPanel: React.FC = () => {
           </div>
 
           <button
-            onClick={() => updatePlayer(selectedPlayer, originalName)}
+            onClick={() => {
+              void updatePlayer(selectedPlayer, originalName);
+            }}
             className="mt-4 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
             Save Changes
           </button>
-          {saveStatus === "saving" && (
-            <p className="mt-2 text-sm text-gray-600">Saving...</p>
-          )}
-          {saveStatus === "saved" && (
-            <p className="mt-2 text-sm text-green-600">Changes saved ✅</p>
-          )}
+          {saveStatus === "saving" && <p className="mt-2 text-sm text-gray-600">Saving...</p>}
+          {saveStatus === "saved" && <p className="mt-2 text-sm text-green-600">Changes saved ✅</p>}
         </div>
       )}
     </div>

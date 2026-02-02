@@ -9,7 +9,7 @@ import {
   SignInButton,
   SignedIn,
   UserButton,
-} from "@clerk/clerk-react";
+} from "../hooks/useAuth";
 
 function Navbar() {
   const location = useLocation();

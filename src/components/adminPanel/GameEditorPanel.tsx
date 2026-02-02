@@ -1,89 +1,31 @@
-import React, { useEffect, useState } from "react";
-import { useAuth } from "@clerk/clerk-react";
-
-interface Game {
-  name: string;
-  teams: { name: string; players: string[] }[];
-}
-
-interface Challenge {
-  name: string;
-}
+import React, { useState } from "react";
+import { useChallenges } from "../../hooks/useChallenges";
+import { useGames } from "../../hooks/useGames";
 
 const GameEditorPanel: React.FC = () => {
-  const { getToken } = useAuth();
-  const [games, setGames] = useState<Game[]>([]);
-  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const { games, loading: gamesLoading, addGame, removeGameByName } = useGames();
+  const {
+    challenges,
+    loading: challengesLoading,
+    addChallenge,
+    removeChallengeByName,
+  } = useChallenges();
+
   const [newGame, setNewGame] = useState("");
   const [newChallenge, setNewChallenge] = useState("");
   const [showGames, setShowGames] = useState(true);
   const [showChallenges, setShowChallenges] = useState(true);
 
-  const fetchData = async () => {
-    const token = await getToken();
-
-    const gameRes = await fetch(`${import.meta.env.VITE_API_URL}/api/games`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setGames(await gameRes.json());
-
-    const challengeRes = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/challenges`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    setChallenges(await challengeRes.json());
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const addGame = async () => {
-    const token = await getToken();
-    await fetch(`${import.meta.env.VITE_API_URL}/api/games`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ name: newGame, teams: [] }),
-    });
+  const handleAddGame = async () => {
+    if (!newGame.trim()) return;
+    await addGame(newGame);
     setNewGame("");
-    fetchData();
   };
 
-  const addChallenge = async () => {
-    const token = await getToken();
-    await fetch(`${import.meta.env.VITE_API_URL}/api/challenges`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ name: newChallenge }),
-    });
+  const handleAddChallenge = async () => {
+    if (!newChallenge.trim()) return;
+    await addChallenge(newChallenge);
     setNewChallenge("");
-    fetchData();
-  };
-
-  const deleteGame = async (name: string) => {
-    const token = await getToken();
-    await fetch(`${import.meta.env.VITE_API_URL}/api/games/${name}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchData();
-  };
-
-  const deleteChallenge = async (name: string) => {
-    const token = await getToken();
-    await fetch(`${import.meta.env.VITE_API_URL}/api/challenges/${name}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchData();
   };
 
   return (
@@ -99,6 +41,7 @@ const GameEditorPanel: React.FC = () => {
 
         {showGames && (
           <>
+            {gamesLoading && <p className="mb-2 mt-2 text-sm text-gray-600">Loading games...</p>}
             <ul className="mb-4 mt-2">
               {games.map((game) => (
                 <li key={game.name} className="mb-2">
@@ -106,12 +49,8 @@ const GameEditorPanel: React.FC = () => {
                   <button
                     className="text-sm text-red-600"
                     onClick={() => {
-                      if (
-                        window.confirm(
-                          `Are you sure you want to delete the game '${game.name}'?`
-                        )
-                      ) {
-                        deleteGame(game.name);
+                      if (window.confirm(`Are you sure you want to delete the game '${game.name}'?`)) {
+                        void removeGameByName(game.name);
                       }
                     }}
                   >
@@ -126,13 +65,13 @@ const GameEditorPanel: React.FC = () => {
                 type="text"
                 placeholder="New Game Name"
                 value={newGame}
-                onChange={(e) => setNewGame(e.target.value)}
+                onChange={(event) => setNewGame(event.target.value)}
                 className="rounded border p-2"
               />
               <button
                 onClick={() => {
                   if (newGame && window.confirm(`Add new game '${newGame}'?`)) {
-                    addGame();
+                    void handleAddGame();
                   }
                 }}
                 className="rounded bg-green-500 p-2 text-white hover:bg-green-600"
@@ -155,19 +94,22 @@ const GameEditorPanel: React.FC = () => {
 
         {showChallenges && (
           <>
+            {challengesLoading && (
+              <p className="mb-2 mt-2 text-sm text-gray-600">Loading challenges...</p>
+            )}
             <ul className="mb-4 mt-2">
-              {challenges.map((c) => (
-                <li key={c.name} className="mb-2">
-                  {c.name}{" "}
+              {challenges.map((challenge) => (
+                <li key={challenge.id} className="mb-2">
+                  {challenge.name}{" "}
                   <button
                     className="text-sm text-red-600"
                     onClick={() => {
                       if (
                         window.confirm(
-                          `Are you sure you want to delete the challenge '${c.name}'?`
+                          `Are you sure you want to delete the challenge '${challenge.name}'?`
                         )
                       ) {
-                        deleteChallenge(c.name);
+                        void removeChallengeByName(challenge.name);
                       }
                     }}
                   >
@@ -182,16 +124,13 @@ const GameEditorPanel: React.FC = () => {
                 type="text"
                 placeholder="New Challenge Name"
                 value={newChallenge}
-                onChange={(e) => setNewChallenge(e.target.value)}
+                onChange={(event) => setNewChallenge(event.target.value)}
                 className="rounded border p-2"
               />
               <button
                 onClick={() => {
-                  if (
-                    newChallenge &&
-                    window.confirm(`Add new challenge '${newChallenge}'?`)
-                  ) {
-                    addChallenge();
+                  if (newChallenge && window.confirm(`Add new challenge '${newChallenge}'?`)) {
+                    void handleAddChallenge();
                   }
                 }}
                 className="rounded bg-green-500 p-2 text-white hover:bg-green-600"
