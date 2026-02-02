@@ -1,6 +1,5 @@
 import Footer from "../components/Footer";
 import AboutInformation from "../components/AboutInformation";
-
 function About() {
   return (
     <div className="flex w-full flex-col items-center justify-center bg-streak bg-cover pt-36">
