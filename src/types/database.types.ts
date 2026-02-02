@@ -39,6 +39,30 @@ export interface Database {
         };
         Relationships: [];
       };
+      users: {
+        Row: {
+          avatar_url: string | null;
+          created_at: string;
+          display_name: string | null;
+          id: string;
+          username: string | null;
+        };
+        Insert: {
+          avatar_url?: string | null;
+          created_at?: string;
+          display_name?: string | null;
+          id: string;
+          username?: string | null;
+        };
+        Update: {
+          avatar_url?: string | null;
+          created_at?: string;
+          display_name?: string | null;
+          id?: string;
+          username?: string | null;
+        };
+        Relationships: [];
+      };
       players: {
         Row: {
           id: string;
@@ -48,6 +72,7 @@ export interface Database {
           points: number | null;
           raffle_placing: number | null;
           raffle_winner: boolean | null;
+          user_id: string | null;
         };
         Insert: {
           id?: string;
@@ -57,6 +82,7 @@ export interface Database {
           points?: number | null;
           raffle_placing?: number | null;
           raffle_winner?: boolean | null;
+          user_id?: string | null;
         };
         Update: {
           id?: string;
@@ -66,8 +92,17 @@ export interface Database {
           points?: number | null;
           raffle_placing?: number | null;
           raffle_winner?: boolean | null;
+          user_id?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "players_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       staff: {
         Row: {
@@ -81,9 +116,9 @@ export interface Database {
           name: string;
         };
         Update: {
-          assignment?: string | null;
-          id?: string;
-          name?: string;
+            assignment?: string | null;
+            id?: string;
+            name?: string;
         };
         Relationships: [];
       };

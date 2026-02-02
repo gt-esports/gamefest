@@ -16,6 +16,7 @@ export type Player = {
   teamAssignments: TeamAssignment[];
   raffleWinner: boolean;
   rafflePlacing: number;
+  userId: string | null;
 };
 
 type AssignmentJoinRow = {
@@ -63,6 +64,7 @@ const toPlayer = (row: TableRow<"players">, teamAssignments: TeamAssignment[]): 
   teamAssignments,
   raffleWinner: row.raffle_winner ?? false,
   rafflePlacing: row.raffle_placing ?? 0,
+  userId: row.user_id || null, 
 });
 
 const mapPlayerAssignments = (assignments: AssignmentJoinRow[]): Map<string, TeamAssignment[]> => {
@@ -82,13 +84,21 @@ const mapPlayerAssignments = (assignments: AssignmentJoinRow[]): Map<string, Tea
   return byPlayer;
 };
 
-export const fetchPlayers = async (name?: string): Promise<Player[]> => {
+export const fetchPlayers = async ({
+  name,
+  userId,
+}: {
+  name?: string;
+  userId?: string;
+} = {}): Promise<Player[]> => {
   let playerQuery = supabase
     .from("players")
-    .select("id, name, points, participation, log, raffle_winner, raffle_placing")
+    .select("id, name, points, participation, log, raffle_winner, raffle_placing, user_id")
     .order("name", { ascending: true });
 
-  if (name) {
+  if (userId) {
+    playerQuery = playerQuery.eq("user_id", userId);
+  } else if (name) {
     playerQuery = playerQuery.eq("name", name);
   }
 
@@ -107,11 +117,16 @@ export const fetchPlayers = async (name?: string): Promise<Player[]> => {
 
   const assignmentsByPlayer = mapPlayerAssignments((assignments || []) as AssignmentJoinRow[]);
 
-  return players.map((player) => toPlayer(player, assignmentsByPlayer.get(player.id) || []));
+  return players.map((player) => toPlayer(player as TableRow<"players">, assignmentsByPlayer.get(player.id) || []));
 };
 
 export const getPlayerByName = async (name: string): Promise<Player | null> => {
-  const players = await fetchPlayers(name);
+  const players = await fetchPlayers({ name });
+  return players[0] || null;
+};
+
+export const getPlayerByUserId = async (userId: string): Promise<Player | null> => {
+  const players = await fetchPlayers({ userId });
   return players[0] || null;
 };
 
@@ -201,6 +216,7 @@ type CreatePlayerInput = {
   raffleWinner?: boolean;
   rafflePlacing?: number;
   teamAssignments?: TeamAssignment[];
+  userId?: string;
 };
 
 export const createPlayer = async (input: CreatePlayerInput): Promise<Player> => {
@@ -211,6 +227,7 @@ export const createPlayer = async (input: CreatePlayerInput): Promise<Player> =>
     log: Array.isArray(input.log) ? input.log : [],
     raffle_winner: Boolean(input.raffleWinner),
     raffle_placing: typeof input.rafflePlacing === "number" ? input.rafflePlacing : 0,
+    user_id: input.userId || null, 
   };
 
   const { data: inserted, error: insertError } = await supabase
@@ -235,6 +252,7 @@ type UpdatePlayerInput = {
   raffleWinner?: boolean;
   rafflePlacing?: number;
   teamAssignments?: TeamAssignment[];
+  userId?: string;
 };
 
 export const updatePlayerByName = async (
@@ -258,6 +276,7 @@ export const updatePlayerByName = async (
   if (Array.isArray(input.log)) updates.log = input.log;
   if (typeof input.raffleWinner === "boolean") updates.raffle_winner = input.raffleWinner;
   if (typeof input.rafflePlacing === "number") updates.raffle_placing = input.rafflePlacing;
+  if (typeof input.userId === "string") updates.user_id = input.userId;
 
   if (Object.keys(updates).length > 0) {
     const { error: updateError } = await supabase
@@ -389,6 +408,45 @@ export const usePlayerByName = (name: string | null | undefined) => {
       setLoading(false);
     }
   }, [name]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  return {
+    player,
+    loading,
+    error,
+    refresh,
+  };
+};
+
+export const useCurrentPlayer = (userId: string | null | undefined) => {
+  const [player, setPlayer] = useState<Player | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const refresh = useCallback(async () => {
+    if (!userId) {
+      setPlayer(null);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      setError(null);
+      const row = await getPlayerByUserId(userId);
+      setPlayer(row);
+    } catch (err) {
+      const nextError = err instanceof Error ? err : new Error("Failed to load player for user");
+      setError(nextError);
+      setPlayer(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
 
   useEffect(() => {
     void refresh();

@@ -35,9 +35,19 @@ type AuthContextValue = {
   getToken: () => Promise<string | null>;
 };
 
+type UserProfile = {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+};
+
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const getUsernameFromUser = (user: SupabaseUser): string => {
+const getUsernameFromUser = (user: SupabaseUser, profile: UserProfile | null): string => {
+  if (profile?.display_name) return profile.display_name;
+  if (profile?.username) return profile.username;
+
   const meta = user.user_metadata || {};
   const appMeta = user.app_metadata || {};
 
@@ -53,14 +63,14 @@ const getUsernameFromUser = (user: SupabaseUser): string => {
   );
 };
 
-const mapUser = (user: SupabaseUser | null): AppUser | null => {
+const mapUser = (user: SupabaseUser | null, profile: UserProfile | null): AppUser | null => {
   if (!user) return null;
 
   const meta = user.user_metadata || {};
   const appMeta = user.app_metadata || {};
 
-  const username = getUsernameFromUser(user);
-  const fullName = meta.full_name || meta.name || username;
+  const username = getUsernameFromUser(user, profile);
+  const fullName = profile?.display_name || meta.full_name || meta.name || username;
   const firstName = meta.given_name || fullName?.split(" ")?.[0] || username;
   const role = meta.role || appMeta.role || null;
 
@@ -92,7 +102,17 @@ const useAuthContext = () => {
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", userId)
+      .maybeSingle();
+    return data as UserProfile | null;
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -100,16 +120,33 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     const bootstrap = async () => {
       const { data } = await supabase.auth.getSession();
       if (!mounted) return;
+      
+      let userProfile: UserProfile | null = null;
+      if (data.session?.user) {
+        userProfile = await fetchProfile(data.session.user.id);
+      }
+
       setSession(data.session ?? null);
+      setProfile(userProfile);
       setIsLoaded(true);
     };
 
     void bootstrap();
 
     const { data: subscription } = supabase.auth.onAuthStateChange(
-      (_event, updatedSession) => {
-        setSession(updatedSession ?? null);
-        setIsLoaded(true);
+      async (_event, updatedSession) => {
+        let userProfile: UserProfile | null = null;
+        if (updatedSession?.user) {
+          // Optimization: Only fetch if we don't have it or user changed, 
+          // but for simplicity/correctness on login, fetching is safer.
+          userProfile = await fetchProfile(updatedSession.user.id);
+        }
+        
+        if (mounted) {
+            setSession(updatedSession ?? null);
+            setProfile(userProfile);
+            setIsLoaded(true);
+        }
       }
     );
 
@@ -120,7 +157,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }, []);
 
   const value = useMemo<AuthContextValue>(() => {
-    const user = mapUser(session?.user || null);
+    const user = mapUser(session?.user || null, profile);
 
     return {
       isLoaded,
@@ -144,13 +181,14 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         if (error) {
           console.error("Sign-out failed", error);
         }
+        setProfile(null);
       },
       getToken: async () => {
         const { data } = await supabase.auth.getSession();
         return data.session?.access_token || null;
       },
     };
-  }, [isLoaded, session]);
+  }, [isLoaded, session, profile]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

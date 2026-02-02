@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FaMinus, FaPlus, FaLock } from "react-icons/fa";
 import { useUser } from "../hooks/useAuth";
-import { usePlayerByName } from "../hooks/usePlayers";
+import { useCurrentPlayer } from "../hooks/usePlayers";
 
 interface ThemeOption {
   name: string;
@@ -163,10 +163,7 @@ const PlayerCard = () => {
   const [unlockedBadges, setUnlockedBadges] = useState<string[]>(["none"]);
 
   const { user } = useUser();
-  const discordName =
-    user?.externalAccounts?.find((acc) => acc.provider === "discord")?.username ||
-    null;
-  const { player, loading: isLoading } = usePlayerByName(discordName);
+  const { player, loading: isLoading } = useCurrentPlayer(user?.id);
 
   // Load saved profile
   useEffect(() => {
