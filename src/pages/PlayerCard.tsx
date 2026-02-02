@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FaMinus, FaPlus, FaLock } from "react-icons/fa";
-import { useAuth, useUser } from "@clerk/clerk-react";
+import { useUser } from "../hooks/useAuth";
+import { useCurrentPlayer } from "../hooks/usePlayers";
 
 interface ThemeOption {
   name: string;
@@ -11,13 +12,6 @@ interface ThemeOption {
 }
 
 type ThemeCategory = "background" | "borders" | "card" | "badges";
-
-interface Player {
-  name: string;
-  points: number;
-  participation: string[];
-  teamAssignments: { game: string; team: string }[];
-}
 
 interface Theme {
   background: string;
@@ -164,14 +158,12 @@ const PlayerCard = () => {
   const [activeBadge, setActiveBadge] = useState<number | null>(null);
   const [panelOpen, setPanelOpen] = useState(true);
   const badgeRef = useRef<HTMLDivElement | null>(null);
-  const [players, setPlayers] = useState<Player | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [unlockedThemes, setUnlockedThemes] = useState<string[]>(["none"]);
   const [unlockedBadges, setUnlockedBadges] = useState<string[]>(["none"]);
 
-  const { getToken } = useAuth();
   const { user } = useUser();
+  const { player, loading: isLoading } = useCurrentPlayer(user?.id);
 
   // Load saved profile
   useEffect(() => {
@@ -216,90 +208,59 @@ const PlayerCard = () => {
   }, [background, borderStyle, badges, bgColor, bgCard, profileLoaded]);
 
   useEffect(() => {
-    const fetchPlayers = async () => {
-      setIsLoading(true);
-      try {
-        const token = await getToken();
-        console.log("token: ", token);
-        const discordName = user?.externalAccounts?.find(
-          (acc) => acc.provider === "discord"
-        )?.username;
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/players/${discordName}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        const data = await res.json();
-        console.log("data", data);
-        setPlayers(data);
-        console.log("players:", data);
+    const unlockedThemesList = ["none"];
+    const unlockedBadgesList = ["none"];
 
-        // Set unlocked themes and badges based on participation
-        if (data && data.participation && Array.isArray(data.participation)) {
-          const unlockedThemes = ["none"];
-          const unlockedBadges = ["none"];
+    for (const game of player?.participation || []) {
+      const id = checkId(game).toLowerCase();
 
-          data.participation.forEach((game: string) => {
-            const id = checkId(game).toLowerCase();
-
-            // Match participation with theme ids
-            if (id === "valorant") {
-              unlockedThemes.push("valorant");
-              unlockedBadges.push("valorant");
-            }
-            if (id === "counterstrike2") {
-              unlockedThemes.push("cs2");
-              unlockedBadges.push("cs2");
-            }
-            if (id === "rocketleague") {
-              unlockedThemes.push("rocket_league");
-              unlockedBadges.push("mk");
-            }
-            if (id === "apexlegends") {
-              unlockedThemes.push("apex");
-              unlockedBadges.push("apex");
-            }
-            if (id === "overwatch2") {
-              unlockedThemes.push("ow2");
-              unlockedBadges.push("ow2");
-            }
-            if (id === "marvelrivals") {
-              unlockedThemes.push("rival");
-              unlockedBadges.push("marvel");
-            }
-            if (id === "leagueoflegends") {
-              unlockedThemes.push("league");
-              unlockedBadges.push("league");
-            }
-
-            // Add badge-specific unlocks based on participation
-            if (id === "beatsaber") unlockedBadges.push("beat saber");
-            if (id === "geoguessr") unlockedBadges.push("geo");
-            if (id === "guiltygearstrive") unlockedBadges.push("gg");
-            if (id === "rainbow6siege") unlockedBadges.push("r6");
-            if (id === "smashultimate") unlockedBadges.push("smash");
-            if (id === "streetfighter 6") unlockedBadges.push("street");
-            if (id === "supercell") unlockedBadges.push("supercell");
-            if (id === "teamfighttactics") unlockedBadges.push("tft");
-            if (id === "tetris") unlockedBadges.push("tetris");
-            if (id === "minecraft") unlockedBadges.push("mc");
-            if (id === "fortnite") unlockedBadges.push("fn");
-            if (id === "vgdev") unlockedBadges.push("vg");
-            if (id === "osu!") unlockedBadges.push("osu");
-          });
-
-          setUnlockedThemes(unlockedThemes);
-          setUnlockedBadges(unlockedBadges);
-        }
-      } catch (error) {
-        console.error("Error fetching player data:", error);
-      } finally {
-        setIsLoading(false);
+      if (id === "valorant") {
+        unlockedThemesList.push("valorant");
+        unlockedBadgesList.push("valorant");
       }
-    };
-    fetchPlayers();
-  }, [getToken, user?.username]);
+      if (id === "counterstrike2") {
+        unlockedThemesList.push("cs2");
+        unlockedBadgesList.push("cs2");
+      }
+      if (id === "rocketleague") {
+        unlockedThemesList.push("rocket_league");
+        unlockedBadgesList.push("mk");
+      }
+      if (id === "apexlegends") {
+        unlockedThemesList.push("apex");
+        unlockedBadgesList.push("apex");
+      }
+      if (id === "overwatch2") {
+        unlockedThemesList.push("ow2");
+        unlockedBadgesList.push("ow2");
+      }
+      if (id === "marvelrivals") {
+        unlockedThemesList.push("rival");
+        unlockedBadgesList.push("marvel");
+      }
+      if (id === "leagueoflegends") {
+        unlockedThemesList.push("league");
+        unlockedBadgesList.push("league");
+      }
+
+      if (id === "beatsaber") unlockedBadgesList.push("beat saber");
+      if (id === "geoguessr") unlockedBadgesList.push("geo");
+      if (id === "guiltygearstrive") unlockedBadgesList.push("gg");
+      if (id === "rainbow6siege") unlockedBadgesList.push("r6");
+      if (id === "smashultimate") unlockedBadgesList.push("smash");
+      if (id === "streetfighter 6") unlockedBadgesList.push("street");
+      if (id === "supercell") unlockedBadgesList.push("supercell");
+      if (id === "teamfighttactics") unlockedBadgesList.push("tft");
+      if (id === "tetris") unlockedBadgesList.push("tetris");
+      if (id === "minecraft") unlockedBadgesList.push("mc");
+      if (id === "fortnite") unlockedBadgesList.push("fn");
+      if (id === "vgdev") unlockedBadgesList.push("vg");
+      if (id === "osu!") unlockedBadgesList.push("osu");
+    }
+
+    setUnlockedThemes(unlockedThemesList);
+    setUnlockedBadges(unlockedBadgesList);
+  }, [player?.participation]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -389,9 +350,9 @@ const PlayerCard = () => {
                   </p>
                 ) : (
                   <div className="text-center">
-                    <p className="font-bayon text-4xl">{players?.name}</p>
+                    <p className="font-bayon text-4xl">{player?.name}</p>
                     <p className="font-bayon text-xl text-[#eecf5d]">
-                      TOKENS: {players ? players.points : "N/A"}
+                      TOKENS: {player ? player.points : "N/A"}
                     </p>
                   </div>
                 )}

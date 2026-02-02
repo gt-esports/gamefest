@@ -1,98 +1,54 @@
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import SearchBar from "./SearchBar";
-import { useAuth, useUser } from "@clerk/clerk-react";
+import { usePlayers } from "../hooks/usePlayers";
+import { useRaffles } from "../hooks/useRaffles";
+import { useUserRoles } from "../hooks/useUserRoles";
 import { motion } from "framer-motion";
 
+const placeOrder = { "1st": 1, "2nd": 2, "3rd": 3 };
+
 const Team = () => {
-  const { getToken } = useAuth();
-  const { user } = useUser();
+  const { isAdmin } = useUserRoles();
+  const { players, loading: playersLoading, refresh: refreshPlayers } = usePlayers();
+  const { winners: raffleWinners, loading: winnersLoading, mutating, pick, reset } = useRaffles();
 
-  const [players, setPlayers] = useState<
-    Array<{ name: string; points: number }>
-  >([]);
-  const [raffleWinners, setRaffleWinners] = useState<
-    Array<{ name: string; points: number; place: string }>
-  >([]);
+  const sortedPlayers = useMemo(
+    () => [...players].sort((a, b) => b.points - a.points),
+    [players]
+  );
 
-  useEffect(() => {
-    const fetchTeams = async () => {
-      try {
-        // setLoading(true);
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/players`
-           //"/api/players"
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch players data");
-        }
-        const data = await response.json();
-        setPlayers(data);
-      } catch (err) {
-        console.error("Error fetching teams:", err);
-      }
-    };
+  const sortedRaffleWinners = useMemo(
+    () =>
+      [...raffleWinners].sort(
+        (a, b) =>
+          placeOrder[a.place as keyof typeof placeOrder] -
+          placeOrder[b.place as keyof typeof placeOrder]
+      ),
+    [raffleWinners]
+  );
 
-    fetchTeams();
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const playersResponse = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/players`
-          // '/api/players'
-        );
-        if (!playersResponse.ok) {
-          throw new Error("Failed to fetch players data");
-        }
-        const playersData = await playersResponse.json();
-        setPlayers(playersData);
-
-        const winnersResponse = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/raffles/getWinner`
-          // '/api/raffles/getWinner'
-        );
-        if (winnersResponse.ok) {
-          const winnersData = await winnersResponse.json();
-          setRaffleWinners(winnersData.data.winners);
-        } else {
-          // reset winners
-          setRaffleWinners([]);
-        }
-      } catch (err) {
-        console.error("Error fetching data:", err);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const handleSearch = (gameName: string) => {
-    const trimmedGameName = gameName.trim().toLowerCase();
-    const index = players.findIndex(
-      (player) => player.name.trim().toLowerCase() === trimmedGameName
+  const handleSearch = (playerName: string) => {
+    const trimmedPlayerName = playerName.trim().toLowerCase();
+    const index = sortedPlayers.findIndex(
+      (player) => player.name.trim().toLowerCase() === trimmedPlayerName
     );
 
-    if (index !== -1) {
-      setTimeout(() => {
-        // timer delay to make scrollTo time to position correctly
-        const id = players[index].name
-          .trim()
-          .replace(/\s+/g, "-")
-          .toLowerCase();
-        const teamsElement = document.getElementById(id);
+    if (index === -1) return;
 
-        if (teamsElement) {
-          const y = -70;
-          const pos = teamsElement.getBoundingClientRect().top + window.scrollY;
+    setTimeout(() => {
+      const id = sortedPlayers[index].name.trim().replace(/\s+/g, "-").toLowerCase();
+      const playerElement = document.getElementById(id);
 
-          window.scrollTo({
-            top: pos + y,
-            behavior: "smooth",
-          });
-        }
-      }, 100);
-    }
+      if (!playerElement) return;
+
+      const y = -70;
+      const pos = playerElement.getBoundingClientRect().top + window.scrollY;
+
+      window.scrollTo({
+        top: pos + y,
+        behavior: "smooth",
+      });
+    }, 100);
   };
 
   return (
@@ -100,74 +56,40 @@ const Team = () => {
       <div className="flex flex-row items-center justify-between">
         <SearchBar
           onSearch={handleSearch}
-          items={players.map((player) => player.name)}
+          items={sortedPlayers.map((player) => player.name)}
         />
 
-        {/* pick raffle winner - admin only */}
-        {user?.publicMetadata?.role === "admin" && (
-          <div className='space-x-4'>
-            {/* reset winners */}
+        {isAdmin && (
+          <div className="space-x-4">
             <button
               className="rounded bg-tech-gold px-4 py-2 font-bayon text-xl text-white hover:bg-tech-gold/90"
               onClick={async () => {
-                const token = await getToken();
-                fetch(`${import.meta.env.VITE_API_URL}/api/raffles/reset`, {
-                  method: "POST",
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                  },
-                })
-                  .then((response) => {
-                    if (!response.ok)
-                      throw new Error("Failed to reset raffle winners");
-                    return response.json();
-                  })
-                  .then(() => {
-                    alert("Raffle winners reset successfully");
-                    setRaffleWinners([]);
-                  })
-                  .catch((err) => {
-                    console.error("Error resetting raffle winners:", err);
-                    alert("Failed to reset raffle winners");
-                  });
+                try {
+                  await reset();
+                  await refreshPlayers();
+                  alert("Raffle winners reset successfully");
+                } catch (err) {
+                  console.error("Error resetting raffle winners:", err);
+                  alert("Failed to reset raffle winners");
+                }
               }}
+              disabled={mutating}
             >
               Reset Raffle Winners
             </button>
-            {/* pick raffle winner */}
             <button
               className="rounded bg-tech-gold px-4 py-2 font-bayon text-xl text-white hover:bg-tech-gold/90"
               onClick={async () => {
-                const token = await getToken();
-                fetch(`${import.meta.env.VITE_API_URL}/api/raffles/pick`, {
-                  method: "POST",
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({ count: 3 }),
-                })
-                  .then((response) => {
-                    if (!response.ok)
-                      throw new Error("Failed to pick raffle winner");
-                    return response.json();
-                  })
-                  .then((data) => {
-                    if (data.success && data.winners) {
-                      setRaffleWinners(data.winners);
-                      alert(
-                        `Raffle winners: ${data.winners
-                          .map((w: { name: string }) => w.name)
-                          .join(", ")}`
-                      );
-                    }
-                  })
-                  .catch((err) => {
-                    console.error("Error picking raffle winners:", err);
-                    alert("Failed to pick raffle winners");
-                  });
+                try {
+                  const picked = await pick(3);
+                  await refreshPlayers();
+                  alert(`Raffle winners: ${picked.map((winner) => winner.name).join(", ")}`);
+                } catch (err) {
+                  console.error("Error picking raffle winners:", err);
+                  alert(err instanceof Error ? err.message : "Failed to pick raffle winners");
+                }
               }}
+              disabled={mutating}
             >
               Pick Raffle Winners
             </button>
@@ -175,7 +97,7 @@ const Team = () => {
         )}
       </div>
 
-      {raffleWinners.length > 0 && (
+      {sortedRaffleWinners.length > 0 && (
         <motion.div
           className="my-4 rounded-lg border border-tech-gold bg-tech-gold/20 p-4 text-center text-white"
           initial={{ scale: 0.8, opacity: 0 }}
@@ -186,40 +108,26 @@ const Team = () => {
             damping: 20,
           }}
         >
-          <h1 className="mb-4 text-center font-bayon text-3xl">
-            🎉 Raffle Winners 🎉
-          </h1>
+          <h1 className="mb-4 text-center font-bayon text-3xl">🎉 Raffle Winners 🎉</h1>
           <div className="grid grid-cols-3 gap-4">
-            {raffleWinners
-              .sort((a, b) => {
-                const placeOrder = { "1st": 1, "2nd": 2, "3rd": 3 };
-                return (
-                  placeOrder[a.place as keyof typeof placeOrder] -
-                  placeOrder[b.place as keyof typeof placeOrder]
-                );
-              })
-              .map((winner, index) => (
-                <div
-                  key={index}
-                  className={`rounded-lg p-4 ${
-                    winner.place === "1st"
-                      ? "border border-tech-gold bg-tech-gold/30"
-                      : winner.place === "2nd"
-                      ? "border border-[#C0C0C0] bg-[#C0C0C0]/20"
-                      : "border border-[#CD7F32] bg-[#CD7F32]/20"
-                  } text-center`}
-                >
-                  <div className="mb-2 font-bayon text-2xl">
-                    {winner.place === "1st"
-                      ? "🥇"
-                      : winner.place === "2nd"
-                      ? "🥈"
-                      : "🥉"}
-                  </div>
-                  <div className="text-xl">{winner.name}</div>
-                  <div className="text-md">{winner.points} Tokens</div>
+            {sortedRaffleWinners.map((winner) => (
+              <div
+                key={`${winner.name}-${winner.place}`}
+                className={`rounded-lg p-4 ${
+                  winner.place === "1st"
+                    ? "border border-tech-gold bg-tech-gold/30"
+                    : winner.place === "2nd"
+                    ? "border border-[#C0C0C0] bg-[#C0C0C0]/20"
+                    : "border border-[#CD7F32] bg-[#CD7F32]/20"
+                } text-center`}
+              >
+                <div className="mb-2 font-bayon text-2xl">
+                  {winner.place === "1st" ? "🥇" : winner.place === "2nd" ? "🥈" : "🥉"}
                 </div>
-              ))}
+                <div className="text-xl">{winner.name}</div>
+                <div className="text-md">{winner.points} Tokens</div>
+              </div>
+            ))}
           </div>
         </motion.div>
       )}
@@ -232,48 +140,42 @@ const Team = () => {
             <p className="py-3">Tokens</p>
           </div>
           <hr className="border-white/20" />
+          {(playersLoading || winnersLoading) && (
+            <p className="py-4 text-center text-sm text-gray-300">Loading leaderboard...</p>
+          )}
           <div>
-            {[...players]
-              .sort((a, b) => b.points - a.points)
-              .map((player, index) => {
-                // Find if this player is a winner
-                const winnerEntry = raffleWinners.find(
-                  (w) => w.name === player.name
-                );
-                const isWinner = winnerEntry !== undefined;
-                const place = winnerEntry?.place || "";
+            {sortedPlayers.map((player, index) => {
+              const winnerEntry = sortedRaffleWinners.find((winner) => winner.name === player.name);
+              const isWinner = winnerEntry !== undefined;
+              const place = winnerEntry?.place || "";
 
-                return (
-                  <div
-                    className={`text-md grid grid-cols-3 text-center ${
-                      isWinner
-                        ? place === "1st"
-                          ? "bg-tech-gold/10 font-bold text-tech-gold"
-                          : place === "2nd"
-                          ? "bg-[#C0C0C0]/10 font-bold text-[#C0C0C0]"
-                          : "bg-[#CD7F32]/10 font-bold text-[#CD7F32]"
-                        : "text-white hover:text-tech-gold"
-                    }`}
-                    key={player.name}
-                    id={player.name.trim().replace(/\s+/g, "-").toLowerCase()}
-                  >
-                    <p className="py-4">
-                      {index + 1}{" "}
-                      {isWinner && (
-                        <span className="ml-1">
-                          {place === "1st"
-                            ? "🥇"
-                            : place === "2nd"
-                            ? "🥈"
-                            : "🥉"}
-                        </span>
-                      )}
-                    </p>
-                    <p className="py-4">{player.name}</p>
-                    <p className="py-4">{player.points}</p>
-                  </div>
-                );
-              })}
+              return (
+                <div
+                  className={`text-md grid grid-cols-3 text-center ${
+                    isWinner
+                      ? place === "1st"
+                        ? "bg-tech-gold/10 font-bold text-tech-gold"
+                        : place === "2nd"
+                        ? "bg-[#C0C0C0]/10 font-bold text-[#C0C0C0]"
+                        : "bg-[#CD7F32]/10 font-bold text-[#CD7F32]"
+                      : "text-white hover:text-tech-gold"
+                  }`}
+                  key={player.name}
+                  id={player.name.trim().replace(/\s+/g, "-").toLowerCase()}
+                >
+                  <p className="py-4">
+                    {index + 1}{" "}
+                    {isWinner && (
+                      <span className="ml-1">
+                        {place === "1st" ? "🥇" : place === "2nd" ? "🥈" : "🥉"}
+                      </span>
+                    )}
+                  </p>
+                  <p className="py-4">{player.name}</p>
+                  <p className="py-4">{player.points}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -281,5 +183,4 @@ const Team = () => {
   );
 };
 
-console.log("Whit was here");
 export default Team;
