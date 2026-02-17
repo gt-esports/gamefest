@@ -4,7 +4,6 @@ import {
   isValidElement,
   type PropsWithChildren,
   type ReactElement,
-  type ReactNode,
   useContext,
   useEffect,
   useMemo,
@@ -12,35 +11,13 @@ import {
 } from "react";
 import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase } from "../utils/supabaseClient";
-
-type AppUser = {
-  id: string;
-  username: string;
-  firstName: string;
-  fullName: string;
-  publicMetadata: {
-    role: string | null;
-  };
-  externalAccounts: Array<{ provider: string; username: string }>;
-  raw: SupabaseUser;
-};
-
-type AuthContextValue = {
-  isLoaded: boolean;
-  session: Session | null;
-  user: AppUser | null;
-  isSignedIn: boolean;
-  signInWithDiscord: () => Promise<void>;
-  signOut: () => Promise<void>;
-  getToken: () => Promise<string | null>;
-};
-
-type UserProfile = {
-  id: string;
-  username: string | null;
-  display_name: string | null;
-  avatar_url: string | null;
-};
+import type {
+  AppUser,
+  AuthContextValue,
+  SignInButtonProps,
+  UserButtonProps,
+  UserProfile,
+} from "../schemas/AuthSchema";
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -226,11 +203,6 @@ export const SignedOut = ({ children }: PropsWithChildren) => {
   return <>{children}</>;
 };
 
-type SignInButtonProps = {
-  children: ReactNode;
-  mode?: string;
-};
-
 export const SignInButton = ({ children }: SignInButtonProps) => {
   const { signInWithDiscord } = useAuthContext();
 
@@ -249,11 +221,6 @@ export const SignInButton = ({ children }: SignInButtonProps) => {
   }
 
   return <button onClick={() => void handleClick()}>{children}</button>;
-};
-
-type UserButtonProps = {
-  userProfileUrl?: string;
-  userProfileMode?: string;
 };
 
 export const UserButton = ({ userProfileUrl = "/profile" }: UserButtonProps) => {

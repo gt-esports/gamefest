@@ -1,16 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
 import { updateAllPlayersRaffleState } from "./usePlayers";
-
-type RaffleParticipant = {
-  userId: string;
-  name: string;
-  points: number;
-};
-
-export type RaffleWinner = RaffleParticipant & {
-  place: string;
-};
+import type { PickRaffleWinnersInput, RaffleParticipant, RaffleWinner } from "../schemas/RafflesSchema";
 
 const toPlaceLabel = (place: number): string => {
   if (place === 1) return "1st";
@@ -71,7 +62,9 @@ export const resetRaffleWinners = async (): Promise<void> => {
   await updateAllPlayersRaffleState(false, 0);
 };
 
-export const pickRaffleWinners = async (count = 3): Promise<RaffleWinner[]> => {
+export const pickRaffleWinners = async (
+  { count }: PickRaffleWinnersInput = { count: 3 }
+): Promise<RaffleWinner[]> => {
   if (count < 1) {
     throw new Error("Count must be at least 1");
   }
@@ -169,7 +162,7 @@ export const useRaffles = () => {
 
       try {
         setError(null);
-        const picked = await pickRaffleWinners(count);
+        const picked = await pickRaffleWinners({ count });
         await refresh();
         return picked;
       } catch (err) {

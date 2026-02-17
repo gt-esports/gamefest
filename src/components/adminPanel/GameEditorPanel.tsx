@@ -24,7 +24,7 @@ const GameEditorPanel: React.FC = () => {
 
   const handleAddChallenge = async () => {
     if (!newChallenge.trim()) return;
-    await addChallenge(newChallenge);
+    await addChallenge({ name: newChallenge });
     setNewChallenge("");
   };
 

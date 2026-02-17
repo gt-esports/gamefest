@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
+import type { Game, GameTeam, UpdateGameInput } from "../schemas/GamesSchema";
 
 type TeamAssignmentJoinRow = {
   team_id: string | null;
@@ -16,16 +17,6 @@ type TeamAssignmentJoinRow = {
 const unwrapRelation = <T>(value: T | T[] | null | undefined): T | null => {
   if (!value) return null;
   return Array.isArray(value) ? value[0] || null : value;
-};
-
-export type GameTeam = {
-  name: string;
-  players: string[];
-};
-
-export type Game = {
-  name: string;
-  teams: GameTeam[];
 };
 
 export const fetchGames = async (name?: string): Promise<Game[]> => {
@@ -117,7 +108,7 @@ export const createGame = async (name: string): Promise<Game> => {
 
 export const updateGameByName = async (
   oldName: string,
-  input: { name?: string; teams?: Array<{ name: string }> }
+  input: UpdateGameInput
 ): Promise<Game> => {
   const { data: existing, error: existingError } = await supabase
     .from("games")
@@ -208,7 +199,7 @@ export const useGames = () => {
   );
 
   const patchGameByName = useCallback(
-    async (oldName: string, input: { name?: string; teams?: Array<{ name: string }> }) => {
+    async (oldName: string, input: UpdateGameInput) => {
       const game = await updateGameByName(oldName, input);
       await refresh();
       return game;
