@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { TfiClose } from "react-icons/tfi";
-import { Link, NavLink, useLocation} from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 
 import Logo from "../assets/gt-esports-logo1.png";
 import {
@@ -70,9 +70,8 @@ function Navbar() {
 
   return (
     <div
-      className={`fixed z-10 flex h-[--navbar-height] w-full items-center justify-between border-0 bg-transparent transition-all duration-500 md:flex md:px-20 md:py-6 ${
-        isScrolled ? "bg-opacity-70 backdrop-blur-md" : "bg-transparent"
-      }`}
+      className={`fixed z-10 flex h-[--navbar-height] w-full items-center justify-between border-0 bg-transparent transition-all duration-500 md:flex md:px-20 md:py-6 ${isScrolled ? "bg-opacity-70 backdrop-blur-md" : "bg-transparent"
+        }`}
     >
       <div className="font-bayon text-4xl tracking-wide">
         <Link to="/" className="flex items-center">
@@ -99,16 +98,15 @@ function Navbar() {
       {/* Mobile Menu */}
       <ul
         ref={menuRef}
-        className={`fixed right-0 top-0 z-[1] h-screen w-2/5 bg-black/90 pt-14 transition-all duration-300 ease-in mlg:hidden ${
-          open ? "translate-x-0 px-4" : "translate-x-full opacity-0"
-        }`}
+        className={`fixed right-0 top-0 z-[1] h-screen w-2/5 bg-black/90 pt-14 transition-all duration-300 ease-in mlg:hidden ${open ? "translate-x-0 px-4" : "translate-x-full opacity-0"
+          }`}
       >
         {/* LOGIN button */}
         <li
-          className={`text-md w-full py-4 text-right text-white transition-all duration-700 ease-in-out hover:text-bright-buzz ${
-            open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-          }`}
+          className={`text-md w-full py-4 text-right text-white transition-all duration-700 ease-in-out hover:text-bright-buzz ${open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+            }`}
         >
+
           <SignedOut>
             <SignInButton mode="modal">
               <button>LOGIN</button>
@@ -128,17 +126,15 @@ function Navbar() {
           <li
             key={link.name}
             style={{ transitionDelay: `${index * 50}ms` }}
-            className={`text-md w-full py-4 text-right transition-all duration-700 ease-in-out ${
-              open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-            }`}
+            className={`text-md w-full py-4 text-right transition-all duration-700 ease-in-out ${open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+              }`}
           >
             <NavLink
               to={link.link}
-              className={`${
-                location.pathname === link.link
+              className={`${location.pathname === link.link
                   ? "text-bright-buzz underline"
                   : "text-white"
-              } underline-offset-4 duration-500 hover:text-bright-buzz`}
+                } underline-offset-4 duration-500 hover:text-bright-buzz`}
               onClick={() => setOpen(false)}
             >
               {link.name}
@@ -157,11 +153,10 @@ function Navbar() {
           >
             <NavLink
               to={link.link}
-              className={`${
-                location.pathname === link.link
+              className={`${location.pathname === link.link
                   ? "text-bright-buzz underline"
                   : "text-white"
-              } underline-offset-4 duration-500 hover:text-bright-buzz`}
+                } underline-offset-4 duration-500 hover:text-bright-buzz`}
               onClick={() => setOpen(false)}
             >
               {link.name}

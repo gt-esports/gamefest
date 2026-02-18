@@ -12,6 +12,7 @@ import {
 } from "react";
 import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase } from "../utils/supabaseClient";
+import { Navigate, useNavigate } from "react-router-dom";
 
 type AppUser = {
   id: string;
@@ -119,8 +120,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
     const bootstrap = async () => {
       const { data } = await supabase.auth.getSession();
+      console.log("SESSION:", data.session); // 👈 add this
       if (!mounted) return;
-      
+
       let userProfile: UserProfile | null = null;
       if (data.session?.user) {
         userProfile = await fetchProfile(data.session.user.id);
@@ -141,11 +143,11 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
           // but for simplicity/correctness on login, fetching is safer.
           userProfile = await fetchProfile(updatedSession.user.id);
         }
-        
+
         if (mounted) {
-            setSession(updatedSession ?? null);
-            setProfile(userProfile);
-            setIsLoaded(true);
+          setSession(updatedSession ?? null);
+          setProfile(userProfile);
+          setIsLoaded(true);
         }
       }
     );
@@ -158,7 +160,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
   const value = useMemo<AuthContextValue>(() => {
     const user = mapUser(session?.user || null, profile);
-
+    console.log(user)
     return {
       isLoaded,
       session,
@@ -175,6 +177,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
           console.error("Discord sign-in failed", error);
           alert("Unable to sign in with Discord right now.");
         }
+
       },
       signOut: async () => {
         const { error } = await supabase.auth.signOut();
@@ -182,6 +185,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
           console.error("Sign-out failed", error);
         }
         setProfile(null);
+
       },
       getToken: async () => {
         const { data } = await supabase.auth.getSession();
@@ -259,14 +263,20 @@ type UserButtonProps = {
 export const UserButton = ({ userProfileUrl = "/profile" }: UserButtonProps) => {
   const { user, signOut } = useAuthContext();
 
+  const navigate = useNavigate();
+
   if (!user) return null;
 
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
   return (
     <div className="flex items-center justify-end gap-2 text-sm">
       <a className="hover:text-tech-gold" href={userProfileUrl}>
         {user.username || "Profile"}
       </a>
-      <button className="hover:text-tech-gold" onClick={() => void signOut()}>
+      <button className="hover:text-tech-gold" onClick={handleLogout}>
         Logout
       </button>
     </div>
