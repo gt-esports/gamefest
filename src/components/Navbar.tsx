@@ -9,6 +9,7 @@ import {
   SignInButton,
   SignedIn,
   UserButton,
+  useUser,
 } from "../hooks/useAuth";
 
 function Navbar() {
@@ -16,6 +17,12 @@ function Navbar() {
   const [open, setOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const menuRef = useRef<HTMLUListElement | null>(null);
+
+
+  
+  const { isLoaded, user } = useUser();
+  console.log('navbar:', { isLoaded, user });
+  
 
   useEffect(() => {
     const handleResize = () => {

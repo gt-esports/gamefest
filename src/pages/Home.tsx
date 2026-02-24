@@ -5,6 +5,7 @@ import MCHEADLINER from "../assets/mc-headliner.jpg";
 import FORTNITEHEADLINER from "../assets/fortnite-headliner.jpg";
 import PCBLOCK1 from "../assets/pc_block_1.jpg";
 import PCBLOCK2 from "../assets/pc_block_2.jpg";
+import { useUser } from "../hooks/useAuth";
 
 function Home() {
   const scrollToSection = (sectionId: string, offset: number = 0) => {
@@ -40,6 +41,9 @@ function Home() {
 
     requestAnimationFrame(animation);
   };
+
+  const { isLoaded, user } = useUser();
+  console.log('home:', { isLoaded, user });
 
   return (
     <div className="flex w-full flex-col bg-streak bg-cover">
