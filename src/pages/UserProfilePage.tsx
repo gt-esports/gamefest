@@ -4,6 +4,7 @@ import { SignInButton, useUser } from "../hooks/useAuth";
 
 const UserProfilePage = () => {
   const { isLoaded, user } = useUser();
+  console.log({ isLoaded, user })
 
   return (
     <div className="flex w-full flex-col bg-streak bg-cover">

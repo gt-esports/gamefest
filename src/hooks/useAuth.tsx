@@ -18,6 +18,7 @@ import type {
   UserButtonProps,
   UserProfile,
 } from "../schemas/AuthSchema";
+import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -44,12 +45,10 @@ const mapUser = (user: SupabaseUser | null, profile: UserProfile | null): AppUse
   if (!user) return null;
 
   const meta = user.user_metadata || {};
-  const appMeta = user.app_metadata || {};
 
   const username = getUsernameFromUser(user, profile);
   const fullName = profile?.display_name || meta.full_name || meta.name || username;
   const firstName = meta.given_name || fullName?.split(" ")?.[0] || username;
-  const role = meta.role || appMeta.role || null;
 
   const discordUsername =
     meta.user_name || meta.preferred_username || meta.username || username;
@@ -59,9 +58,6 @@ const mapUser = (user: SupabaseUser | null, profile: UserProfile | null): AppUse
     username,
     firstName,
     fullName,
-    publicMetadata: {
-      role,
-    },
     externalAccounts: discordUsername
       ? [{ provider: "discord", username: discordUsername }]
       : [],
@@ -94,10 +90,30 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     let mounted = true;
 
+    // Set up the listener FIRST so we never miss an auth event.
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      async (_event, updatedSession) => {
+        if (!mounted) return;
+
+        let userProfile: UserProfile | null = null;
+        if (updatedSession?.user) {
+          userProfile = await fetchProfile(updatedSession.user.id);
+        }
+
+        if (mounted) {
+          setSession(updatedSession ?? null);
+          setProfile(userProfile);
+          setIsLoaded(true);
+        }
+      }
+    );
+
+    // Then get the current session — any change that happened between
+    // mounting and the listener registering will still be caught.
     const bootstrap = async () => {
       const { data } = await supabase.auth.getSession();
       if (!mounted) return;
-      
+
       let userProfile: UserProfile | null = null;
       if (data.session?.user) {
         userProfile = await fetchProfile(data.session.user.id);
@@ -110,23 +126,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
     void bootstrap();
 
-    const { data: subscription } = supabase.auth.onAuthStateChange(
-      async (_event, updatedSession) => {
-        let userProfile: UserProfile | null = null;
-        if (updatedSession?.user) {
-          // Optimization: Only fetch if we don't have it or user changed, 
-          // but for simplicity/correctness on login, fetching is safer.
-          userProfile = await fetchProfile(updatedSession.user.id);
-        }
-        
-        if (mounted) {
-            setSession(updatedSession ?? null);
-            setProfile(userProfile);
-            setIsLoaded(true);
-        }
-      }
-    );
-
     return () => {
       mounted = false;
       subscription.subscription.unsubscribe();
@@ -135,14 +134,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
   const value = useMemo<AuthContextValue>(() => {
     const user = mapUser(session?.user || null, profile);
-
     return {
       isLoaded,
       session,
       user,
       isSignedIn: Boolean(user),
       signInWithDiscord: async () => {
-        const redirectTo = window.location.href;
+        const redirectTo = `${window.location.origin}/`;
         const { error } = await supabase.auth.signInWithOAuth({
           provider: "discord",
           options: { redirectTo },
@@ -158,11 +156,16 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         if (error) {
           console.error("Sign-out failed", error);
         }
+        setSession(null);
         setProfile(null);
       },
       getToken: async () => {
-        const { data } = await supabase.auth.getSession();
-        return data.session?.access_token || null;
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("Failed to retrieve session token", error);
+          return null;
+        }
+        return data.session?.access_token ?? null;
       },
     };
   }, [isLoaded, session, profile]);
@@ -226,14 +229,20 @@ export const SignInButton = ({ children }: SignInButtonProps) => {
 export const UserButton = ({ userProfileUrl = "/profile" }: UserButtonProps) => {
   const { user, signOut } = useAuthContext();
 
+  const navigate = useNavigate();
+
   if (!user) return null;
 
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
   return (
     <div className="flex items-center justify-end gap-2 text-sm">
       <a className="hover:text-tech-gold" href={userProfileUrl}>
         {user.username || "Profile"}
       </a>
-      <button className="hover:text-tech-gold" onClick={() => void signOut()}>
+      <button className="hover:text-tech-gold" onClick={handleLogout}>
         Logout
       </button>
     </div>

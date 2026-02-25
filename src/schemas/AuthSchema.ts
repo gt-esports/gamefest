@@ -13,9 +13,6 @@ export type AppUser = {
     username: string;
     firstName: string;
     fullName: string;
-    publicMetadata: {
-        role: string | null;
-    };
     externalAccounts: Array<{ provider: string; username: string }>;
     raw: SupabaseUser;
 };
