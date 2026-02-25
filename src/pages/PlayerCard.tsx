@@ -163,6 +163,7 @@ const PlayerCard = () => {
   const [unlockedBadges, setUnlockedBadges] = useState<string[]>(["none"]);
 
   const { user } = useUser();
+  console.log("PlayerCard user:", user);
   const { player, loading: isLoading } = useCurrentPlayer(user?.id);
 
   // Load saved profile
