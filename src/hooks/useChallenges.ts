@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
-
-export type Challenge = {
-  id: string;
-  name: string;
-};
+import type { Challenge, CreateChallengeInput } from "../schemas/ChallengesSchema";
 
 export const fetchChallenges = async (): Promise<Challenge[]> => {
   const { data, error } = await supabase
@@ -20,10 +16,10 @@ export const fetchChallenges = async (): Promise<Challenge[]> => {
   }));
 };
 
-export const createChallenge = async (name: string): Promise<Challenge> => {
+export const createChallenge = async (input: CreateChallengeInput): Promise<Challenge> => {
   const { data, error } = await supabase
     .from("challenges")
-    .insert({ name: name.trim() })
+    .insert({ name: input.name.trim() })
     .select("id, name")
     .single();
 
@@ -72,8 +68,8 @@ export const useChallenges = () => {
   }, [refresh]);
 
   const addChallenge = useCallback(
-    async (name: string) => {
-      const challenge = await createChallenge(name);
+    async (input: CreateChallengeInput) => {
+      const challenge = await createChallenge(input);
       await refresh();
       return challenge;
     },

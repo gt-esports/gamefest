@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
-
-export type StaffMember = {
-  id: string;
-  name: string;
-  assignment: string | null;
-};
+import type {
+  CreateStaffMemberInput,
+  StaffMember,
+  UpdateStaffMemberInput,
+} from "../schemas/StaffSchema";
 
 export const fetchStaff = async (): Promise<StaffMember[]> => {
   const { data, error } = await supabase
@@ -22,10 +21,7 @@ export const fetchStaff = async (): Promise<StaffMember[]> => {
   }));
 };
 
-export const createStaffMember = async (input: {
-  name: string;
-  assignment?: string | null;
-}): Promise<StaffMember> => {
+export const createStaffMember = async (input: CreateStaffMemberInput): Promise<StaffMember> => {
   const trimmedAssignment =
     typeof input.assignment === "string" ? input.assignment.trim() : "";
 
@@ -49,10 +45,7 @@ export const createStaffMember = async (input: {
 
 export const updateStaffByName = async (
   name: string,
-  input: {
-    name?: string;
-    assignment?: string | null;
-  }
+  input: UpdateStaffMemberInput
 ): Promise<StaffMember> => {
   const updates: { name?: string; assignment?: string | null } = {};
 
@@ -120,7 +113,7 @@ export const useStaff = () => {
   }, [refresh]);
 
   const addStaffMember = useCallback(
-    async (input: { name: string; assignment?: string | null }) => {
+    async (input: CreateStaffMemberInput) => {
       const member = await createStaffMember(input);
       await refresh();
       return member;
@@ -129,7 +122,7 @@ export const useStaff = () => {
   );
 
   const patchStaffByName = useCallback(
-    async (name: string, input: { name?: string; assignment?: string | null }) => {
+    async (name: string, input: UpdateStaffMemberInput) => {
       const member = await updateStaffByName(name, input);
       await refresh();
       return member;

@@ -1,23 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
 import type { TableInsert, TableRow, TableUpdate } from "../types/database.types";
-
-export type TeamAssignment = {
-  game: string;
-  team: string;
-};
-
-export type Player = {
-  id: string;
-  name: string;
-  points: number;
-  participation: string[];
-  log: string[];
-  teamAssignments: TeamAssignment[];
-  raffleWinner: boolean;
-  rafflePlacing: number;
-  userId: string | null;
-};
+import type {
+  CreatePlayerInput,
+  Player,
+  TeamAssignment,
+  UpdatePlayerInput,
+} from "../schemas/PlayerSchema";
 
 type AssignmentJoinRow = {
   player_id: string | null;
@@ -208,17 +197,6 @@ const replacePlayerAssignments = async (
   if (insertError) throw insertError;
 };
 
-type CreatePlayerInput = {
-  name: string;
-  points?: number;
-  participation?: string[];
-  log?: string[];
-  raffleWinner?: boolean;
-  rafflePlacing?: number;
-  teamAssignments?: TeamAssignment[];
-  userId?: string;
-};
-
 export const createPlayer = async (input: CreatePlayerInput): Promise<Player> => {
   const payload: TableInsert<"players"> = {
     name: input.name.trim(),
@@ -242,17 +220,6 @@ export const createPlayer = async (input: CreatePlayerInput): Promise<Player> =>
   const player = await getPlayerByName(inserted.name);
   if (!player) throw new Error("Failed to load created player");
   return player;
-};
-
-type UpdatePlayerInput = {
-  name?: string;
-  points?: number;
-  participation?: string[];
-  log?: string[];
-  raffleWinner?: boolean;
-  rafflePlacing?: number;
-  teamAssignments?: TeamAssignment[];
-  userId?: string;
 };
 
 export const updatePlayerByName = async (

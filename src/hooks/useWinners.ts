@@ -1,12 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
-
-export type WinnerRecord = {
-  id: string;
-  game: string;
-  matchId: string;
-  winner: string;
-};
+import type { SaveWinnerInput, WinnerRecord } from "../schemas/WinnerSchema";
 
 export const fetchWinners = async (game?: string): Promise<WinnerRecord[]> => {
   let query = supabase
@@ -30,11 +24,7 @@ export const fetchWinners = async (game?: string): Promise<WinnerRecord[]> => {
   }));
 };
 
-export const saveWinner = async (input: {
-  game: string;
-  matchId: string;
-  winner: string;
-}): Promise<WinnerRecord> => {
+export const saveWinner = async (input: SaveWinnerInput): Promise<WinnerRecord> => {
   const { data: existing, error: existingError } = await supabase
     .from("winners")
     .select("id")
@@ -127,7 +117,7 @@ export const useWinners = (game: string | null | undefined) => {
   }, [refresh]);
 
   const upsertWinner = useCallback(
-    async (input: { game: string; matchId: string; winner: string }) => {
+    async (input: SaveWinnerInput) => {
       const winnerRecord = await saveWinner(input);
       await refresh();
       return winnerRecord;

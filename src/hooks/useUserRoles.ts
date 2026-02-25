@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
 import { useUser } from "./useAuth";
-
-export type AppRole = "staff" | "admin";
+import type { AppRole } from "../schemas/UserRoles";
 
 export const fetchRolesForUser = async (userId: string): Promise<AppRole[]> => {
   const { data, error } = await supabase
