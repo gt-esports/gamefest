@@ -239,10 +239,10 @@ export const UserButton = ({ userProfileUrl = "/profile" }: UserButtonProps) => 
   };
   return (
     <div className="flex items-center justify-end gap-2 text-sm">
-      <a className="hover:text-tech-gold" href={userProfileUrl}>
+      <a className="hover:text-blue-bright" href={userProfileUrl}>
         {user.username || "Profile"}
       </a>
-      <button className="hover:text-tech-gold" onClick={handleLogout}>
+      <button className="hover:text-blue-bright" onClick={handleLogout}>
         Logout
       </button>
     </div>

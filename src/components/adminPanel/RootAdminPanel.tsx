@@ -24,7 +24,7 @@ const RootAdminPanel: React.FC<RootAdminPanelProps> = ({ isAdmin }) => {
           <button
             onClick={() => setActiveTab("staff")}
             className={`btn ${
-              activeTab === "staff" ? "text-2xl font-bold text-tech-gold" : ""
+              activeTab === "staff" ? "text-2xl font-bold text-blue-bright" : ""
             }`}
           >
             Manage Staff
@@ -33,7 +33,7 @@ const RootAdminPanel: React.FC<RootAdminPanelProps> = ({ isAdmin }) => {
         <button
           onClick={() => setActiveTab("checkin")}
           className={`btn ${
-            activeTab === "checkin" ? "text-2xl font-bold text-tech-gold" : ""
+            activeTab === "checkin" ? "text-2xl font-bold text-blue-bright" : ""
           }`}
         >
           Player Check-in & Settings
@@ -41,7 +41,7 @@ const RootAdminPanel: React.FC<RootAdminPanelProps> = ({ isAdmin }) => {
         <button
           onClick={() => setActiveTab("points")}
           className={`btn ${
-            activeTab === "points" ? "text-2xl font-bold text-tech-gold" : ""
+            activeTab === "points" ? "text-2xl font-bold text-blue-bright" : ""
           }`}
         >
           Tokens
@@ -50,7 +50,7 @@ const RootAdminPanel: React.FC<RootAdminPanelProps> = ({ isAdmin }) => {
           <button
             onClick={() => setActiveTab("games")}
             className={`btn ${
-              activeTab === "games" ? "text-2xl font-bold text-tech-gold" : ""
+              activeTab === "games" ? "text-2xl font-bold text-blue-bright" : ""
             }`}
           >
             Games & Challenges

@@ -27,7 +27,7 @@ function DropDownList({ items, onSelect}: { items: string[], onSelect: (item: st
         />
       </button>
       {isOpen && (
-        <ul className="absolute top-full left-0 mt-2 w-full z-50 bg-gradient-to-br from-[#233a6d]/80 to-[#472b2b]/80 border border-gray-500 rounded-lg shadow-lg max-h-[300px] overflow-auto">
+        <ul className="absolute top-full left-0 mt-2 w-full z-50 bg-gradient-to-br from-[#0a0f1a]/80 to-[#004466]/80 border border-gray-500 rounded-lg shadow-lg max-h-[300px] overflow-auto">
           {items.map((item: string, index: number) => (
             <li
               key={index}

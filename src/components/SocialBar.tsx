@@ -3,7 +3,7 @@ import { FaInstagram, FaTwitter, FaLinkedinIn } from 'react-icons/fa';
 
 const SocialBar: React.FC = () => {
   return (
-    <div className=" absolute right-[-48px] top-[60%] bg-bright-buzz p-4 rounded-r-lg rounded-br-[40px] h-[140px] ">
+    <div className=" absolute right-[-48px] top-[60%] bg-gradient-to-r from-[#004466] to-[#0099BB] p-4 rounded-r-lg rounded-br-[40px] h-[140px] ">
       <ul className="space-y-4">
         <li>
         <a href="https://www.instagram.com/gatechesports_/" target="_blank" rel="noopener noreferrer">
