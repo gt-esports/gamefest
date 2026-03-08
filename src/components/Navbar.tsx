@@ -89,7 +89,7 @@ function Navbar() {
             height={68}
             className="mr-2"
           />
-          <span className="text-2xl text-tech-gold md:text-4xl">GAME</span>{" "}
+          <span className="text-2xl text-blue-bright md:text-4xl">GAME</span>{" "}
           <span className="ml-1 text-2xl text-white md:ml-2 md:text-4xl">
             FEST
           </span>
@@ -97,7 +97,7 @@ function Navbar() {
       </div>
       <div
         onClick={() => setOpen(!open)}
-        className="z-[2] mr-2 cursor-pointer text-3xl text-bright-buzz mlg:hidden"
+        className="z-[2] mr-2 cursor-pointer text-3xl text-blue-bright mlg:hidden"
       >
         {!open ? <RxHamburgerMenu /> : <TfiClose />}
       </div>
@@ -110,7 +110,7 @@ function Navbar() {
       >
         {/* LOGIN button */}
         <li
-          className={`text-md w-full py-4 text-right text-white transition-all duration-700 ease-in-out hover:text-bright-buzz ${open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+          className={`text-md w-full py-4 text-right text-white transition-all duration-700 ease-in-out hover:text-blue-bright ${open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
             }`}
         >
 
@@ -139,9 +139,9 @@ function Navbar() {
             <NavLink
               to={link.link}
               className={`${location.pathname === link.link
-                  ? "text-bright-buzz underline"
+                  ? "text-blue-bright underline"
                   : "text-white"
-                } underline-offset-4 duration-500 hover:text-bright-buzz`}
+                } underline-offset-4 duration-500 hover:text-blue-bright`}
               onClick={() => setOpen(false)}
             >
               {link.name}
@@ -161,9 +161,9 @@ function Navbar() {
             <NavLink
               to={link.link}
               className={`${location.pathname === link.link
-                  ? "text-bright-buzz underline"
+                  ? "text-blue-bright underline"
                   : "text-white"
-                } underline-offset-4 duration-500 hover:text-bright-buzz`}
+                } underline-offset-4 duration-500 hover:text-blue-bright`}
               onClick={() => setOpen(false)}
             >
               {link.name}
@@ -171,7 +171,7 @@ function Navbar() {
           </li>
         ))}
         {/* LOGIN button */}
-        <li className="text-white duration-500 hover:text-bright-buzz">
+        <li className="text-white duration-500 hover:text-blue-bright">
           <SignedOut>
             <SignInButton mode="modal">
               <button>LOGIN</button>

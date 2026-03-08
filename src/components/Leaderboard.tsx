@@ -62,7 +62,7 @@ const Team = () => {
         {isAdmin && (
           <div className="space-x-4">
             <button
-              className="rounded bg-tech-gold px-4 py-2 font-bayon text-xl text-white hover:bg-tech-gold/90"
+              className="rounded bg-gradient-to-r from-[#004466] to-[#0099BB] px-4 py-2 font-bayon text-xl text-white hover:shadow-lg hover:shadow-[#0099BB]/50"
               onClick={async () => {
                 try {
                   await reset();
@@ -78,7 +78,7 @@ const Team = () => {
               Reset Raffle Winners
             </button>
             <button
-              className="rounded bg-tech-gold px-4 py-2 font-bayon text-xl text-white hover:bg-tech-gold/90"
+              className="rounded bg-gradient-to-r from-[#004466] to-[#0099BB] px-4 py-2 font-bayon text-xl text-white hover:shadow-lg hover:shadow-[#0099BB]/50"
               onClick={async () => {
                 try {
                   const picked = await pick(3);
@@ -99,7 +99,7 @@ const Team = () => {
 
       {sortedRaffleWinners.length > 0 && (
         <motion.div
-          className="my-4 rounded-lg border border-tech-gold bg-tech-gold/20 p-4 text-center text-white"
+          className="my-4 rounded-lg border border-blue-medium bg-card-bg/60 p-4 text-center text-white"
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{
@@ -115,10 +115,10 @@ const Team = () => {
                 key={`${winner.name}-${winner.place}`}
                 className={`rounded-lg p-4 ${
                   winner.place === "1st"
-                    ? "border border-tech-gold bg-tech-gold/30"
+                    ? "border border-blue-medium bg-card-bg/80"
                     : winner.place === "2nd"
-                    ? "border border-[#C0C0C0] bg-[#C0C0C0]/20"
-                    : "border border-[#CD7F32] bg-[#CD7F32]/20"
+                    ? "border border-blue-accent bg-blue-accent/20"
+                    : "border border-blue-light bg-blue-light/20"
                 } text-center`}
               >
                 <div className="mb-2 font-bayon text-2xl">
@@ -133,7 +133,7 @@ const Team = () => {
       )}
 
       <div className="space-y-4">
-        <div className="overflow-auto rounded-lg border border-white/20 bg-opacity-25 bg-gradient-to-br from-[#2e1d1d] to-[#101c3b] p-4">
+        <div className="overflow-auto rounded-lg border border-white/20 bg-opacity-25 bg-gradient-to-br from-[#0a0f1a] to-[#004466] p-4">
           <div className="grid grid-cols-3 gap-4 text-center font-quicksand text-lg uppercase text-white">
             <p className="py-3">Rank</p>
             <p className="py-3">Player</p>
@@ -154,11 +154,11 @@ const Team = () => {
                   className={`text-md grid grid-cols-3 text-center ${
                     isWinner
                       ? place === "1st"
-                        ? "bg-tech-gold/10 font-bold text-tech-gold"
+                        ? "bg-blue-bright/20 font-bold text-blue-bright"
                         : place === "2nd"
-                        ? "bg-[#C0C0C0]/10 font-bold text-[#C0C0C0]"
-                        : "bg-[#CD7F32]/10 font-bold text-[#CD7F32]"
-                      : "text-white hover:text-tech-gold"
+                        ? "bg-blue-accent/20 font-bold text-blue-accent"
+                        : "bg-blue-light/20 font-bold text-blue-light"
+                      : "text-white hover:text-blue-bright"
                   }`}
                   key={player.name}
                   id={player.name.trim().replace(/\s+/g, "-").toLowerCase()}

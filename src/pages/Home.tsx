@@ -49,13 +49,13 @@ function Home() {
     <div className="flex w-full flex-col bg-streak bg-cover">
       <div className="flex min-h-screen items-center justify-center rounded-sm bg-home-1 bg-cover">
         <div className="flex flex-col items-center gap-4">
-          <h1 className="px-3 py-3 font-bayon text-9xl font-normal text-tech-gold xs:rounded-lg xs:text-5xl xs:backdrop-blur-lg sm:text-7xl md:text-8xl lg:text-9xl">
+          <h1 className="px-3 py-3 font-bayon text-9xl font-normal text-blue-bright xs:rounded-lg xs:text-5xl xs:backdrop-blur-lg sm:text-7xl md:text-8xl lg:text-9xl">
             G<span className="text-white">eorgi</span>a Tech{" "}
             <span className="text-white">Esports</span>
           </h1>
           <button
             onClick={() => scrollToSection("tournaments-section", -80)}
-            className="mt-8 rounded-md bg-tech-gold px-4 py-2 font-bayon text-2xl text-white hover:bg-tech-gold/90 sm:mt-12 sm:px-6 sm:py-3 sm:text-4xl"
+            className="mt-8 rounded-md bg-gradient-to-r from-[#004466] to-[#0099BB] px-4 py-2 font-bayon text-2xl text-white hover:shadow-lg hover:shadow-[#0099BB]/50 sm:mt-12 sm:px-6 sm:py-3 sm:text-4xl"
           >
             ENTER NOW
           </button>
@@ -90,7 +90,7 @@ function Home() {
         </div>
         <button
           onClick={() => scrollToSection("games-section", -80)}
-          className="my-8 flex h-8 w-8 items-center justify-center rounded-full bg-tech-gold hover:bg-tech-gold/90 sm:mb-12 sm:h-10 sm:w-10"
+          className="my-8 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-[#004466] to-[#0099BB] hover:shadow-lg hover:shadow-[#0099BB]/50 sm:mb-12 sm:h-10 sm:w-10"
           aria-label="Scroll to games section"
         >
           <svg
@@ -126,13 +126,13 @@ function Home() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <button className="my-8 rounded-lg bg-tech-gold px-4 py-2 font-bayon text-2xl text-white hover:bg-tech-gold/90 sm:px-6 sm:py-3 sm:text-4xl">
+            <button className="my-8 rounded-lg bg-gradient-to-r from-[#004466] to-[#0099BB] px-4 py-2 font-bayon text-2xl text-white hover:shadow-lg hover:shadow-[#0099BB]/50 sm:px-6 sm:py-3 sm:text-4xl">
               VIEW DETAILS
             </button>
           </a>
           <button
             onClick={() => scrollToSection("sponsors-section", -80)}
-            className="my-8 flex h-8 w-8 items-center justify-center rounded-full bg-tech-gold hover:bg-tech-gold/90 sm:mb-12 sm:h-10 sm:w-10"
+            className="my-8 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-[#004466] to-[#0099BB] hover:shadow-lg hover:shadow-[#0099BB]/50 sm:mb-12 sm:h-10 sm:w-10"
             aria-label="Scroll to sponsors section"
           >
             <svg
@@ -163,7 +163,7 @@ function Home() {
             "Fueling the next generation of gamers. Play hard, compete harder.
             Proud sponsors of Georgia Tech Esports" - Alienware
           </p> */}
-          <p className="m-8 pt-12 text-center font-bayon text-2xl text-[#b3a369]">
+          <p className="m-8 pt-12 text-center font-bayon text-2xl text-blue-accent">
             "Level up your gear with Alienware" - Proud sponsors of GameFest
           </p>
         </div>

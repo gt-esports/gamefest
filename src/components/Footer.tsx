@@ -51,7 +51,7 @@ function Footer() {
               height={72}
               className="mr-2"
             />
-            <span className="text-tech-gold">GA TECH</span>{" "}
+            <span className="text-blue-bright">GA TECH</span>{" "}
             <span className="ml-2 text-white">ESPORTS</span>
           </Link>
         </div>
@@ -78,7 +78,7 @@ function Footer() {
             href="https://gatechesports.com/ourteam"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block bg-tech-gold text-black font-bold px-4 py-2 rounded-lg hover:bg-yellow-500 transition"
+            className="inline-block bg-gradient-to-r from-[#004466] to-[#0099BB] text-white font-bold px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-[#0099BB]/50 transition"
 
           >
             Meet Our Team
@@ -99,9 +99,9 @@ function Footer() {
                   to={link.link}
                   className={`${
                     location.pathname === link.link
-                      ? "text-bright-buzz"
+                      ? "text-blue-bright"
                       : "text-white"
-                  } underline-offset-4 duration-500 hover:text-bright-buzz`}
+                  } underline-offset-4 duration-500 hover:text-blue-bright`}
                 >
                   {link.name}
                 </NavLink>

@@ -91,7 +91,7 @@ const themes: Record<ThemeCategory, ThemeOption[]> = {
       name: "Hover Glow",
       image: "",
       classname:
-        "border-4 border-tech-gold hover:shadow-lg hover:shadow-tech-gold transition-shadow duration-300",
+        "border-4 border-[#004466] hover:shadow-lg hover:shadow-[#00D4FF]/30 transition-shadow duration-300",
     },
   ],
 
@@ -378,7 +378,7 @@ const PlayerCard = () => {
                         : "border-2 text-gray-200 hover:bg-gray-700"
                     } 
                     ${
-                      activeBadge === index ? "border-b-4 border-tech-gold" : ""
+                      activeBadge === index ? "border-b-4 border-blue-bright" : ""
                     } duration-1000 ease-in-out`}
                     title="Add or edit badge"
                   >
@@ -395,7 +395,7 @@ const PlayerCard = () => {
               <div className="h-full w-full rounded-2xl border border-white/20 bg-opacity-50 bg-gradient-to-br from-[#2e1d1d] to-[#101c3b] p-4 shadow-lg">
                 <button
                   onClick={() => setPanelOpen(false)}
-                  className="ml-auto flex h-[20px] w-[20px] items-center justify-center rounded-xl bg-tech-gold p-4 font-bold text-white"
+                  className="ml-auto flex h-[20px] w-[20px] items-center justify-center rounded-xl bg-gradient-to-r from-[#004466] to-[#0099BB] p-4 font-bold text-white"
                 >
                   <div>
                     <FaMinus />
@@ -412,8 +412,8 @@ const PlayerCard = () => {
                           setTab(key as ThemeCategory);
                         }
                       }}
-                      className={`rounded px-4 py-2 font-bayon text-lg text-white 
-                        ${tab === key ? "bg-tech-gold" : "bg-transparent"} 
+                      className={`rounded px-4 py-2 font-bayon text-lg text-white
+                        ${tab === key ? "bg-gradient-to-r from-[#004466] to-[#0099BB]" : "bg-transparent"} 
                         ${
                           key === "badges" && activeBadge === null
                             ? "cursor-not-allowed text-gray-500"
@@ -474,7 +474,7 @@ const PlayerCard = () => {
               <div className="mt-32 flex rounded-2xl border-t border-white/20 bg-opacity-50 bg-gradient-to-br from-[#2e1d1d] to-[#101c3b] p-4 shadow-lg">
                 <button
                   onClick={() => setPanelOpen(true)}
-                  className="ml-auto flex h-[20px] w-[20px] items-center justify-center rounded-xl bg-tech-gold p-4 text-white"
+                  className="ml-auto flex h-[20px] w-[20px] items-center justify-center rounded-xl bg-gradient-to-r from-[#004466] to-[#0099BB] p-4 text-white"
                 >
                   <div>
                     <FaPlus />
