@@ -38,7 +38,7 @@ const FAQ = () => {
           >
             <button
               onClick={() => handleToggle(index)}
-              className="w-full flex justify-between items-center text-left font-semibold text-white hover:text-blue-400 focus:outline-none"
+              className="w-full flex justify-between items-center text-left font-semibold text-white hover:text-blue-bright focus:outline-none"
             >
               <span className="text-lg tracking-wider">{faq.question}</span>
               <FaChevronDown

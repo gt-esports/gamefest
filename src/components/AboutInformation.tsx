@@ -9,7 +9,7 @@ function AboutInformation() {
       <div className="flex w-full flex-col items-center gap-8 lg:flex-row">
         {/* Text Section */}
         <div className="ml-20 flex flex-1 flex-col items-start">
-          <h3 className="mb-4 font-bayon text-3xl tracking-wide text-tech-gold">
+          <h3 className="mb-4 font-bayon text-3xl tracking-wide text-blue-bright">
             WHAT IS GAMEFEST 2025?
           </h3>
           <p className="max-w-2xl pt-3 font-quicksand text-lg text-white">
@@ -56,7 +56,7 @@ function AboutInformation() {
       {/* Our Mission */}
       <div className="flex w-full flex-row items-start">
         <div className="ml-20 flex-1">
-          <h3 className="mb-4 font-bayon text-3xl tracking-wide text-tech-gold">
+          <h3 className="mb-4 font-bayon text-3xl tracking-wide text-blue-bright">
             OUR MISSION
           </h3>
           <p className="max-w-2xl pt-3 font-quicksand text-lg text-white">

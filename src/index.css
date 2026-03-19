@@ -6,7 +6,7 @@
   user-select: none;
 }
 html {
-  background-color: #010116;
+  background-color: #0a0f1a;
   width: 100%;
   height: 100%;
 }
@@ -33,18 +33,20 @@ body {
   .learn-more-btn {
     width: 140px;
     height: 45px;
-    background-color: #b3a369;
-    color: white;
+    background: linear-gradient(135deg, #00BBF3 0%, #00D4FF 100%);
+    color: #0a0f1a;
     font-weight: bold;
     border-radius: 5px;
     font-size: 16px;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s, transform 0.3s;
+    box-shadow: 0 0 15px rgba(0, 180, 255, 0.4), 0 0 30px rgba(0, 212, 255, 0.2);
+    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    border: 1px solid rgba(0, 212, 255, 0.3);
   }
 
   .learn-more-btn:hover {
-    background-color: #d2b48c;
+    background: linear-gradient(135deg, #00D4FF 0%, #00BBF3 100%);
     transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(0, 180, 255, 0.6), 0 0 50px rgba(0, 212, 255, 0.3);
   }
 
   .discord-btn {
@@ -134,8 +136,8 @@ body {
   left: 0;
   background: linear-gradient(
     to right,
-    rgba(12, 12, 12, 1),
-    rgba(12, 12, 12, 0)
+    rgba(10, 15, 26, 1),
+    rgba(10, 15, 26, 0)
   );
 }
 
@@ -143,8 +145,8 @@ body {
   right: 0;
   background: linear-gradient(
     to left,
-    rgba(12, 12, 12, 1),
-    rgba(12, 12, 12, 0)
+    rgba(10, 15, 26, 1),
+    rgba(10, 15, 26, 0)
   );
 }
 

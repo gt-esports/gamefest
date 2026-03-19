@@ -28,12 +28,12 @@ const scrollbarStyles = `
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(212, 179, 86, 0.5);  /* tech-gold with opacity */
+    background: rgba(0, 102, 187, 0.4);  /* darker neon-blue with opacity */
     border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(212, 179, 86, 0.8);
+    background: rgba(0, 153, 187, 0.6);
   }
 `;
 

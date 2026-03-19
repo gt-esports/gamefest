@@ -136,7 +136,7 @@ const Team = () => {
           >
             <button
               onClick={() => handleToggle(index)}
-              className="flex w-full items-center justify-between text-left font-semibold text-white hover:text-tech-gold focus:outline-none"
+              className="flex w-full items-center justify-between text-left font-semibold text-white hover:text-blue-bright focus:outline-none"
             >
               <span className="text-lg tracking-wider">{tab.name}</span>
               <FaChevronDown
@@ -157,7 +157,7 @@ const Team = () => {
                     {tab.players.map((playerName) => (
                       <div
                         key={playerName}
-                        className="mb-2 flex items-start justify-between rounded-lg border border-b-4 border-tech-gold/50 px-4 py-2 text-center hover:border-tech-gold"
+                        className="mb-2 flex items-start justify-between rounded-lg border border-b-4 border-blue-medium px-4 py-2 text-center hover:border-blue-bright"
                       >
                         <span className="text-lg font-bold">{playerName}</span>
                       </div>
@@ -173,7 +173,7 @@ const Team = () => {
                   {tab.players.map((playerName) => (
                     <div
                       key={playerName}
-                      className="mb-2 flex items-start justify-between rounded-lg border border-b-4 border-tech-gold/50 px-4 py-2 text-center hover:border-tech-gold"
+                      className="mb-2 flex items-start justify-between rounded-lg border border-b-4 border-blue-medium px-4 py-2 text-center hover:border-blue-bright"
                     >
                       <span className="text-lg font-bold">{playerName}</span>
                     </div>

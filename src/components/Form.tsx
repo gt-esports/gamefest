@@ -24,10 +24,10 @@ const Form: React.FC = () => {
 
   return (
     <div className="bg-transparent flex items-center justify-center">
-      <div className="max-w-4xl w-full bg-gradient-to-b from-navy-blue to-tech-gold p-10 rounded-lg shadow-md flex flex-col sm:flex-row relative gap-8">
+      <div className="max-w-4xl w-full bg-gradient-to-r from-[#0a0f1a] to-[#004466] p-10 rounded-lg shadow-md flex flex-col sm:flex-row relative gap-8">
         {/* Form Section */}
         <div className="flex-1 pr-10 font-quicksand">
-          <h2 className="text-2xl font-bold text-tech-gold mb-8">GET IN TOUCH</h2>
+          <h2 className="text-2xl font-bold text-white mb-8">GET IN TOUCH</h2>
           <form onSubmit={handleSubmit} className="space-y-4 text-black">
             <input
               type="text"
@@ -55,7 +55,7 @@ const Form: React.FC = () => {
             />
             <button
               type="submit"
-              className="w-full py-3 bg-bright-buzz text-white rounded-md hover:bg-yellow-700 focus:outline-none"
+              className="w-full py-3 bg-gradient-to-r from-[#004466] to-[#0099BB] text-white rounded-md hover:shadow-lg hover:shadow-[#0099BB]/50 focus:outline-none font-bold"
             >
               Submit
             </button>

@@ -24,7 +24,7 @@ export default function Info() {
             <div className='flex  flex-col lg:flex-row lg:space-x-8'>
                 {/* Overview */}
                 <div className="items-start flex flex-col lg:w-1/2">
-                    <h3 className="text-3xl font-bayon tracking-wide text-tech-gold my-4">
+                    <h3 className="text-3xl font-bayon tracking-wide text-blue-bright my-4">
                         OVERVIEW
                     </h3>
                     <p className="pt-3 text-white font-quicksand text-lg text-left">
@@ -33,7 +33,7 @@ export default function Info() {
                     </p>
                 </div>
                 <div className="items-start flex flex-col lg:w-1/2">
-                    <h3 className="text-3xl font-bayon tracking-wide text-tech-gold my-4">
+                    <h3 className="text-3xl font-bayon tracking-wide text-blue-bright my-4">
                             EVENT FORMAT
                     </h3>
                     <p className="pt-3 text-white font-quicksand text-lg text-left">
@@ -55,7 +55,7 @@ export default function Info() {
                     </div>
                   
           <div className="col-span-2 lg:col-span-1">
-            <div className="mb-4 rounded-lg bg-gray-800/80 p-4 text-2xl text-tech-gold">
+            <div className="mb-4 rounded-lg bg-gray-800/80 p-4 text-2xl text-blue-accent">
               <h3 className="font-bayon">HEADLINERS</h3>
               <p className="text-sm">Events for everyone to compete in</p>
             </div>
@@ -65,7 +65,7 @@ export default function Info() {
             </div>
           </div>
           <div className="col-span-2 lg:col-span-1">
-            <div className="mb-4 rounded-lg bg-gray-800/80 p-4 text-2xl text-tech-gold">
+            <div className="mb-4 rounded-lg bg-gray-800/80 p-4 text-2xl text-blue-accent">
               <h3 className="font-bayon">PC GAMES</h3>
               <p className="text-sm">Events split into Block A and Block B</p>
             </div>
@@ -81,7 +81,7 @@ export default function Info() {
             </div>
           </div>
           <div className="col-span-2 lg:col-span-1">
-            <div className="mb-4 rounded-lg bg-gray-800/80 p-4 text-2xl text-tech-gold">
+            <div className="mb-4 rounded-lg bg-gray-800/80 p-4 text-2xl text-blue-accent">
               <h3 className="font-bayon">CONSOLE GAMES</h3>
               <p className="text-sm">Tournaments running throughout the day</p>
             </div>
@@ -91,7 +91,7 @@ export default function Info() {
             </div>
           </div>
           <div className="col-span-2 lg:col-span-1">
-            <div className="mb-4 rounded-lg bg-gray-800/80 p-4 text-2xl text-tech-gold">
+            <div className="mb-4 rounded-lg bg-gray-800/80 p-4 text-2xl text-blue-accent">
               <h3 className="font-bayon">CHALLENGER</h3>
               <p className="text-sm">Booths running all day</p>
             </div>
@@ -115,7 +115,7 @@ export default function Info() {
         />
 
         <div className="m-4 flex flex-col items-start pl-20 lg:w-1/2">
-          <h3 className="mb-4 font-bayon text-3xl tracking-wide text-tech-gold">
+          <h3 className="mb-4 font-bayon text-3xl tracking-wide text-blue-bright">
             EVENT DETAILS
           </h3>
           <p className="text-left font-quicksand text-lg text-white">
@@ -153,7 +153,7 @@ export default function Info() {
             </a>
           </p>
 
-          <h3 className="my-4 pt-8 font-bayon text-3xl tracking-wide text-tech-gold">
+          <h3 className="my-4 pt-8 font-bayon text-3xl tracking-wide text-blue-bright">
             STREAMS
           </h3>
           <p className="text-left font-quicksand text-lg text-white">
