@@ -14,6 +14,7 @@ import Sponsor from "./pages/Sponsor.tsx";
 import About from "./pages/About.tsx";
 import AdminPanel from "./pages/AdminPanel.tsx";
 import UserProfilePage from "./pages/UserProfilePage.tsx";
+import AuthCallback from "./pages/AuthCallback";
 // import PlayerCard from "./pages/PlayerCard.tsx";
 // import { Root } from "postcss";
 
@@ -54,6 +55,7 @@ function App() {
             <Route path="/sponsor" element={<Sponsor />} />
             <Route path="/information" element={<Information />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="*" element={<Navigate to="/home" />} />
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/profile" element={<UserProfilePage />} />

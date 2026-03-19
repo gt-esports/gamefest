@@ -115,9 +115,7 @@ function Navbar() {
         >
 
           <SignedOut>
-            <SignInButton mode="modal">
-              <button>LOGIN</button>
-            </SignInButton>
+            <SignInButton mode="modal">LOGIN</SignInButton>
           </SignedOut>
 
           <SignedIn>
@@ -173,9 +171,7 @@ function Navbar() {
         {/* LOGIN button */}
         <li className="text-white duration-500 hover:text-blue-bright">
           <SignedOut>
-            <SignInButton mode="modal">
-              <button>LOGIN</button>
-            </SignInButton>
+            <SignInButton mode="modal">LOGIN</SignInButton>
           </SignedOut>
 
           <SignedIn>
