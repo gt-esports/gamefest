@@ -65,14 +65,15 @@ function Navbar() {
 
   const links = [
     { name: "HOME", link: "/home" },
-    { name: "INFORMATION", link: "/information" },
-    { name: "BRACKETS", link: "/brackets" },
+    //{ name: "INFORMATION", link: "/information" },
+    //{ name: "BRACKETS", link: "/brackets" },
     // { name: "MATCHES", link: "/matches" },
-    { name: "TEAMS", link: "/teams" },
+    //{ name: "TEAMS", link: "/teams" },
     // { name: "SCHOOLS", link: "/schools" },
-    { name: "LEADERBOARD", link: "/leaderboard" },
-    { name: "SPONSORS", link: "/sponsor" },
+    //{ name: "LEADERBOARD", link: "/leaderboard" },
+    //{ name: "SPONSORS", link: "/sponsor" },
     { name: "ABOUT", link: "/about" },
+    { name: "REGISTER", link: "/register" },
   ];
 
   return (
