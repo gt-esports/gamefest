@@ -65,14 +65,15 @@ function Navbar() {
 
   const links = [
     { name: "HOME", link: "/home" },
-    { name: "INFORMATION", link: "/information" },
-    { name: "BRACKETS", link: "/brackets" },
+    //{ name: "INFORMATION", link: "/information" },
+    //{ name: "BRACKETS", link: "/brackets" },
     // { name: "MATCHES", link: "/matches" },
-    { name: "TEAMS", link: "/teams" },
+    //{ name: "TEAMS", link: "/teams" },
     // { name: "SCHOOLS", link: "/schools" },
-    { name: "LEADERBOARD", link: "/leaderboard" },
-    { name: "SPONSORS", link: "/sponsor" },
+    //{ name: "LEADERBOARD", link: "/leaderboard" },
+    //{ name: "SPONSORS", link: "/sponsor" },
     { name: "ABOUT", link: "/about" },
+    { name: "REGISTER", link: "/register" },
   ];
 
   return (
@@ -115,9 +116,7 @@ function Navbar() {
         >
 
           <SignedOut>
-            <SignInButton mode="modal">
-              <button>LOGIN</button>
-            </SignInButton>
+            <SignInButton mode="modal">LOGIN</SignInButton>
           </SignedOut>
 
           <SignedIn>
@@ -173,9 +172,7 @@ function Navbar() {
         {/* LOGIN button */}
         <li className="text-white duration-500 hover:text-blue-bright">
           <SignedOut>
-            <SignInButton mode="modal">
-              <button>LOGIN</button>
-            </SignInButton>
+            <SignInButton mode="modal">LOGIN</SignInButton>
           </SignedOut>
 
           <SignedIn>

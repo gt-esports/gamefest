@@ -10,35 +10,32 @@ function AboutInformation() {
         {/* Text Section */}
         <div className="ml-20 flex flex-1 flex-col items-start">
           <h3 className="mb-4 font-bayon text-3xl tracking-wide text-blue-bright">
-            WHAT IS GAMEFEST 2025?
+            WHAT IS GAMEFEST 2026?
           </h3>
           <p className="max-w-2xl pt-3 font-quicksand text-lg text-white">
-            GameFest 2025 is Georgia Tech's legendary LAN-party turned ultimate
-            esports showdown—back better than ever! Picture 100 players duking
-            it out in marathon Minecraft Speedrun and Fortnite Solo LAN events,
-            cashing in points toward the Director's Cup Grand Prize: a custom
-            gaming PC you design yourself. 🎮🏆
+            <strong>GameFest returns April 25th and 26th at the Campus Recreation Center!</strong>{" "}
+            Georgia Tech's biggest in-person gaming event is almost here—two full days of
+            brackets, LAN play, and competition. Don't forget to register for individual
+            events on our{" "}
+            <a
+              href="https://www.start.gg/tournament/gamefest-2026/details"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#0099BB] underline hover:text-white"
+            >
+              start.gg page
+            </a>
+            .
           </p>
-          <ul className="mt-4 list-inside list-disc space-y-2 font-quicksand text-white">
+          <ul className="mt-4 space-y-3 font-quicksand text-white">
             <li>
-              🕹️ <strong>100-person Minecraft Speedrun</strong> to kick off the
-              day
+              🗓️ <strong>Saturday 4/25:</strong> Rocket League, Marvel Rivals, League of Legends, and more
             </li>
             <li>
-              🎯 <strong>Fortnite Solo LAN</strong> at midday—be quick on your
-              build!
+              🗓️ <strong>Sunday 4/26:</strong> Rainbow Six Siege, Apex Legends, Overwatch, Valorant, and more
             </li>
             <li>
-              💥 <strong>Console bracket brawls:</strong> Mario Kart, Smash,
-              Street Fighter, Guilty Gear…
-            </li>
-            <li>
-              🖥️ <strong>PC bracket tournaments:</strong> Valorant, Rocket
-              League, CS2, Overwatch, League of Legends, Rainbow 6 Siege, Apex,
-              and Marvel Rivals!
-            </li>
-            <li>
-              🎟️ Every BYOC player is auto-entered for an AMD Radeon RX6750XT!
+              🏆 <strong>Grand prizing</strong> reveal coming soon—stay tuned to find out how <strong>you</strong> can win big!
             </li>
           </ul>
         </div>
@@ -60,7 +57,7 @@ function AboutInformation() {
             OUR MISSION
           </h3>
           <p className="max-w-2xl pt-3 font-quicksand text-lg text-white">
-            At GameFest 2025, we're all about community, competition, and
+            At GameFest 2026, we're all about community, competition, and
             celebration. We believe in:
           </p>
           <ul className="mt-4 list-inside list-disc space-y-2 font-quicksand text-white">
