@@ -81,17 +81,17 @@ function Navbar() {
       className={`fixed z-10 flex h-[--navbar-height] w-full items-center justify-between border-0 bg-transparent transition-all duration-500 md:flex md:px-20 md:py-6 ${isScrolled ? "bg-opacity-70 backdrop-blur-md" : "bg-transparent"
         }`}
     >
-      <div className="font-bayon text-4xl tracking-wide">
+      <div className="font-zuume font-bold italic text-4xl tracking-wide">
         <Link to="/" className="flex items-center">
           <img
             src={Logo}
             alt="GT Esports Logo"
-            width={68}
-            height={68}
-            className="mr-2"
+            width={84}
+            height={84}
+            className="mr-3"
           />
-          <span className="text-2xl text-blue-bright md:text-4xl">GAME</span>{" "}
-          <span className="ml-1 text-2xl text-white md:ml-2 md:text-4xl">
+          <span className="text-3xl text-blue-bright md:text-5xl">GAME</span>{" "}
+          <span className="ml-1 text-3xl text-white md:ml-2 md:text-5xl">
             FEST
           </span>
         </Link>

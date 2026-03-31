@@ -104,7 +104,7 @@ function Home() {
           />
           <button
             onClick={() => navigate("/register")}
-            className="mt-8 rounded-md bg-gradient-to-r from-[#004466] to-[#0099BB] px-4 py-2 font-bayon text-2xl text-white hover:shadow-lg hover:shadow-[#0099BB]/50 sm:mt-12 sm:px-6 sm:py-3 sm:text-4xl"
+            className="mt-8 rounded-md bg-gradient-to-r from-[#004466] to-[#0099BB] px-8 py-4 font-bayon text-4xl text-white hover:shadow-lg hover:shadow-[#0099BB]/50 sm:mt-12 sm:px-12 sm:py-5 sm:text-6xl"
           >
             REGISTER NOW
           </button>
