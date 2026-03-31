@@ -1,10 +1,4 @@
-import Carousel from "../components/Carousel";
 import Footer from "../components/Footer";
-import { sponsors } from "../data/sponsors";
-import MCHEADLINER from "../assets/mc-headliner.jpg";
-import FORTNITEHEADLINER from "../assets/fortnite-headliner.jpg";
-import PCBLOCK1 from "../assets/pc_block_1.jpg";
-import PCBLOCK2 from "../assets/pc_block_2.jpg";
 import GameFestTitle from "../assets/GameFestTitle.png";
 import iconRL from "../assets/game-icons/rl.png";
 import iconRivals from "../assets/game-icons/rivals.png";
@@ -54,40 +48,6 @@ function DayCard({ day, date, games }: { day: string; date: string; games: GameE
 }
 
 function Home() {
-  const scrollToSection = (sectionId: string, offset: number = 0) => {
-    const targetElement = document.getElementById(sectionId);
-    if (!targetElement) return;
-
-    const startPosition = window.scrollY;
-    const targetPosition =
-      targetElement.getBoundingClientRect().top + window.scrollY + offset;
-    const distance = targetPosition - startPosition;
-    const duration = 1500;
-    let start: number | null = null;
-
-    function animation(currentTime: number) {
-      if (start === null) start = currentTime;
-      const timeElapsed = currentTime - start;
-      const progress = Math.min(timeElapsed / duration, 1);
-
-      const easeInOutCubic = (progress: number) => {
-        return progress < 0.5
-          ? 4 * progress * progress * progress
-          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-      };
-
-      window.scrollTo({
-        top: startPosition + distance * easeInOutCubic(progress),
-      });
-
-      if (timeElapsed < duration) {
-        requestAnimationFrame(animation);
-      }
-    }
-
-    requestAnimationFrame(animation);
-  };
-
   const navigate = useNavigate();
   const { isLoaded, user } = useUser();
   console.log('home:', { isLoaded, user });

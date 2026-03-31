@@ -1,12 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
-import type { TableInsert, TableRow, TableUpdate } from "../types/database.types";
+import type {
+  TableInsert,
+  TableRow,
+  TableUpdate,
+} from "../types/database.types";
 import type {
   CreatePlayerInput,
   Player,
   TeamAssignment,
   UpdatePlayerInput,
 } from "../schemas/PlayerSchema";
+
+export type { Player, TeamAssignment, CreatePlayerInput, UpdatePlayerInput };
 
 type AssignmentJoinRow = {
   player_id: string | null;
@@ -44,7 +50,10 @@ const unwrapRelation = <T>(value: T | T[] | null | undefined): T | null => {
 const normalizeStringArray = (value: string[] | null | undefined): string[] =>
   Array.isArray(value) ? value : [];
 
-const toPlayer = (row: TableRow<"players">, teamAssignments: TeamAssignment[]): Player => ({
+const toPlayer = (
+  row: TableRow<"players">,
+  teamAssignments: TeamAssignment[]
+): Player => ({
   id: row.id,
   name: row.name,
   points: row.points ?? 0,
@@ -53,10 +62,12 @@ const toPlayer = (row: TableRow<"players">, teamAssignments: TeamAssignment[]): 
   teamAssignments,
   raffleWinner: row.raffle_winner ?? false,
   rafflePlacing: row.raffle_placing ?? 0,
-  userId: row.user_id || null, 
+  userId: row.user_id || null,
 });
 
-const mapPlayerAssignments = (assignments: AssignmentJoinRow[]): Map<string, TeamAssignment[]> => {
+const mapPlayerAssignments = (
+  assignments: AssignmentJoinRow[]
+): Map<string, TeamAssignment[]> => {
   const byPlayer = new Map<string, TeamAssignment[]>();
 
   for (const assignment of assignments) {
@@ -82,7 +93,9 @@ export const fetchPlayers = async ({
 } = {}): Promise<Player[]> => {
   let playerQuery = supabase
     .from("players")
-    .select("id, name, points, participation, log, raffle_winner, raffle_placing, user_id")
+    .select(
+      "id, name, points, participation, log, raffle_winner, raffle_placing, user_id"
+    )
     .order("name", { ascending: true });
 
   if (userId) {
@@ -104,9 +117,16 @@ export const fetchPlayers = async ({
 
   if (assignmentError) throw assignmentError;
 
-  const assignmentsByPlayer = mapPlayerAssignments((assignments || []) as AssignmentJoinRow[]);
+  const assignmentsByPlayer = mapPlayerAssignments(
+    (assignments || []) as AssignmentJoinRow[]
+  );
 
-  return players.map((player) => toPlayer(player as TableRow<"players">, assignmentsByPlayer.get(player.id) || []));
+  return players.map((player) =>
+    toPlayer(
+      player as TableRow<"players">,
+      assignmentsByPlayer.get(player.id) || []
+    )
+  );
 };
 
 export const getPlayerByName = async (name: string): Promise<Player | null> => {
@@ -114,7 +134,9 @@ export const getPlayerByName = async (name: string): Promise<Player | null> => {
   return players[0] || null;
 };
 
-export const getPlayerByUserId = async (userId: string): Promise<Player | null> => {
+export const getPlayerByUserId = async (
+  userId: string
+): Promise<Player | null> => {
   const players = await fetchPlayers({ userId });
   return players[0] || null;
 };
@@ -141,7 +163,10 @@ const ensureGameId = async (gameName: string): Promise<string> => {
   return inserted.id;
 };
 
-const ensureTeamId = async (gameName: string, teamName: string): Promise<string> => {
+const ensureTeamId = async (
+  gameName: string,
+  teamName: string
+): Promise<string> => {
   const gameId = await ensureGameId(gameName);
   const trimmedTeam = teamName.trim();
 
@@ -193,19 +218,26 @@ const replacePlayerAssignments = async (
 
   if (rows.length === 0) return;
 
-  const { error: insertError } = await supabase.from("team_assignments").insert(rows);
+  const { error: insertError } = await supabase
+    .from("team_assignments")
+    .insert(rows);
   if (insertError) throw insertError;
 };
 
-export const createPlayer = async (input: CreatePlayerInput): Promise<Player> => {
+export const createPlayer = async (
+  input: CreatePlayerInput
+): Promise<Player> => {
   const payload: TableInsert<"players"> = {
     name: input.name.trim(),
     points: typeof input.points === "number" ? input.points : 0,
-    participation: Array.isArray(input.participation) ? input.participation : [],
+    participation: Array.isArray(input.participation)
+      ? input.participation
+      : [],
     log: Array.isArray(input.log) ? input.log : [],
     raffle_winner: Boolean(input.raffleWinner),
-    raffle_placing: typeof input.rafflePlacing === "number" ? input.rafflePlacing : 0,
-    user_id: input.userId || null, 
+    raffle_placing:
+      typeof input.rafflePlacing === "number" ? input.rafflePlacing : 0,
+    user_id: input.userId || null,
   };
 
   const { data: inserted, error: insertError } = await supabase
@@ -237,12 +269,16 @@ export const updatePlayerByName = async (
 
   const updates: TableUpdate<"players"> = {};
 
-  if (typeof input.name === "string" && input.name.trim()) updates.name = input.name.trim();
+  if (typeof input.name === "string" && input.name.trim())
+    updates.name = input.name.trim();
   if (typeof input.points === "number") updates.points = input.points;
-  if (Array.isArray(input.participation)) updates.participation = input.participation;
+  if (Array.isArray(input.participation))
+    updates.participation = input.participation;
   if (Array.isArray(input.log)) updates.log = input.log;
-  if (typeof input.raffleWinner === "boolean") updates.raffle_winner = input.raffleWinner;
-  if (typeof input.rafflePlacing === "number") updates.raffle_placing = input.rafflePlacing;
+  if (typeof input.raffleWinner === "boolean")
+    updates.raffle_winner = input.raffleWinner;
+  if (typeof input.rafflePlacing === "number")
+    updates.raffle_placing = input.rafflePlacing;
   if (typeof input.userId === "string") updates.user_id = input.userId;
 
   if (Object.keys(updates).length > 0) {
@@ -301,7 +337,8 @@ export const usePlayers = () => {
       const rows = await fetchPlayers();
       setPlayers(rows);
     } catch (err) {
-      const nextError = err instanceof Error ? err : new Error("Failed to load players");
+      const nextError =
+        err instanceof Error ? err : new Error("Failed to load players");
       setError(nextError);
     } finally {
       setLoading(false);
@@ -368,7 +405,8 @@ export const usePlayerByName = (name: string | null | undefined) => {
       const row = await getPlayerByName(name);
       setPlayer(row);
     } catch (err) {
-      const nextError = err instanceof Error ? err : new Error("Failed to load player");
+      const nextError =
+        err instanceof Error ? err : new Error("Failed to load player");
       setError(nextError);
       setPlayer(null);
     } finally {
@@ -407,7 +445,10 @@ export const useCurrentPlayer = (userId: string | null | undefined) => {
       const row = await getPlayerByUserId(userId);
       setPlayer(row);
     } catch (err) {
-      const nextError = err instanceof Error ? err : new Error("Failed to load player for user");
+      const nextError =
+        err instanceof Error
+          ? err
+          : new Error("Failed to load player for user");
       setError(nextError);
       setPlayer(null);
     } finally {
