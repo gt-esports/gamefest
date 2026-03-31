@@ -2,9 +2,9 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
-"scripts": {
-  "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-  "build": "tsc",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
     "start": "node dist/index.js",
     "gform:run": "ts-node-dev --transpile-only src/scripts/googleFormIngest.ts"
   },
@@ -13,7 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "axios": "^1.7.7",
+    "axios": "^1.13.6",
     "dotenv": "^16.4.5",
     "express": "^5.2.1"
   },

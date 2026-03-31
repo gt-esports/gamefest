@@ -1,411 +1,155 @@
-import { ReactNode, useEffect, useMemo, useState } from "react";
-import {
-  SingleEliminationBracket,
-  SVGViewer,
-} from "@g-loot/react-tournament-brackets";
-import DropDownList from "../components/DropDownList";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import eventMap from "../assets/event_map.png";
-import { usePlayers } from "../hooks/usePlayers";
-import { useUserRoles } from "../hooks/useUserRoles";
-import { useWinners } from "../hooks/useWinners";
+import { useEffect, useState } from "react";
 
-type GameData = {
-  name: string;
-  teams: Array<{
-    name: string;
-    players: string[];
-  }>;
+type TournamentEvent = { id: string | number; name: string };
+type EventSetSlot = {
+  entrant: { name: string } | null;
+  standing: { stats: { score: { value: number | null } | null } | null } | null;
 };
+type EventSetNode = { id: string | number; slots: EventSetSlot[] };
+type EventSetsResult = { eventId: string | number; eventName: string; nodes: EventSetNode[] };
 
-function Brac() {
-  const { isAdmin } = useUserRoles();
-  const { players } = usePlayers();
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+const API_BASE = (import.meta.env.VITE_BACKEND_URL as string | undefined) ?? "";
+const TOURNAMENT_SLUG = "gamefest-spring-2021";
 
-  const initialGame = searchParams.get("game");
-  const [selectedGame, setSelectedGame] = useState<string | null>(initialGame);
-  const [winners, setWinners] = useState<Record<string, string>>({});
+async function fetchJson<T>(path: string): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`);
+  const contentType = response.headers.get("content-type") ?? "";
+  const isJson = contentType.toLowerCase().includes("application/json");
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    throw new Error(`HTTP ${response.status} ${response.statusText}${text ? `: ${text}` : ""}`);
+  }
+  if (!isJson) {
+    const text = await response.text().catch(() => "");
+    const snippet = text.slice(0, 200).replace(/\s+/g, " ").trim();
+    throw new Error(`Expected JSON but got "${contentType || "unknown"}"${snippet ? `: ${snippet}` : ""}`);
+  }
+  return (await response.json()) as T;
+}
 
-  const { winners: winnerRows, upsertWinner } = useWinners(selectedGame);
-
-  const gameData = useMemo<GameData[]>(() => {
-    const gameMap: Record<string, Record<string, string[]>> = {};
-
-    for (const player of players) {
-      for (const assignment of player.teamAssignments || []) {
-        const { game, team } = assignment;
-        if (!gameMap[game]) gameMap[game] = {};
-        if (!gameMap[game][team]) gameMap[game][team] = [];
-        gameMap[game][team].push(player.name);
-      }
-    }
-
-    return Object.entries(gameMap).map(([name, teamMap]) => ({
-      name,
-      teams: Object.entries(teamMap).map(([teamName, assignedPlayers]) => ({
-        name: teamName,
-        players: assignedPlayers,
-      })),
-    }));
-  }, [players]);
+export default function Events() {
+  const [events, setEvents] = useState<TournamentEvent[]>([]);
+  const [eventSetsResults, setEventSetsResults] = useState<EventSetsResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedEventId, setSelectedEventId] = useState<string>("");
 
   useEffect(() => {
-    const map: Record<string, string> = {};
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await fetchJson<{ events: TournamentEvent[] }>(
+          `/api/startgg/tournaments/${encodeURIComponent(TOURNAMENT_SLUG)}/events`
+        );
+        setEvents(result.events ?? []);
+        setEventSetsResults([]);
 
-    for (const entry of winnerRows) {
-      map[entry.matchId] = entry.winner;
-    }
+        const perPage = 50;
+        const page = 1;
 
-    setWinners(map);
-  }, [winnerRows]);
-
-  const saveWinner = async (matchId: string, winner: string) => {
-    if (!selectedGame) return;
-
-    await upsertWinner({
-      game: selectedGame,
-      matchId,
-      winner,
-    });
-  };
-
-  const getPlayersForTeam = (game: string, teamName: string): string[] => {
-    const selected = gameData.find((entry) => entry.name === game);
-    const team = selected?.teams.find((entry) => entry.name === teamName);
-    return team?.players || [];
-  };
-
-  const teamData = gameData.find((game) => game.name === selectedGame)?.teams || [];
-  const teamNames = teamData.map((team) => team.name);
-  const isBracketGame = Boolean(selectedGame) && teamNames.length >= 2;
-  const isBoothGame = Boolean(selectedGame) && !isBracketGame;
-
-  const generateMatches = () => {
-    type Team = { name: string };
-    type Match = {
-      id: string;
-      name: string;
-      nextMatchId: string | null;
-      tournamentRoundText: string;
-      startTime: string;
-      state: "DONE" | "SCHEDULED";
-      participants: {
-        id: string;
-        name: string;
-        isWinner: boolean | undefined;
-      }[];
-      onClick?: () => void;
-    };
-
-    const matches: Match[] = [];
-    const winnerLookup = { ...winners };
-    let idCounter = 1;
-
-    const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(teamNames.length)));
-    const paddedTeams: Team[] = [...teamNames.map((name) => ({ name }))];
-
-    while (paddedTeams.length < nextPowerOfTwo) {
-      paddedTeams.push({ name: "BYE" });
-    }
-
-    let currentRoundTeams: Team[] = paddedTeams;
-    let round = 1;
-    const matchMap: Record<number, Match[]> = {};
-
-    while (currentRoundTeams.length > 1) {
-      const roundMatches: Match[] = [];
-      const nextRoundTeams: Team[] = [];
-
-      for (let i = 0; i < currentRoundTeams.length; i += 2) {
-        const team1 = currentRoundTeams[i];
-        const team2 = currentRoundTeams[i + 1] || { name: "BYE" };
-        const id = `${idCounter++}`;
-
-        const isBye = team2.name === "BYE";
-        if (isBye && !winnerLookup[id]) {
-          winnerLookup[id] = team1.name;
+        // Simple batching to avoid slamming the API.
+        const batchSize = 4;
+        for (let i = 0; i < (result.events ?? []).length; i += batchSize) {
+          const batch = (result.events ?? []).slice(i, i + batchSize);
+          const batchResults = await Promise.all(
+            batch.map((event) =>
+              fetchJson<EventSetsResult>(
+                `/api/startgg/events/${encodeURIComponent(String(event.id))}/sets?page=${page}&perPage=${perPage}`
+              )
+            )
+          );
+          setEventSetsResults((prev) => [...prev, ...batchResults]);
         }
-
-        const winnerName = isBye ? team1.name : winnerLookup[id];
-
-        const match: Match = {
-          id,
-          name: `Match ${id}`,
-          nextMatchId: null,
-          tournamentRoundText: `Round ${round}`,
-          startTime: new Date().toISOString(),
-          state: winnerName ? "DONE" : "SCHEDULED",
-          participants: [
-            {
-              id: `${i}`,
-              name: team1.name,
-              isWinner: winnerName === team1.name,
-            },
-            {
-              id: `${i + 1}`,
-              name: team2.name,
-              isWinner: winnerName === team2.name,
-            },
-          ],
-          onClick: !isBye
-            ? () => {
-                const newWinner = winnerName === team1.name ? team2.name : team1.name;
-                setWinners((prev) => ({ ...prev, [id]: newWinner }));
-                void saveWinner(id, newWinner);
-              }
-            : undefined,
-        };
-
-        roundMatches.push(match);
-        nextRoundTeams.push({ name: winnerName || "TBD" });
-      }
-
-      matchMap[round] = roundMatches;
-      matches.push(...roundMatches);
-      currentRoundTeams = nextRoundTeams;
-      round += 1;
-    }
-
-    const roundKeys = Object.keys(matchMap).map(Number);
-
-    for (let i = 0; i < roundKeys.length - 1; i += 1) {
-      const current = matchMap[roundKeys[i]];
-      const next = matchMap[roundKeys[i + 1]];
-
-      for (let j = 0; j < current.length; j += 2) {
-        const nextMatch = next[Math.floor(j / 2)];
-        if (nextMatch && current[j] && current[j + 1]) {
-          current[j].nextMatchId = nextMatch.id;
-          current[j + 1].nextMatchId = nextMatch.id;
-        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      } finally {
+        setLoading(false);
       }
     }
 
-    return matches;
-  };
-
-  const matches = useMemo(() => {
-    if (!teamData.length) return [];
-    return generateMatches();
-  }, [teamData, winners, selectedGame]);
-
-  const placements = useMemo(() => {
-    const finalMatch = matches[matches.length - 1];
-    if (!finalMatch) return [];
-
-    const winner = winners[finalMatch.id];
-    if (!winner) return [];
-
-    const secondPlace = finalMatch.participants.find((participant) => participant.name !== winner)
-      ?.name;
-
-    return [
-      { team: winner, place: 1 },
-      ...(secondPlace ? [{ team: secondPlace, place: 2 }] : []),
-    ];
-  }, [matches, winners]);
-
-  const allGameKeys = gameData.map((game) => game.name);
+    load();
+  }, []);
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center">
-      <div
-        style={{
-          width: "min(90%, 1400px)",
-          backgroundColor: "rgba(60, 60, 78, 0.6)",
-          padding: "40px",
-          borderRadius: "15px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        <div className="mb-4 text-lg text-white">
-          {selectedGame ? `Bracket for ${selectedGame}` : "Select a game to view bracket"}
-        </div>
+    <div>
+      <h2>Events</h2>
+      {loading && <p>Loading events + sets...</p>}
+      {error && (
+        <p style={{ color: "crimson" }}>
+          Error: {error} {API_BASE ? `(VITE_BACKEND_URL=${API_BASE})` : "(same-origin /api)"}
+        </p>
+      )}
 
-        <DropDownList
-          items={allGameKeys}
-          onSelect={(item) => {
-            setSelectedGame(item);
-            setWinners({});
-            navigate(`/brackets?game=${item}`);
-          }}
-        />
+      <div style={{ display: "flex", gap: 8, alignItems: "center", margin: "10px 0" }}>
+        <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+          <span style={{ fontSize: 12, opacity: 0.8 }}>Event</span>
+          <select
+            value={selectedEventId}
+            onChange={(e) => setSelectedEventId(e.target.value)}
+            style={{
+              padding: 8,
+              border: "1px solid #ccc",
+              borderRadius: 6,
+              background: "#fff",
+              color: "#000",
+            }}
+          >
+            <option value="" disabled>
+              Select an event...
+            </option>
+            {events.map((event) => (
+              <option key={String(event.id)} value={String(event.id)}>
+                {event.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
-        {isBoothGame && (
-          <div className="mt-4 flex flex-col items-center gap-4 text-white">
-            <p>This is a booth game - please find the booth.</p>
-            <img
-              src={eventMap}
-              alt="Event Booth Map"
-              className="h-[520px] max-w-full rounded-lg"
-            />
-          </div>
+      {selectedEventId &&
+        !error &&
+        !eventSetsResults.some((r) => String(r.eventId) === selectedEventId) && (
+          <p style={{ opacity: 0.8 }}>Loading sets for selected event...</p>
         )}
 
-        {isBracketGame && matches.length > 0 && (
-          <div className="mt-6 w-full">
-            <SingleEliminationBracket
-              matches={matches}
-              options={{
-                style: {
-                  roundHeader: {
-                    backgroundColor: "#0F172A",
-                    fontColor: "#F8FAFC",
-                  },
-                  connectorColor: "#60a5fa",
-                  connectorColorHighlight: "#3b82f6",
-                },
-              }}
-              svgWrapper={({ children, ...props }: { children: ReactNode }) => {
-                const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+      {(() => {
+        if (!selectedEventId) return null;
 
-                return (
-                  <div
-                    style={{
-                      width: "100%",
-                      overflowX: "auto",
-                      padding: "0 1rem",
-                      display: "flex",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <div style={{ minWidth: isMobile ? "1000px" : "1200px" }}>
-                      <SVGViewer
-                        background="transparent"
-                        SVGBackground="transparent"
-                        width={isMobile ? 1000 : 1200}
-                        height={isMobile ? 700 : 800}
-                        {...props}
-                      >
-                        {children}
-                      </SVGViewer>
-                    </div>
-                  </div>
-                );
-              }}
-              matchComponent={({
-                match,
-                topParty,
-                bottomParty,
-                topWon,
-                bottomWon,
-                teamNameFallback,
-              }: any) => {
-                const handleNavigate = () => {
-                  const team1 = match.participants[0]?.name;
-                  const team2 = match.participants[1]?.name;
+        const data = eventSetsResults.find((r) => String(r.eventId) === selectedEventId);
+        if (!data) return null;
 
-                  if (
-                    !team1 ||
-                    !team2 ||
-                    team1 === "BYE" ||
-                    team2 === "BYE" ||
-                    team1 === "TBD" ||
-                    team2 === "TBD"
-                  ) {
-                    return;
-                  }
+        return (
+          <div style={{ border: "1px solid #ddd", padding: 10, margin: "10px 0" }}>
+            <h3 style={{ margin: 0 }}>
+              {data.eventName} <span style={{ opacity: 0.7 }}>({String(data.eventId)})</span>
+            </h3>
 
-                  const players1 = getPlayersForTeam(selectedGame!, team1);
-                  const players2 = getPlayersForTeam(selectedGame!, team2);
-
-                  navigate(`/match/${match.id}`, {
-                    state: {
-                      round: match.tournamentRoundText,
-                      game: selectedGame,
-                      team1,
-                      team2,
-                      players1,
-                      players2,
-                    },
-                  });
-                };
-
-                const handleToggle = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-                  event.stopPropagation();
-                  if (isAdmin) {
-                    match.onClick?.();
-                  }
-                };
-
-                return (
-                  <div
-                    onClick={handleNavigate}
-                    style={{
-                      position: "relative",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      border: "1px solid #ccc",
-                      borderRadius: "10px",
-                      backgroundColor: "rgba(232, 233, 244, 0.73)",
-                      padding: "10px 14px",
-                      margin: "4px 0",
-                      boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
-                      cursor: "pointer",
-                      transition: "transform 0.15s ease, box-shadow 0.2s ease",
-                    }}
-                  >
-                    <div
-                      style={{
-                        position: "absolute",
-                        right: "18px",
-                        top: "8px",
-                        bottom: "8px",
-                        width: "2px",
-                        backgroundColor: "#3b82f6",
-                        borderRadius: "1px",
-                        opacity: 0.5,
-                      }}
-                    />
-
-                    {[topParty, bottomParty].map((party: any, idx: number) => {
-                      const isWinner = idx === 0 ? topWon : bottomWon;
-                      const isBye = party.name === "BYE";
-
+            {data.nodes.length === 0 ? (
+              <p style={{ marginTop: 8, opacity: 0.8 }}>No sets found.</p>
+            ) : (
+              <div style={{ marginTop: 10 }}>
+                {data.nodes.map((setNode, idx) => (
+                  <div key={String(setNode.id ?? idx)} style={{ padding: "6px 0", borderTop: "1px solid #eee" }}>
+                    <div style={{ fontSize: 12, opacity: 0.7 }}>Set {idx + 1}</div>
+                    {setNode.slots.map((slot, slotIdx) => {
+                      const name = slot.entrant?.name ?? "TBD";
+                      const score = slot.standing?.stats?.score?.value;
                       return (
-                        <div
-                          key={party.id}
-                          onClick={handleToggle}
-                          style={{
-                            fontWeight: isWinner ? "700" : "400",
-                            color: isWinner ? "#1e3a8a" : "#333",
-                            opacity: isBye ? 0.5 : 1,
-                            fontSize: "0.9rem",
-                            padding: "4px 0",
-                            borderLeft: isWinner ? "4px solid #1e3a8a" : "4px solid transparent",
-                            paddingLeft: "8px",
-                            cursor: "pointer",
-                          }}
-                        >
-                          {party.name || teamNameFallback}
+                        <div key={slotIdx} style={{ display: "flex", gap: 8 }}>
+                          <div style={{ minWidth: 18, opacity: 0.7 }}>#{slotIdx + 1}</div>
+                          <div style={{ flex: 1 }}>{name}</div>
+                          <div style={{ width: 40, textAlign: "right" }}>{score ?? "-"}</div>
                         </div>
                       );
                     })}
                   </div>
-                );
-              }}
-            />
-          </div>
-        )}
-
-        {placements.length > 0 && (
-          <div className="mt-6 text-center">
-            <h2 className="mb-2 text-lg font-semibold text-white">Final Placements</h2>
-            {placements.map((placement) => (
-              <div key={placement.team} className="text-white">
-                {placement.place}. {placement.team}
+                ))}
               </div>
-            ))}
+            )}
           </div>
-        )}
-      </div>
+        );
+      })()}
     </div>
   );
 }
-
-export default Brac;
