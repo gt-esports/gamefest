@@ -5,8 +5,6 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 
 import Logo from "../assets/gt-esports-logo1.png";
 import {
-  SignedOut,
-  SignInButton,
   SignedIn,
   UserButton,
   useUser,
@@ -109,25 +107,19 @@ function Navbar() {
         className={`fixed right-0 top-0 z-[1] h-screen w-2/5 bg-black/90 pt-14 transition-all duration-300 ease-in mlg:hidden ${open ? "translate-x-0 px-4" : "translate-x-full opacity-0"
           }`}
       >
-        {/* LOGIN button */}
-        <li
-          className={`text-md w-full py-4 text-right text-white transition-all duration-700 ease-in-out hover:text-blue-bright ${open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-            }`}
-        >
-
-          <SignedOut>
-            <SignInButton mode="modal">LOGIN</SignInButton>
-          </SignedOut>
-
-          <SignedIn>
+        <SignedIn>
+          <li
+            className={`text-md w-full py-4 text-right text-white transition-all duration-700 ease-in-out hover:text-blue-bright ${open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+              }`}
+          >
             <div className="mt-2">
               <UserButton
                 userProfileMode="navigation"
                 userProfileUrl="/profile"
               />
             </div>
-          </SignedIn>
-        </li>
+          </li>
+        </SignedIn>
         {links.map((link, index) => (
           <li
             key={link.name}
@@ -169,21 +161,16 @@ function Navbar() {
             </NavLink>
           </li>
         ))}
-        {/* LOGIN button */}
-        <li className="text-white duration-500 hover:text-blue-bright">
-          <SignedOut>
-            <SignInButton mode="modal">LOGIN</SignInButton>
-          </SignedOut>
-
-          <SignedIn>
+        <SignedIn>
+          <li className="text-white duration-500 hover:text-blue-bright">
             <div className="mt-2">
               <UserButton
                 userProfileMode="navigation"
                 userProfileUrl="/profile"
               />
             </div>
-          </SignedIn>
-        </li>
+          </li>
+        </SignedIn>
       </ul>
     </div>
   );
