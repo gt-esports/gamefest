@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const FROM_EMAIL = "GT Esports <noreply@gtesports.co>";
+const FROM_EMAIL = "GT Esports <noreply@gamefest.gatechesports.com";
 
 interface RegistrationEmailPayload {
   first_name: string;
@@ -75,12 +75,12 @@ serve(async (req) => {
             
             <p>We'll send more details about the event soon. In the meantime, feel free to join our Discord for updates!</p>
             
-            <a href="https://discord.gg/gtesports" style="display: inline-block; background: #5865F2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0;">Join Discord</a>
+            <a href="https://discord.gg/3XaxWXESqV" style="display: inline-block; background: #5865F2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0;">Join Discord</a>
           </div>
           
           <div style="border-top: 1px solid #eee; padding-top: 20px; text-align: center; color: #666; font-size: 14px;">
             <p>GT Esports - Georgia Tech's Premier Gaming Organization</p>
-            <p style="margin: 0;">Questions? Reach out at gtesports@gmail.com</p>
+            <p style="margin: 0;">Questions? Reach out at georgiatechesports@gmail.com</p>
           </div>
         </body>
       </html>
