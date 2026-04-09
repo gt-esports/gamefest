@@ -115,6 +115,7 @@ export interface Database {
           school: string | null;
           heard_from: string | null;
           created_at: string;
+          checked_in: boolean;
         };
         Insert: {
           id?: string;
@@ -126,6 +127,7 @@ export interface Database {
           school?: string | null;
           heard_from?: string | null;
           created_at?: string;
+          checked_in?: boolean;
         };
         Update: {
           id?: string;
@@ -137,6 +139,7 @@ export interface Database {
           school?: string | null;
           heard_from?: string | null;
           created_at?: string;
+          checked_in?: boolean;
         };
         Relationships: [
           {
