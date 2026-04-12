@@ -52,7 +52,7 @@ function Footer() {
               className="mr-2"
             />
             <span className="text-blue-bright">GA TECH</span>{" "}
-            <span className="ml-2 text-white">ESPORTS</span>
+            <span className="ml-2 text-white">ESPORTS ORGANIZATION</span>
           </Link>
         </div>
 

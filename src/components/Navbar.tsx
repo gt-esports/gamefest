@@ -5,8 +5,6 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 
 import Logo from "../assets/gt-esports-logo1.png";
 import {
-  SignedOut,
-  SignInButton,
   SignedIn,
   UserButton,
   useUser,
@@ -81,17 +79,17 @@ function Navbar() {
       className={`fixed z-10 flex h-[--navbar-height] w-full items-center justify-between border-0 bg-transparent transition-all duration-500 md:flex md:px-20 md:py-6 ${isScrolled ? "bg-opacity-70 backdrop-blur-md" : "bg-transparent"
         }`}
     >
-      <div className="font-bayon text-4xl tracking-wide">
+      <div className="font-zuume font-bold italic text-4xl tracking-wide">
         <Link to="/" className="flex items-center">
           <img
             src={Logo}
             alt="GT Esports Logo"
-            width={68}
-            height={68}
-            className="mr-2"
+            width={84}
+            height={84}
+            className="mr-3"
           />
-          <span className="text-2xl text-blue-bright md:text-4xl">GAME</span>{" "}
-          <span className="ml-1 text-2xl text-white md:ml-2 md:text-4xl">
+          <span className="text-3xl text-blue-bright md:text-5xl">GAME</span>{" "}
+          <span className="ml-1 text-3xl text-white md:ml-2 md:text-5xl">
             FEST
           </span>
         </Link>
@@ -109,25 +107,19 @@ function Navbar() {
         className={`fixed right-0 top-0 z-[1] h-screen w-2/5 bg-black/90 pt-14 transition-all duration-300 ease-in mlg:hidden ${open ? "translate-x-0 px-4" : "translate-x-full opacity-0"
           }`}
       >
-        {/* LOGIN button */}
-        <li
-          className={`text-md w-full py-4 text-right text-white transition-all duration-700 ease-in-out hover:text-blue-bright ${open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-            }`}
-        >
-
-          <SignedOut>
-            <SignInButton mode="modal">LOGIN</SignInButton>
-          </SignedOut>
-
-          <SignedIn>
+        <SignedIn>
+          <li
+            className={`text-md w-full py-4 text-right text-white transition-all duration-700 ease-in-out hover:text-blue-bright ${open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+              }`}
+          >
             <div className="mt-2">
               <UserButton
                 userProfileMode="navigation"
                 userProfileUrl="/profile"
               />
             </div>
-          </SignedIn>
-        </li>
+          </li>
+        </SignedIn>
         {links.map((link, index) => (
           <li
             key={link.name}
@@ -169,21 +161,16 @@ function Navbar() {
             </NavLink>
           </li>
         ))}
-        {/* LOGIN button */}
-        <li className="text-white duration-500 hover:text-blue-bright">
-          <SignedOut>
-            <SignInButton mode="modal">LOGIN</SignInButton>
-          </SignedOut>
-
-          <SignedIn>
+        <SignedIn>
+          <li className="text-white duration-500 hover:text-blue-bright">
             <div className="mt-2">
               <UserButton
                 userProfileMode="navigation"
                 userProfileUrl="/profile"
               />
             </div>
-          </SignedIn>
-        </li>
+          </li>
+        </SignedIn>
       </ul>
     </div>
   );

@@ -1,10 +1,4 @@
-import Carousel from "../components/Carousel";
 import Footer from "../components/Footer";
-import { sponsors } from "../data/sponsors";
-import MCHEADLINER from "../assets/mc-headliner.jpg";
-import FORTNITEHEADLINER from "../assets/fortnite-headliner.jpg";
-import PCBLOCK1 from "../assets/pc_block_1.jpg";
-import PCBLOCK2 from "../assets/pc_block_2.jpg";
 import GameFestTitle from "../assets/GameFestTitle.png";
 import iconRL from "../assets/game-icons/rl.png";
 import iconRivals from "../assets/game-icons/rivals.png";
@@ -13,6 +7,7 @@ import iconR6 from "../assets/game-icons/r6s.png";
 import iconApex from "../assets/game-icons/apex.png";
 import iconOW2 from "../assets/game-icons/ow2.png";
 import iconVal from "../assets/game-icons/val.png";
+import iconCS from "../assets/game-icons/cs.png";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../hooks/useAuth";
 
@@ -22,6 +17,7 @@ const SAT_GAMES: GameEntry[] = [
   { icon: iconRL,     name: "Rocket League" },
   { icon: iconRivals, name: "Marvel Rivals" },
   { icon: iconLoL,    name: "League of Legends" },
+  { icon: iconCS,    name: "Counter-Strike 2" },
 ];
 
 const SUN_GAMES: GameEntry[] = [
@@ -54,40 +50,6 @@ function DayCard({ day, date, games }: { day: string; date: string; games: GameE
 }
 
 function Home() {
-  const scrollToSection = (sectionId: string, offset: number = 0) => {
-    const targetElement = document.getElementById(sectionId);
-    if (!targetElement) return;
-
-    const startPosition = window.scrollY;
-    const targetPosition =
-      targetElement.getBoundingClientRect().top + window.scrollY + offset;
-    const distance = targetPosition - startPosition;
-    const duration = 1500;
-    let start: number | null = null;
-
-    function animation(currentTime: number) {
-      if (start === null) start = currentTime;
-      const timeElapsed = currentTime - start;
-      const progress = Math.min(timeElapsed / duration, 1);
-
-      const easeInOutCubic = (progress: number) => {
-        return progress < 0.5
-          ? 4 * progress * progress * progress
-          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-      };
-
-      window.scrollTo({
-        top: startPosition + distance * easeInOutCubic(progress),
-      });
-
-      if (timeElapsed < duration) {
-        requestAnimationFrame(animation);
-      }
-    }
-
-    requestAnimationFrame(animation);
-  };
-
   const navigate = useNavigate();
   const { isLoaded, user } = useUser();
   console.log('home:', { isLoaded, user });
@@ -104,7 +66,7 @@ function Home() {
           />
           <button
             onClick={() => navigate("/register")}
-            className="mt-8 rounded-md bg-gradient-to-r from-[#004466] to-[#0099BB] px-4 py-2 font-bayon text-2xl text-white hover:shadow-lg hover:shadow-[#0099BB]/50 sm:mt-12 sm:px-6 sm:py-3 sm:text-4xl"
+            className="mt-8 rounded-md bg-gradient-to-r from-[#004466] to-[#0099BB] px-8 py-4 font-bayon text-4xl text-white hover:shadow-lg hover:shadow-[#0099BB]/50 sm:mt-12 sm:px-12 sm:py-5 sm:text-6xl"
           >
             REGISTER NOW
           </button>

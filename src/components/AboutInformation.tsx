@@ -1,4 +1,3 @@
-import logoImage from "../assets/gtesportsimage.png";
 import FAQ from "./FAQ";
 import Form from "./Form";
 
@@ -38,15 +37,6 @@ function AboutInformation() {
               🏆 <strong>Grand prizing</strong> reveal coming soon—stay tuned to find out how <strong>you</strong> can win big!
             </li>
           </ul>
-        </div>
-
-        {/* Image Section */}
-        <div className="flex-shrink-0 rounded-lg">
-          <img
-            src={logoImage}
-            alt="Holding Image"
-            className="max-w-md rounded-lg object-contain backdrop-blur-2xl"
-          />
         </div>
       </div>
 

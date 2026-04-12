@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
-import type { CreateRegistrationInput, Registration } from "../schemas/RegistrationSchema";
+import type {
+  CreateRegistrationInput,
+  Registration,
+} from "../schemas/RegistrationSchema";
 
-export const fetchMyRegistration = async (userId: string): Promise<Registration | null> => {
+export const fetchMyRegistration = async (
+  userId: string
+): Promise<Registration | null> => {
   const { data, error } = await supabase
     .from("registrations")
     .select("*")
@@ -10,7 +15,7 @@ export const fetchMyRegistration = async (userId: string): Promise<Registration 
     .maybeSingle();
 
   if (error) throw error;
-  return data;
+  return data as Registration | null;
 };
 
 export const createRegistration = async (
@@ -32,7 +37,7 @@ export const createRegistration = async (
     .single();
 
   if (error) throw error;
-  return data;
+  return data as Registration;
 };
 
 export const useRegistration = (userId: string | null) => {
@@ -53,7 +58,9 @@ export const useRegistration = (userId: string | null) => {
       const data = await fetchMyRegistration(userId);
       setRegistration(data);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error("Failed to load registration"));
+      setError(
+        err instanceof Error ? err : new Error("Failed to load registration")
+      );
     } finally {
       setLoading(false);
     }

@@ -13,6 +13,7 @@ module.exports = {
         quicksand: ["Quicksand", "sans-serif"],
         bayon: ["Bayon", "sans-serif"],
         barlow: ["Barlow", "sans-serif"],
+        zuume: ["Zuume", "sans-serif"],
       },
       colors: {
         "blue-bright": "#00D4FF",

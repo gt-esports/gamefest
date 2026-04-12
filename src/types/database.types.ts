@@ -86,9 +86,9 @@ export interface Database {
         };
         Update: {
           id?: string;
-          log?: string[] | null;
+          log?: string[];
           name?: string;
-          participation?: string[] | null;
+          participation?: string[];
           points?: number | null;
           raffle_placing?: number | null;
           raffle_winner?: boolean | null;
@@ -101,7 +101,51 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "users";
             referencedColumns: ["id"];
-          },
+          }
+        ];
+      };
+      registrations: {
+        Row: {
+          id: string;
+          user_id: string;
+          first_name: string;
+          last_name: string;
+          email: string;
+          admission_type: string;
+          school: string | null;
+          heard_from: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          first_name: string;
+          last_name: string;
+          email: string;
+          admission_type: string;
+          school?: string | null;
+          heard_from?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          first_name?: string;
+          last_name?: string;
+          email?: string;
+          admission_type?: string;
+          school?: string | null;
+          heard_from?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "registrations_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
         ];
       };
       staff: {
@@ -116,9 +160,9 @@ export interface Database {
           name: string;
         };
         Update: {
-            assignment?: string | null;
-            id?: string;
-            name?: string;
+          assignment?: string | null;
+          id?: string;
+          name?: string;
         };
         Relationships: [];
       };
@@ -170,7 +214,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "teams";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       teams: {
@@ -196,7 +240,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "games";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       winners: {
@@ -257,6 +301,9 @@ export interface Database {
 
 export type TableName = keyof Database["public"]["Tables"];
 
-export type TableRow<T extends TableName> = Database["public"]["Tables"][T]["Row"];
-export type TableInsert<T extends TableName> = Database["public"]["Tables"][T]["Insert"];
-export type TableUpdate<T extends TableName> = Database["public"]["Tables"][T]["Update"];
+export type TableRow<T extends TableName> =
+  Database["public"]["Tables"][T]["Row"];
+export type TableInsert<T extends TableName> =
+  Database["public"]["Tables"][T]["Insert"];
+export type TableUpdate<T extends TableName> =
+  Database["public"]["Tables"][T]["Update"];
