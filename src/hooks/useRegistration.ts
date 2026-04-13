@@ -32,6 +32,7 @@ export const createRegistration = async (
       admission_type: input.admission_type,
       school: input.school?.trim() || null,
       heard_from: input.heard_from?.trim() || null,
+      checked_in: input.checked_in ?? false,
     })
     .select("*")
     .single();
@@ -40,15 +41,33 @@ export const createRegistration = async (
   return data as Registration;
 };
 
+export const checkInRegistration = async (
+  userId: string
+): Promise<Registration> => {
+  const { data, error } = await supabase
+    .from("registrations")
+    .update({ checked_in: true })
+    .eq("user_id", userId)
+    .select("*")
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) throw new Error("Registration not found");
+  return data as Registration;
+};
+
 export const useRegistration = (userId: string | null) => {
   const [registration, setRegistration] = useState<Registration | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [checkingIn, setCheckingIn] = useState(false);
+  const [checkInError, setCheckInError] = useState<Error | null>(null);
 
   const refresh = useCallback(async () => {
     if (!userId) {
       setRegistration(null);
       setLoading(false);
+      setCheckInError(null);
       return;
     }
 
@@ -80,5 +99,35 @@ export const useRegistration = (userId: string | null) => {
     [userId, refresh]
   );
 
-  return { registration, loading, error, refresh, register };
+  const checkIn = useCallback(async () => {
+    if (!userId) throw new Error("Must be signed in to check in");
+
+    setCheckingIn(true);
+    setCheckInError(null);
+
+    try {
+      const reg = await checkInRegistration(userId);
+      setRegistration(reg);
+      await refresh();
+      return reg;
+    } catch (err) {
+      const nextError =
+        err instanceof Error ? err : new Error("Failed to check in");
+      setCheckInError(nextError);
+      throw nextError;
+    } finally {
+      setCheckingIn(false);
+    }
+  }, [userId, refresh]);
+
+  return {
+    registration,
+    loading,
+    error,
+    refresh,
+    register,
+    checkIn,
+    checkingIn,
+    checkInError,
+  };
 };

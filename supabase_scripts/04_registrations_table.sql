@@ -9,6 +9,7 @@ create table if not exists public.registrations (
   school text,
   heard_from text,
   created_at timestamptz default now(),
+  checked_in boolean default false,
   unique (user_id)
 );
 

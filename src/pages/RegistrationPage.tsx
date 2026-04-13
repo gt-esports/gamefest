@@ -12,7 +12,9 @@ const labelClass = "mb-1 block text-sm text-gray-300";
 
 const RegistrationPage = () => {
   const { isLoaded, user } = useUser();
-  const { registration, loading, register } = useRegistration(user?.id ?? null);
+  const { registration, loading, register, checkIn, checkingIn, checkInError } = useRegistration(
+    user?.id ?? null
+  );
   const navigate = useNavigate();
 
   const [form, setForm] = useState<CreateRegistrationInput>({
@@ -44,6 +46,14 @@ const RegistrationPage = () => {
       setSubmitError(err instanceof Error ? err.message : "Registration failed. Please try again.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleCheckIn = async () => {
+    try {
+      await checkIn();
+    } catch {
+      // Error state is handled by the hook.
     }
   };
 
@@ -82,6 +92,27 @@ const RegistrationPage = () => {
                 {registration.school && <Row label="School" value={registration.school} />}
                 {registration.heard_from && <Row label="Heard From" value={registration.heard_from} />}
               </div>
+              {registration.checked_in ? (
+                <p className="mt-6 rounded-lg border border-[#0099BB]/40 bg-[#0099BB]/10 px-4 py-3 text-sm text-[#7dd3f0]">
+                  <span className="font-semibold text-white">You&apos;re checked in!</span> Welcome to Gamefest!
+                </p>
+              ) : (
+                <div className="mt-6">
+                  <button
+                    type="button"
+                    onClick={() => void handleCheckIn()}
+                    disabled={checkingIn}
+                    className="w-full rounded bg-gradient-to-r from-[#004466] to-[#0099BB] py-3 font-bayon text-lg text-white hover:shadow-lg hover:shadow-[#0099BB]/50 disabled:opacity-50"
+                  >
+                    {checkingIn ? "CHECKING IN..." : "CHECK IN"}
+                  </button>
+                  {checkInError && (
+                    <p className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400">
+                      {checkInError.message}
+                    </p>
+                  )}
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => navigate("/profile")}
