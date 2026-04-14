@@ -7,7 +7,6 @@ import iconR6 from "../assets/game-icons/r6s.png";
 import iconApex from "../assets/game-icons/apex.png";
 import iconOW2 from "../assets/game-icons/ow2.png";
 import iconVal from "../assets/game-icons/val.png";
-import iconCS from "../assets/game-icons/cs.png";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../hooks/useAuth";
 
@@ -17,7 +16,6 @@ const SAT_GAMES: GameEntry[] = [
   { icon: iconRL,     name: "Rocket League" },
   { icon: iconRivals, name: "Marvel Rivals" },
   { icon: iconLoL,    name: "League of Legends" },
-  { icon: iconCS,    name: "Counter-Strike 2" },
 ];
 
 const SUN_GAMES: GameEntry[] = [
