@@ -24,7 +24,7 @@ function AuthCallback() {
         }
 
         setStatus("Signed in. Redirecting...");
-        navigate("/register", { replace: true });
+        navigate("/profile", { replace: true });
         return;
       }
 
@@ -32,7 +32,7 @@ function AuthCallback() {
       const { data, error } = await supabase.auth.getSession();
       if (!error && data.session) {
         setStatus("Signed in. Redirecting...");
-        navigate("/register", { replace: true });
+        navigate("/profile", { replace: true });
         return;
       }
 
