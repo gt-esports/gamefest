@@ -1,15 +1,16 @@
+// Staff is derived from user_roles (role='staff' or 'admin') joined with users.
+// A "staff member" is a user who holds a staff role, with an optional assignment.
 export type StaffMember = {
-    id: string;
+    userId: string;
     name: string;
     assignment: string | null;
 };
 
 export type CreateStaffMemberInput = {
-    name: string;
+    userId: string;
     assignment?: string | null;
 };
 
 export type UpdateStaffMemberInput = {
-    name?: string;
     assignment?: string | null;
 };

@@ -3,8 +3,11 @@ export type TeamAssignment = {
     team: string;
 };
 
+// `name` is a derived display name from the linked user (display_name || username).
+// Players are uniquely identified by their linked `userId`.
 export type Player = {
     id: string;
+    userId: string;
     name: string;
     points: number;
     participation: string[];
@@ -12,27 +15,23 @@ export type Player = {
     teamAssignments: TeamAssignment[];
     raffleWinner: boolean;
     rafflePlacing: number;
-    userId: string | null;
 };
 
 export type CreatePlayerInput = {
-    name: string;
+    userId: string;
     points?: number;
     participation?: string[];
     log?: string[];
     raffleWinner?: boolean;
     rafflePlacing?: number;
     teamAssignments?: TeamAssignment[];
-    userId?: string;
 };
 
 export type UpdatePlayerInput = {
-    name?: string;
     points?: number;
     participation?: string[];
     log?: string[];
     raffleWinner?: boolean;
     rafflePlacing?: number;
     teamAssignments?: TeamAssignment[];
-    userId?: string;
 };

@@ -3,7 +3,7 @@ import type { Player } from "../../../hooks/usePlayers";
 
 type SelectionChipsProps = {
   selected: Player[];
-  onToggle: (name: string) => void;
+  onToggle: (id: string) => void;
   onClear: () => void;
 };
 
@@ -29,7 +29,7 @@ const SelectionChips: React.FC<SelectionChipsProps> = ({ selected, onToggle, onC
           <span className="font-medium">{p.name}</span>
           <span className="tabular-nums text-blue-bright/90">{p.points}</span>
           <button
-            onClick={() => onToggle(p.name)}
+            onClick={() => onToggle(p.id)}
             className="ml-1 text-blue-bright/60 hover:text-red-300"
             aria-label={`Unselect ${p.name}`}
           >

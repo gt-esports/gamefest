@@ -6,19 +6,19 @@ export type SortMode = "points" | "name";
 type RosterRailProps = {
   players: Player[];
   totalCount: number;
-  selectedNames: Set<string>;
+  selectedIds: Set<string>;
   query: string;
   onQueryChange: (q: string) => void;
   sortMode: SortMode;
   onSortChange: (m: SortMode) => void;
-  onToggleSelect: (name: string) => void;
+  onToggleSelect: (id: string) => void;
   onAddClick: () => void;
 };
 
 const RosterRail: React.FC<RosterRailProps> = ({
   players,
   totalCount,
-  selectedNames,
+  selectedIds,
   query,
   onQueryChange,
   sortMode,
@@ -75,11 +75,11 @@ const RosterRail: React.FC<RosterRailProps> = ({
         <div className="p-6 text-center text-sm text-gray-400">No players match</div>
       )}
       {players.map((p, idx) => {
-        const selected = selectedNames.has(p.name);
+        const selected = selectedIds.has(p.id);
         return (
           <button
             key={p.id}
-            onClick={() => onToggleSelect(p.name)}
+            onClick={() => onToggleSelect(p.id)}
             className={`group flex w-full items-center gap-3 border-l-2 px-4 py-2.5 text-left transition-colors ${
               selected
                 ? "border-blue-bright bg-blue-bright/10"

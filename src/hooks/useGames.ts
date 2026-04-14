@@ -2,16 +2,16 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
 import type { Game, GameTeam, UpdateGameInput } from "../schemas/GamesSchema";
 
+type PlayerUserJoin = {
+  users:
+    | { username: string | null; display_name: string | null }
+    | Array<{ username: string | null; display_name: string | null }>
+    | null;
+};
+
 type TeamAssignmentJoinRow = {
   team_id: string | null;
-  players:
-    | {
-        name: string | null;
-      }
-    | Array<{
-        name: string | null;
-      }>
-    | null;
+  players: PlayerUserJoin | PlayerUserJoin[] | null;
 };
 
 const unwrapRelation = <T>(value: T | T[] | null | undefined): T | null => {
@@ -47,21 +47,23 @@ export const fetchGames = async (name?: string): Promise<Game[]> => {
   if (teamIds.length > 0) {
     const { data, error } = await supabase
       .from("team_assignments")
-      .select("team_id, players(name)")
+      .select("team_id, players ( users ( username, display_name ) )")
       .in("team_id", teamIds);
 
     if (error) throw error;
-    assignments = (data || []) as TeamAssignmentJoinRow[];
+    assignments = (data || []) as unknown as TeamAssignmentJoinRow[];
   }
 
   const teamPlayers = new Map<string, string[]>();
 
   for (const assignment of assignments) {
     const player = unwrapRelation(assignment.players);
-    if (!assignment.team_id || !player?.name) continue;
+    const user = unwrapRelation(player?.users);
+    const displayName = user?.display_name || user?.username || null;
+    if (!assignment.team_id || !displayName) continue;
 
     const existing = teamPlayers.get(assignment.team_id) || [];
-    existing.push(player.name);
+    existing.push(displayName);
     teamPlayers.set(assignment.team_id, existing);
   }
 

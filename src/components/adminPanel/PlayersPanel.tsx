@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useUser } from "../../hooks/useAuth";
 import { useGames } from "../../hooks/useGames";
-import { getPlayerByName, type Player, usePlayers } from "../../hooks/usePlayers";
+import { getPlayerById, type Player, usePlayers } from "../../hooks/usePlayers";
 import { useStaff } from "../../hooks/useStaff";
 import { useUserRoles } from "../../hooks/useUserRoles";
 import { ToastStack } from "./shared/ui";
@@ -17,8 +17,8 @@ const PlayersPanel: React.FC = () => {
   const {
     players,
     addPlayer,
-    patchPlayerByName,
-    removePlayerByName,
+    patchPlayerById,
+    removePlayerById,
     refresh: refreshPlayers,
   } = usePlayers();
   const { staff } = useStaff();
@@ -28,7 +28,7 @@ const PlayersPanel: React.FC = () => {
 
   const [query, setQuery] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("points");
-  const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [pointsInput, setPointsInput] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [openSection, setOpenSection] = useState<DetailSection>(null);
@@ -38,21 +38,20 @@ const PlayersPanel: React.FC = () => {
 
   /* ---------------------------- Derived state ---------------------------- */
 
-  const currentUser =
-    user?.externalAccounts?.find((a) => a.provider === "discord")?.username ||
-    user?.username ||
-    user?.firstName ||
-    "";
   const currentStaff = useMemo(
-    () => staff.find((m) => m.name === currentUser),
-    [currentUser, staff]
+    () => staff.find((m) => m.userId === user?.id),
+    [user?.id, staff]
   );
   const staffAssignment = currentStaff?.assignment || "staff";
-  const staffName = currentStaff?.name || currentUser || "Unknown Staff";
+  const staffName =
+    currentStaff?.name || user?.username || user?.fullName || "Unknown Staff";
 
   const filteredPlayers = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const base = q.length === 0 ? players : players.filter((p) => p.name.toLowerCase().includes(q));
+    const base =
+      q.length === 0
+        ? players
+        : players.filter((p) => p.name.toLowerCase().includes(q));
     const sorted = [...base];
     if (sortMode === "points") sorted.sort((a, b) => b.points - a.points);
     else sorted.sort((a, b) => a.name.localeCompare(b.name));
@@ -60,8 +59,8 @@ const PlayersPanel: React.FC = () => {
   }, [players, query, sortMode]);
 
   const selectedPlayers = useMemo(
-    () => players.filter((p) => selectedNames.has(p.name)),
-    [players, selectedNames]
+    () => players.filter((p) => selectedIds.has(p.id)),
+    [players, selectedIds]
   );
   const singleSelected = selectedPlayers.length === 1 ? selectedPlayers[0] : null;
 
@@ -77,15 +76,15 @@ const PlayersPanel: React.FC = () => {
 
   /* ------------------------------ Actions ------------------------------ */
 
-  const toggleSelect = (name: string) => {
-    setSelectedNames((prev) => {
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
-  const clearSelection = () => setSelectedNames(new Set());
+  const clearSelection = () => setSelectedIds(new Set());
 
   const awardPoints = async (amount: number) => {
     if (amount === 0 || selectedPlayers.length === 0) return;
@@ -110,7 +109,7 @@ const PlayersPanel: React.FC = () => {
     await Promise.all(
       selectedPlayers.map(async (player) => {
         try {
-          const fresh = await getPlayerByName(player.name);
+          const fresh = await getPlayerById(player.id);
           if (!fresh) return;
           if (!isAdmin && fresh.participation.includes(staffAssignment)) {
             blocked++;
@@ -119,11 +118,11 @@ const PlayersPanel: React.FC = () => {
           const newParticipation = isAdmin
             ? fresh.participation
             : Array.from(new Set([...fresh.participation, staffAssignment]));
-          await patchPlayerByName(player.name, {
+          await patchPlayerById(player.id, {
             points: fresh.points + amount,
             log: [
               ...fresh.log,
-              `${staffName}[${tag}] gave ${player.name} ${amount} points on ${timestamp}`,
+              `${staffName}[${tag}] gave ${fresh.name} ${amount} points on ${timestamp}`,
             ],
             participation: newParticipation,
           });
@@ -163,7 +162,7 @@ const PlayersPanel: React.FC = () => {
     }, 0);
     if (pointsToRevoke === 0) return;
     try {
-      await patchPlayerByName(player.name, {
+      await patchPlayerById(player.id, {
         points: player.points - pointsToRevoke,
         log: player.log.filter((log) => !logsFromRole.includes(log)),
         participation: player.participation.filter((role) => role !== staffAssignment),
@@ -184,14 +183,12 @@ const PlayersPanel: React.FC = () => {
     });
     const editor = user?.username || user?.fullName || "Unknown User";
     try {
-      const updated = await patchPlayerByName(singleSelected.name, {
-        name: editedPlayer.name,
+      const updated = await patchPlayerById(singleSelected.id, {
         points: editedPlayer.points,
         log: [...editedPlayer.log, `Player updated by ${editor} on ${timestamp}`],
         participation: editedPlayer.participation,
         teamAssignments: editedPlayer.teamAssignments,
       });
-      setSelectedNames(new Set([updated.name]));
       await refreshPlayers();
       push("success", `Saved changes to ${updated.name}`);
     } catch (err) {
@@ -201,28 +198,28 @@ const PlayersPanel: React.FC = () => {
     }
   };
 
-  const handleRemovePlayer = async (name: string) => {
-    if (!window.confirm(`Really remove ${name}? This is permanent.`)) return;
+  const handleRemovePlayer = async (player: Player) => {
+    if (!window.confirm(`Really remove ${player.name}? This is permanent.`)) return;
     try {
-      await removePlayerByName(name);
-      setSelectedNames((prev) => {
+      await removePlayerById(player.id);
+      setSelectedIds((prev) => {
         const next = new Set(prev);
-        next.delete(name);
+        next.delete(player.id);
         return next;
       });
-      push("success", `Removed ${name}`);
+      push("success", `Removed ${player.name}`);
     } catch {
       push("error", "Could not remove player.");
     }
   };
 
-  const handleRegister = async (name: string, game: string, team: string) => {
+  const handleRegister = async (userId: string, game: string, team: string) => {
     try {
       await addPlayer({
-        name,
+        userId,
         teamAssignments: game && team ? [{ game, team }] : [],
       });
-      push("success", `Registered ${name}`);
+      push("success", `Registered player`);
       setShowAddModal(false);
     } catch (err) {
       push("error", err instanceof Error ? err.message : "Failed to register player");
@@ -246,7 +243,7 @@ const PlayersPanel: React.FC = () => {
       <RosterRail
         players={filteredPlayers}
         totalCount={players.length}
-        selectedNames={selectedNames}
+        selectedIds={selectedIds}
         query={query}
         onQueryChange={setQuery}
         sortMode={sortMode}
@@ -299,7 +296,7 @@ const PlayersPanel: React.FC = () => {
             games={games}
             busySave={busySave}
             onSave={() => void saveEdits()}
-            onRemove={() => void handleRemovePlayer(singleSelected.name)}
+            onRemove={() => void handleRemovePlayer(singleSelected)}
             onRevoke={() => void revokeMyAssignment(singleSelected)}
           />
         )}

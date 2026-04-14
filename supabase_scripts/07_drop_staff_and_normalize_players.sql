@@ -13,6 +13,19 @@ where p.user_id is null
   and p.name = u.username;
 
 -- ============================================================
+-- 1b. Add FK from user_roles.user_id -> public.users(id)
+-- ============================================================
+-- Needed so PostgREST can embed public.users when selecting user_roles.
+-- public.users.id itself references auth.users(id), so this is a parallel
+-- constraint, not a replacement.
+alter table public.user_roles
+  drop constraint if exists user_roles_user_id_public_users_fkey;
+
+alter table public.user_roles
+  add constraint user_roles_user_id_public_users_fkey
+  foreign key (user_id) references public.users(id) on delete cascade;
+
+-- ============================================================
 -- 2. Add staff assignment tracking to user_roles
 -- ============================================================
 -- user_roles becomes the single source of truth for who is staff/admin.

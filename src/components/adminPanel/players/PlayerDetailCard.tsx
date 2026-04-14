@@ -48,16 +48,7 @@ const PlayerDetailCard: React.FC<PlayerDetailCardProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-blue-accent/20 bg-dark-navy/40 px-5 py-4">
         <div className="flex-1">
-          {isAdmin ? (
-            <input
-              type="text"
-              value={edited.name}
-              onChange={(e) => onEdit({ ...edited, name: e.target.value })}
-              className="w-full bg-transparent text-2xl font-bold text-white focus:outline-none"
-            />
-          ) : (
-            <h3 className="text-2xl font-bold text-white">{player.name}</h3>
-          )}
+          <h3 className="text-2xl font-bold text-white">{player.name}</h3>
           <p className="mt-1 font-bayon text-xs uppercase tracking-[0.25em] text-gray-400">
             Player Profile
           </p>

@@ -6,52 +6,81 @@ import type {
   UpdateStaffMemberInput,
 } from "../schemas/StaffSchema";
 
-export const fetchStaff = async (): Promise<StaffMember[]> => {
-  const { data, error } = await supabase
-    .from("staff")
-    .select("id, name, assignment")
-    .order("name", { ascending: true });
-
-  if (error) throw error;
-
-  return (data || []).map((row) => ({
-    id: row.id,
-    name: row.name,
-    assignment: row.assignment,
-  }));
+type StaffJoinRow = {
+  user_id: string;
+  assignment: string | null;
+  users:
+    | {
+        username: string | null;
+        display_name: string | null;
+      }
+    | Array<{
+        username: string | null;
+        display_name: string | null;
+      }>
+    | null;
 };
 
-export const createStaffMember = async (input: CreateStaffMemberInput): Promise<StaffMember> => {
-  const trimmedAssignment =
-    typeof input.assignment === "string" ? input.assignment.trim() : "";
+const unwrapRelation = <T>(value: T | T[] | null | undefined): T | null => {
+  if (!value) return null;
+  return Array.isArray(value) ? value[0] || null : value;
+};
 
-  const { data, error } = await supabase
-    .from("staff")
-    .insert({
-      name: input.name.trim(),
-      assignment: trimmedAssignment ? trimmedAssignment : null,
-    })
-    .select("id, name, assignment")
-    .single();
-
-  if (error) throw error;
-
+const toStaff = (row: StaffJoinRow): StaffMember => {
+  const user = unwrapRelation(row.users);
   return {
-    id: data.id,
-    name: data.name,
-    assignment: data.assignment,
+    userId: row.user_id,
+    name: user?.display_name || user?.username || "Unknown",
+    assignment: row.assignment,
   };
 };
 
-export const updateStaffByName = async (
-  name: string,
+export const fetchStaff = async (): Promise<StaffMember[]> => {
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("user_id, assignment, users ( username, display_name )")
+    .eq("role", "staff");
+
+  if (error) throw error;
+
+  const rows = (data || []) as unknown as StaffJoinRow[];
+  const staff = rows.map(toStaff);
+  staff.sort((a, b) => a.name.localeCompare(b.name));
+  return staff;
+};
+
+export const createStaffMember = async (
+  input: CreateStaffMemberInput
+): Promise<StaffMember> => {
+  const trimmedAssignment =
+    typeof input.assignment === "string" ? input.assignment.trim() : "";
+
+  const { error } = await supabase.from("user_roles").insert({
+    user_id: input.userId,
+    role: "staff",
+    assignment: trimmedAssignment ? trimmedAssignment : null,
+  });
+
+  if (error) throw error;
+
+  const { data, error: readError } = await supabase
+    .from("user_roles")
+    .select("user_id, assignment, users ( username, display_name )")
+    .eq("user_id", input.userId)
+    .eq("role", "staff")
+    .maybeSingle();
+
+  if (readError) throw readError;
+  if (!data) throw new Error("Staff member not found after insert");
+
+  return toStaff(data as unknown as StaffJoinRow);
+};
+
+export const updateStaffByUserId = async (
+  userId: string,
   input: UpdateStaffMemberInput
 ): Promise<StaffMember> => {
-  const updates: { name?: string; assignment?: string | null } = {};
-
-  if (typeof input.name === "string" && input.name.trim()) {
-    updates.name = input.name.trim();
-  }
+  const updates: { assignment?: string | null } = {};
 
   if ("assignment" in input) {
     const trimmedAssignment =
@@ -59,29 +88,36 @@ export const updateStaffByName = async (
     updates.assignment = trimmedAssignment ? trimmedAssignment : null;
   }
 
-  const { data, error } = await supabase
-    .from("staff")
-    .update(updates)
-    .eq("name", name)
-    .select("id, name, assignment")
+  if (Object.keys(updates).length > 0) {
+    const { error } = await supabase
+      .from("user_roles")
+      .update(updates)
+      .eq("user_id", userId)
+      .eq("role", "staff");
+
+    if (error) throw error;
+  }
+
+  const { data, error: readError } = await supabase
+    .from("user_roles")
+    .select("user_id, assignment, users ( username, display_name )")
+    .eq("user_id", userId)
+    .eq("role", "staff")
     .maybeSingle();
 
-  if (error) throw error;
+  if (readError) throw readError;
   if (!data) throw new Error("Staff member not found");
 
-  return {
-    id: data.id,
-    name: data.name,
-    assignment: data.assignment,
-  };
+  return toStaff(data as unknown as StaffJoinRow);
 };
 
-export const deleteStaffByName = async (name: string): Promise<void> => {
+export const deleteStaffByUserId = async (userId: string): Promise<void> => {
   const { data, error } = await supabase
-    .from("staff")
+    .from("user_roles")
     .delete()
-    .eq("name", name)
-    .select("id")
+    .eq("user_id", userId)
+    .eq("role", "staff")
+    .select("user_id")
     .maybeSingle();
 
   if (error) throw error;
@@ -101,7 +137,8 @@ export const useStaff = () => {
       const rows = await fetchStaff();
       setStaff(rows);
     } catch (err) {
-      const nextError = err instanceof Error ? err : new Error("Failed to load staff");
+      const nextError =
+        err instanceof Error ? err : new Error("Failed to load staff");
       setError(nextError);
     } finally {
       setLoading(false);
@@ -121,18 +158,18 @@ export const useStaff = () => {
     [refresh]
   );
 
-  const patchStaffByName = useCallback(
-    async (name: string, input: UpdateStaffMemberInput) => {
-      const member = await updateStaffByName(name, input);
+  const patchStaffByUserId = useCallback(
+    async (userId: string, input: UpdateStaffMemberInput) => {
+      const member = await updateStaffByUserId(userId, input);
       await refresh();
       return member;
     },
     [refresh]
   );
 
-  const removeStaffByName = useCallback(
-    async (name: string) => {
-      await deleteStaffByName(name);
+  const removeStaffByUserId = useCallback(
+    async (userId: string) => {
+      await deleteStaffByUserId(userId);
       await refresh();
     },
     [refresh]
@@ -144,7 +181,7 @@ export const useStaff = () => {
     error,
     refresh,
     addStaffMember,
-    patchStaffByName,
-    removeStaffByName,
+    patchStaffByUserId,
+    removeStaffByUserId,
   };
 };

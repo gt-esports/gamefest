@@ -73,32 +73,29 @@ export interface Database {
         Row: {
           id: string;
           log: string[] | null;
-          name: string;
           participation: string[] | null;
           points: number | null;
           raffle_placing: number | null;
           raffle_winner: boolean | null;
-          user_id: string | null;
+          user_id: string;
         };
         Insert: {
           id?: string;
           log?: string[] | null;
-          name: string;
           participation?: string[] | null;
           points?: number | null;
           raffle_placing?: number | null;
           raffle_winner?: boolean | null;
-          user_id?: string | null;
+          user_id: string;
         };
         Update: {
           id?: string;
           log?: string[];
-          name?: string;
           participation?: string[];
           points?: number | null;
           raffle_placing?: number | null;
           raffle_winner?: boolean | null;
-          user_id?: string | null;
+          user_id?: string;
         };
         Relationships: [
           {
@@ -154,41 +151,34 @@ export interface Database {
           }
         ];
       };
-      staff: {
-        Row: {
-          assignment: string | null;
-          id: string;
-          name: string;
-        };
-        Insert: {
-          assignment?: string | null;
-          id?: string;
-          name: string;
-        };
-        Update: {
-          assignment?: string | null;
-          id?: string;
-          name?: string;
-        };
-        Relationships: [];
-      };
       user_roles: {
         Row: {
+          assignment: string | null;
           created_at: string;
           role: string;
           user_id: string;
         };
         Insert: {
+          assignment?: string | null;
           created_at?: string;
           role: string;
           user_id: string;
         };
         Update: {
+          assignment?: string | null;
           created_at?: string;
           role?: string;
           user_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       team_assignments: {
         Row: {

@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { supabase } from "../../utils/supabaseClient";
 import { useStaff } from "../../hooks/useStaff";
 import { Field, SectionTitle, ToastStack } from "./shared/ui";
 import { useToasts } from "./shared/useToasts";
@@ -9,15 +10,31 @@ import {
   primaryBtnClass,
 } from "./shared/styles";
 
+type UserOption = {
+  id: string;
+  name: string;
+  username: string | null;
+};
+
 const StaffPanel: React.FC = () => {
-  const { staff, addStaffMember, patchStaffByName, removeStaffByName } = useStaff();
+  const {
+    staff,
+    addStaffMember,
+    patchStaffByUserId,
+    removeStaffByUserId,
+  } = useStaff();
   const { toasts, push, dismiss } = useToasts();
 
-  const [newStaff, setNewStaff] = useState("");
-  const [newAssignment, setNewAssignment] = useState("");
   const [query, setQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingBuffer, setEditingBuffer] = useState<Record<string, string>>({});
+
+  // Add-modal state
+  const [userQuery, setUserQuery] = useState("");
+  const [userResults, setUserResults] = useState<UserOption[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState("");
+  const [newAssignment, setNewAssignment] = useState("");
+  const [searching, setSearching] = useState(false);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -29,31 +46,75 @@ const StaffPanel: React.FC = () => {
     );
   }, [staff, query]);
 
+  // User search for the add-modal — excludes users already on staff.
+  useEffect(() => {
+    if (!showAddModal) return;
+    let cancelled = false;
+    const q = userQuery.trim();
+    if (q.length < 2) {
+      setUserResults([]);
+      return;
+    }
+    setSearching(true);
+    const handle = setTimeout(async () => {
+      const { data } = await supabase
+        .from("users")
+        .select("id, username, display_name")
+        .or(`username.ilike.%${q}%,display_name.ilike.%${q}%`)
+        .limit(20);
+      if (cancelled) return;
+      const claimed = new Set(staff.map((s) => s.userId));
+      setUserResults(
+        (data || [])
+          .filter((u) => !claimed.has(u.id))
+          .map((u) => ({
+            id: u.id,
+            name: u.display_name || u.username || "Unknown",
+            username: u.username,
+          }))
+      );
+      setSearching(false);
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [userQuery, showAddModal, staff]);
+
+  const resetAddModal = () => {
+    setShowAddModal(false);
+    setUserQuery("");
+    setUserResults([]);
+    setSelectedUserId("");
+    setNewAssignment("");
+  };
+
   const handleAdd = async () => {
-    if (!newStaff.trim()) {
-      push("error", "Please provide a name.");
+    if (!selectedUserId) {
+      push("error", "Please pick a user.");
       return;
     }
     try {
-      await addStaffMember({ name: newStaff.trim(), assignment: newAssignment.trim() });
-      push("success", `Added ${newStaff.trim()} to staff`);
-      setNewStaff("");
-      setNewAssignment("");
-      setShowAddModal(false);
+      await addStaffMember({
+        userId: selectedUserId,
+        assignment: newAssignment.trim(),
+      });
+      push("success", `Added to staff`);
+      resetAddModal();
     } catch (err) {
       push("error", err instanceof Error ? err.message : "Failed to add staff.");
     }
   };
 
-  const handlePatchAssignment = async (name: string) => {
-    const nextValue = editingBuffer[name];
+  const handlePatchAssignment = async (userId: string) => {
+    const nextValue = editingBuffer[userId];
     if (nextValue === undefined) return;
     try {
-      await patchStaffByName(name, { assignment: nextValue });
-      push("success", `Updated ${name}`);
+      await patchStaffByUserId(userId, { assignment: nextValue });
+      push("success", `Updated assignment`);
       setEditingBuffer((prev) => {
         const next = { ...prev };
-        delete next[name];
+        delete next[userId];
         return next;
       });
     } catch (err) {
@@ -61,10 +122,10 @@ const StaffPanel: React.FC = () => {
     }
   };
 
-  const handleRemove = async (name: string) => {
+  const handleRemove = async (userId: string, name: string) => {
     if (!window.confirm(`Remove ${name} from staff?`)) return;
     try {
-      await removeStaffByName(name);
+      await removeStaffByUserId(userId);
       push("success", `Removed ${name}`);
     } catch (err) {
       push("error", err instanceof Error ? err.message : "Failed to remove.");
@@ -107,15 +168,15 @@ const StaffPanel: React.FC = () => {
         )}
         {filtered.map((member) => {
           const currentValue =
-            editingBuffer[member.name] !== undefined
-              ? editingBuffer[member.name]
+            editingBuffer[member.userId] !== undefined
+              ? editingBuffer[member.userId]
               : member.assignment || "";
           const dirty =
-            editingBuffer[member.name] !== undefined &&
-            editingBuffer[member.name] !== (member.assignment || "");
+            editingBuffer[member.userId] !== undefined &&
+            editingBuffer[member.userId] !== (member.assignment || "");
           return (
             <div
-              key={member.id}
+              key={member.userId}
               className="grid grid-cols-[1fr,1.5fr,auto] items-center gap-4 border-b border-blue-accent/10 px-5 py-3 last:border-b-0 hover:bg-white/[0.03]"
             >
               <div className="truncate text-base font-medium text-white">{member.name}</div>
@@ -124,11 +185,14 @@ const StaffPanel: React.FC = () => {
                   value={currentValue}
                   placeholder="No assignment"
                   onChange={(e) =>
-                    setEditingBuffer((prev) => ({ ...prev, [member.name]: e.target.value }))
+                    setEditingBuffer((prev) => ({
+                      ...prev,
+                      [member.userId]: e.target.value,
+                    }))
                   }
-                  onBlur={() => dirty && void handlePatchAssignment(member.name)}
+                  onBlur={() => dirty && void handlePatchAssignment(member.userId)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") void handlePatchAssignment(member.name);
+                    if (e.key === "Enter") void handlePatchAssignment(member.userId);
                   }}
                   className={`flex-1 ${inputClass} ${dirty ? "border-amber-400/60" : ""}`}
                 />
@@ -137,7 +201,7 @@ const StaffPanel: React.FC = () => {
                 )}
               </div>
               <button
-                onClick={() => void handleRemove(member.name)}
+                onClick={() => void handleRemove(member.userId, member.name)}
                 className={dangerBtnClass}
               >
                 Remove
@@ -150,7 +214,7 @@ const StaffPanel: React.FC = () => {
       {showAddModal && (
         <div
           className="fixed inset-0 z-40 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
-          onClick={() => setShowAddModal(false)}
+          onClick={resetAddModal}
         >
           <div
             className="w-full max-w-md border border-blue-bright/40 bg-navy-blue shadow-[0_0_60px_rgba(0,212,255,0.25)]"
@@ -161,24 +225,59 @@ const StaffPanel: React.FC = () => {
                 Add Staff Member
               </h3>
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={resetAddModal}
                 className="text-gray-300 hover:text-red-300"
               >
                 ✕
               </button>
             </div>
             <div className="space-y-4 p-5">
-              <Field label="Name *">
+              <Field label="Find User *">
                 <input
                   autoFocus
                   type="text"
-                  value={newStaff}
-                  onChange={(e) => setNewStaff(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && void handleAdd()}
-                  placeholder="Discord username"
+                  value={userQuery}
+                  onChange={(e) => {
+                    setUserQuery(e.target.value);
+                    setSelectedUserId("");
+                  }}
+                  placeholder="Search by username or display name…"
                   className={inputClass}
                 />
               </Field>
+              {userQuery.trim().length >= 2 && (
+                <div className="max-h-48 overflow-y-auto border border-blue-accent/20 bg-dark-bg/40">
+                  {searching && (
+                    <div className="p-3 text-sm text-gray-400">Searching…</div>
+                  )}
+                  {!searching && userResults.length === 0 && (
+                    <div className="p-3 text-sm text-gray-400">
+                      No eligible users match.
+                    </div>
+                  )}
+                  {!searching &&
+                    userResults.map((u) => {
+                      const active = u.id === selectedUserId;
+                      return (
+                        <button
+                          key={u.id}
+                          type="button"
+                          onClick={() => setSelectedUserId(u.id)}
+                          className={`flex w-full items-center justify-between gap-3 border-b border-blue-accent/10 px-3 py-2 text-left text-sm last:border-b-0 ${
+                            active
+                              ? "bg-blue-bright/10 text-blue-bright"
+                              : "text-gray-100 hover:bg-white/[0.04]"
+                          }`}
+                        >
+                          <span className="font-medium">{u.name}</span>
+                          {u.username && u.username !== u.name && (
+                            <span className="text-xs text-gray-400">@{u.username}</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                </div>
+              )}
               <Field label="Assignment (optional)">
                 <input
                   type="text"
@@ -190,11 +289,11 @@ const StaffPanel: React.FC = () => {
               </Field>
             </div>
             <div className="flex items-center justify-end gap-2 border-t border-blue-accent/20 bg-dark-navy/60 px-5 py-3">
-              <button onClick={() => setShowAddModal(false)} className={ghostBtnClass}>
+              <button onClick={resetAddModal} className={ghostBtnClass}>
                 Cancel
               </button>
               <button
-                disabled={!newStaff.trim()}
+                disabled={!selectedUserId}
                 onClick={() => void handleAdd()}
                 className={primaryBtnClass}
               >
