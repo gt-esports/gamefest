@@ -20,6 +20,14 @@ const FAQ = () => {
       question: "How do I join?",
       answer: "Discord links in the Games Page, link to our main Discord: https://discord.gg/gtesports, link to our Engage: https://gatech.campuslabs.com/engage/organization/esports.",
     },
+    {
+      question: "How are points distributed amongst Team Members?",
+      answer: "All of a team's members receive the same number of points based on their placement in an event. Beat out your team members for the grand prize by outperforming them in other tournaments and challenges.",
+    },
+    {
+      question: "Are there other prizes associated with the Director's Cup?",
+      answer: "While not associated with the Director's Cup, the winning teams for each of our eight headliner tournaments will receive select prizing in the form of gaming peripherals. Each member of the 1st place team will receive one of the listed prizes. The full list of prizes can be found in the #info channel."
+    }
   ];
 
   const handleToggle = (index: number) => {
