@@ -1,67 +1,65 @@
 import React, { useEffect, useState } from "react";
 import StaffPanel from "./StaffPanel";
-import PlayerCheckinPanel from "./CheckinPanel";
-import PointsPanel from "./PointsPanel";
+import PlayersPanel from "./PlayersPanel";
 import GameEditorPanel from "./GameEditorPanel";
 
 type RootAdminPanelProps = {
   isAdmin: boolean;
 };
 
+type TabKey = "players" | "staff" | "games";
+
 const RootAdminPanel: React.FC<RootAdminPanelProps> = ({ isAdmin }) => {
-  const [activeTab, setActiveTab] = useState<string>(isAdmin ? "staff" : "checkin");
+  const [activeTab, setActiveTab] = useState<TabKey>("players");
 
   useEffect(() => {
     if (!isAdmin && (activeTab === "staff" || activeTab === "games")) {
-      setActiveTab("checkin");
+      setActiveTab("players");
     }
   }, [activeTab, isAdmin]);
 
+  const tabs: { key: TabKey; label: string; adminOnly?: boolean }[] = [
+    { key: "players", label: "Players / Points" },
+    { key: "staff", label: "Staff Roster", adminOnly: true },
+    { key: "games", label: "Games & Challenges", adminOnly: true },
+  ];
+
   return (
-    <div className="w-full rounded bg-white p-6 shadow">
-      <div className="mb-4 flex space-x-4">
-        {isAdmin && (
-          <button
-            onClick={() => setActiveTab("staff")}
-            className={`btn ${
-              activeTab === "staff" ? "text-2xl font-bold text-blue-bright" : ""
-            }`}
-          >
-            Manage Staff
-          </button>
-        )}
-        <button
-          onClick={() => setActiveTab("checkin")}
-          className={`btn ${
-            activeTab === "checkin" ? "text-2xl font-bold text-blue-bright" : ""
-          }`}
-        >
-          Player Check-in & Settings
-        </button>
-        <button
-          onClick={() => setActiveTab("points")}
-          className={`btn ${
-            activeTab === "points" ? "text-2xl font-bold text-blue-bright" : ""
-          }`}
-        >
-          Tokens
-        </button>
-        {isAdmin && (
-          <button
-            onClick={() => setActiveTab("games")}
-            className={`btn ${
-              activeTab === "games" ? "text-2xl font-bold text-blue-bright" : ""
-            }`}
-          >
-            Games & Challenges
-          </button>
-        )}
+    <div className="relative overflow-hidden rounded-lg border border-blue-accent/20 bg-card-bg/60 shadow-[0_0_40px_rgba(0,153,187,0.08)] backdrop-blur">
+      {/* Tab strip */}
+      <div className="flex items-stretch border-b border-blue-accent/20 bg-navy-blue/50">
+        {tabs
+          .filter((t) => !t.adminOnly || isAdmin)
+          .map((tab) => {
+            const active = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`group relative px-6 py-4 font-bayon text-sm uppercase tracking-[0.25em] transition-colors ${
+                  active
+                    ? "text-blue-bright"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                {tab.label}
+                <span
+                  className={`absolute inset-x-3 bottom-0 h-[2px] transition-all ${
+                    active
+                      ? "bg-blue-bright shadow-[0_0_12px_rgba(0,212,255,0.9)]"
+                      : "bg-transparent group-hover:bg-white/20"
+                  }`}
+                />
+              </button>
+            );
+          })}
       </div>
 
-      {isAdmin && activeTab === "staff" && <StaffPanel />}
-      {activeTab === "checkin" && <PlayerCheckinPanel />}
-      {activeTab === "points" && <PointsPanel />}
-      {isAdmin && activeTab === "games" && <GameEditorPanel />}
+      <div className="p-6">
+        {activeTab === "players" && <PlayersPanel />}
+        {isAdmin && activeTab === "staff" && <StaffPanel />}
+        {isAdmin && activeTab === "games" && <GameEditorPanel />}
+      </div>
     </div>
   );
 };

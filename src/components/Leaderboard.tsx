@@ -125,7 +125,7 @@ const Team = () => {
                   {winner.place === "1st" ? "🥇" : winner.place === "2nd" ? "🥈" : "🥉"}
                 </div>
                 <div className="text-xl">{winner.name}</div>
-                <div className="text-md">{winner.points} Tokens</div>
+                <div className="text-md">{winner.points} Points</div>
               </div>
             ))}
           </div>
@@ -137,7 +137,7 @@ const Team = () => {
           <div className="grid grid-cols-3 gap-4 text-center font-quicksand text-lg uppercase text-white">
             <p className="py-3">Rank</p>
             <p className="py-3">Player</p>
-            <p className="py-3">Tokens</p>
+            <p className="py-3">Points</p>
           </div>
           <hr className="border-white/20" />
           {(playersLoading || winnersLoading) && (

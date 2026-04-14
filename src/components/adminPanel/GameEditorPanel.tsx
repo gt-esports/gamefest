@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import { useChallenges } from "../../hooks/useChallenges";
 import { useGames } from "../../hooks/useGames";
+import { SectionTitle, ToastStack } from "./shared/ui";
+import { useToasts } from "./shared/useToasts";
+import { dangerBtnClass, inputClass, primaryBtnClass } from "./shared/styles";
+
+type EntityKind = "game" | "challenge";
 
 const GameEditorPanel: React.FC = () => {
   const { games, loading: gamesLoading, addGame, removeGameByName } = useGames();
@@ -10,136 +15,122 @@ const GameEditorPanel: React.FC = () => {
     addChallenge,
     removeChallengeByName,
   } = useChallenges();
+  const { toasts, push, dismiss } = useToasts();
 
-  const [newGame, setNewGame] = useState("");
-  const [newChallenge, setNewChallenge] = useState("");
-  const [showGames, setShowGames] = useState(true);
-  const [showChallenges, setShowChallenges] = useState(true);
+  const [activeKind, setActiveKind] = useState<EntityKind>("game");
+  const [newValue, setNewValue] = useState("");
 
-  const handleAddGame = async () => {
-    if (!newGame.trim()) return;
-    await addGame(newGame);
-    setNewGame("");
+  const isGame = activeKind === "game";
+  const list = isGame ? games : challenges;
+  const loading = isGame ? gamesLoading : challengesLoading;
+  const kindLabel = isGame ? "Game" : "Challenge";
+
+  const handleAdd = async () => {
+    const name = newValue.trim();
+    if (!name) return;
+    try {
+      if (isGame) await addGame(name);
+      else await addChallenge({ name });
+      push("success", `Added ${kindLabel.toLowerCase()}: ${name}`);
+      setNewValue("");
+    } catch (err) {
+      push("error", err instanceof Error ? err.message : `Failed to add ${kindLabel.toLowerCase()}.`);
+    }
   };
 
-  const handleAddChallenge = async () => {
-    if (!newChallenge.trim()) return;
-    await addChallenge({ name: newChallenge });
-    setNewChallenge("");
+  const handleRemove = async (name: string) => {
+    if (!window.confirm(`Delete ${kindLabel.toLowerCase()} '${name}'?`)) return;
+    try {
+      if (isGame) await removeGameByName(name);
+      else await removeChallengeByName(name);
+      push("success", `Removed ${name}`);
+    } catch (err) {
+      push("error", err instanceof Error ? err.message : "Failed to remove.");
+    }
   };
 
   return (
     <div>
-      <div className="mb-6">
-        <button
-          onClick={() => setShowGames((prev) => !prev)}
-          className="flex items-center gap-2 text-left text-xl font-bold"
-        >
-          Manage Games
-          <span>{showGames ? "▲" : "▼"}</span>
-        </button>
+      <ToastStack toasts={toasts} onDismiss={dismiss} />
 
-        {showGames && (
-          <>
-            {gamesLoading && <p className="mb-2 mt-2 text-sm text-gray-600">Loading games...</p>}
-            <ul className="mb-4 mt-2">
-              {games.map((game) => (
-                <li key={game.name} className="mb-2">
-                  {game.name}{" "}
-                  <button
-                    className="text-sm text-red-600"
-                    onClick={() => {
-                      if (window.confirm(`Are you sure you want to delete the game '${game.name}'?`)) {
-                        void removeGameByName(game.name);
-                      }
-                    }}
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
+      <SectionTitle eyebrow="Event Content">Games & Challenges</SectionTitle>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="New Game Name"
-                value={newGame}
-                onChange={(event) => setNewGame(event.target.value)}
-                className="rounded border p-2"
-              />
-              <button
-                onClick={() => {
-                  if (newGame && window.confirm(`Add new game '${newGame}'?`)) {
-                    void handleAddGame();
-                  }
-                }}
-                className="rounded bg-green-500 p-2 text-white hover:bg-green-600"
-              >
-                Add Game
-              </button>
-            </div>
-          </>
-        )}
+      {/* Kind switcher */}
+      <div className="mb-5 inline-flex border border-blue-accent/30 bg-dark-navy/40">
+        {(
+          [
+            ["game", `Games (${games.length})`],
+            ["challenge", `Challenges (${challenges.length})`],
+          ] as const
+        ).map(([kind, label]) => (
+          <button
+            key={kind}
+            onClick={() => {
+              setActiveKind(kind);
+              setNewValue("");
+            }}
+            className={`px-5 py-2 font-bayon text-sm uppercase tracking-[0.25em] transition-colors ${
+              activeKind === kind
+                ? "bg-blue-bright/10 text-blue-bright"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
-      <div className="mb-6">
+      {/* Add row */}
+      <div className="mb-5 flex items-center gap-2 border border-blue-accent/20 bg-navy-blue/40 p-4">
+        <input
+          type="text"
+          placeholder={`New ${kindLabel.toLowerCase()} name`}
+          value={newValue}
+          onChange={(e) => setNewValue(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && void handleAdd()}
+          className={`flex-1 ${inputClass}`}
+        />
         <button
-          onClick={() => setShowChallenges((prev) => !prev)}
-          className="flex items-center gap-2 text-left text-xl font-bold"
+          disabled={!newValue.trim()}
+          onClick={() => void handleAdd()}
+          className={primaryBtnClass}
         >
-          Manage Challenges
-          <span>{showChallenges ? "▲" : "▼"}</span>
+          + Add {kindLabel}
         </button>
+      </div>
 
-        {showChallenges && (
-          <>
-            {challengesLoading && (
-              <p className="mb-2 mt-2 text-sm text-gray-600">Loading challenges...</p>
-            )}
-            <ul className="mb-4 mt-2">
-              {challenges.map((challenge) => (
-                <li key={challenge.id} className="mb-2">
-                  {challenge.name}{" "}
-                  <button
-                    className="text-sm text-red-600"
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          `Are you sure you want to delete the challenge '${challenge.name}'?`
-                        )
-                      ) {
-                        void removeChallengeByName(challenge.name);
-                      }
-                    }}
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
-
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="New Challenge Name"
-                value={newChallenge}
-                onChange={(event) => setNewChallenge(event.target.value)}
-                className="rounded border p-2"
-              />
-              <button
-                onClick={() => {
-                  if (newChallenge && window.confirm(`Add new challenge '${newChallenge}'?`)) {
-                    void handleAddChallenge();
-                  }
-                }}
-                className="rounded bg-green-500 p-2 text-white hover:bg-green-600"
-              >
-                Add Challenge
-              </button>
-            </div>
-          </>
+      {/* List */}
+      <div className="border border-blue-accent/20 bg-navy-blue/40">
+        <div className="grid grid-cols-[auto,1fr,auto] items-center gap-4 border-b border-blue-accent/20 bg-dark-navy/40 px-5 py-3 font-bayon text-xs uppercase tracking-[0.25em] text-blue-bright/80">
+          <span>#</span>
+          <span>Name</span>
+          <span>Actions</span>
+        </div>
+        {loading && (
+          <div className="p-6 text-center text-sm text-gray-400">Loading…</div>
         )}
+        {!loading && list.length === 0 && (
+          <div className="p-6 text-center text-sm text-gray-400">
+            No {kindLabel.toLowerCase()}s yet. Add one above.
+          </div>
+        )}
+        {list.map((item, idx) => (
+          <div
+            key={("id" in item && item.id) || item.name}
+            className="grid grid-cols-[auto,1fr,auto] items-center gap-4 border-b border-blue-accent/10 px-5 py-3 last:border-b-0 hover:bg-white/[0.03]"
+          >
+            <span className="w-6 font-bayon text-sm tabular-nums text-gray-500">
+              {String(idx + 1).padStart(2, "0")}
+            </span>
+            <span className="truncate text-base font-medium text-white">{item.name}</span>
+            <button
+              onClick={() => void handleRemove(item.name)}
+              className={dangerBtnClass}
+            >
+              Delete
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
