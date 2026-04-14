@@ -44,21 +44,27 @@ export interface Database {
           avatar_url: string | null;
           created_at: string;
           display_name: string | null;
+          fname: string | null;
           id: string;
+          lname: string | null;
           username: string | null;
         };
         Insert: {
           avatar_url?: string | null;
           created_at?: string;
           display_name?: string | null;
+          fname?: string | null;
           id: string;
+          lname?: string | null;
           username?: string | null;
         };
         Update: {
           avatar_url?: string | null;
           created_at?: string;
           display_name?: string | null;
+          fname?: string | null;
           id?: string;
+          lname?: string | null;
           username?: string | null;
         };
         Relationships: [];

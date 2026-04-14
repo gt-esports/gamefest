@@ -1,6 +1,7 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 // Components
 import Navbar from "./components/Navbar";
+import CompleteProfileModal from "./components/CompleteProfileModal";
 
 // Pages
 import Home from "./pages/Home";
@@ -9,6 +10,32 @@ import AdminPanel from "./pages/AdminPanel.tsx";
 import UserProfilePage from "./pages/UserProfilePage.tsx";
 import AuthCallback from "./pages/AuthCallback";
 import RegistrationPage from "./pages/RegistrationPage.tsx";
+import { useUser } from "./hooks/useAuth";
+import { useUserProfile } from "./hooks/useUserProfile";
+
+// Renders a blocking modal for any signed-in user whose fname/lname are not
+// yet set. Suppressed on /auth/callback so the callback can finish its own
+// redirect before we prompt.
+const ProfileCompletionGate = () => {
+  const { user, isLoaded } = useUser();
+  const { profile, loading, updateName } = useUserProfile(user?.id ?? null);
+  const location = useLocation();
+
+  if (!isLoaded || !user || loading || !profile) return null;
+  if (location.pathname.startsWith("/auth/callback")) return null;
+
+  const needsName = !profile.fname?.trim() || !profile.lname?.trim();
+  if (!needsName) return null;
+
+  return (
+    <CompleteProfileModal
+      profile={profile}
+      onSubmit={async (fname, lname) => {
+        await updateName(fname, lname);
+      }}
+    />
+  );
+};
 // import PlayerCard from "./pages/PlayerCard.tsx";
 // import { Root } from "postcss";
 
@@ -37,6 +64,7 @@ function App() {
       <style>{scrollbarStyles}</style>
       <div className="flex min-h-screen flex-col">
         <Navbar />
+        <ProfileCompletionGate />
         <main>
           <Routes>
             <Route path="/" element={<Navigate to="/home" />} />
