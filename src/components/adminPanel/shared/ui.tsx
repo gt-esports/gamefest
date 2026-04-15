@@ -5,8 +5,9 @@ import { labelClass } from "./styles";
 export const ToastStack: React.FC<{
   toasts: Toast[];
   onDismiss: (id: number) => void;
-}> = ({ toasts, onDismiss }) => (
-  <div className="pointer-events-none fixed bottom-6 right-6 z-50 flex flex-col gap-2">
+  className?: string;
+}> = ({ toasts, onDismiss, className }) => (
+  <div className={className ?? "pointer-events-none fixed bottom-6 right-6 z-50 flex flex-col gap-2"}>
     {toasts.map((t) => {
       const toneStyle =
         t.tone === "success"

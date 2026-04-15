@@ -10,6 +10,10 @@ type AwardCardProps = {
   pointsInput: string;
   onPointsInputChange: (v: string) => void;
   onAward: (amount: number) => void;
+  games: string[];
+  challenges: string[];
+  selectedReason: string;
+  onSelectedReasonChange: (v: string) => void;
 };
 
 const AwardCard: React.FC<AwardCardProps> = ({
@@ -19,7 +23,13 @@ const AwardCard: React.FC<AwardCardProps> = ({
   pointsInput,
   onPointsInputChange,
   onAward,
+  games,
+  challenges,
+  selectedReason,
+  onSelectedReasonChange,
 }) => {
+  const noReason = selectedReason === "";
+
   const submitCustom = (sign: 1 | -1) => {
     const v = parseInt(pointsInput, 10);
     if (!Number.isNaN(v)) onAward(sign * Math.abs(v));
@@ -37,11 +47,58 @@ const AwardCard: React.FC<AwardCardProps> = ({
           </span>
         )}
       </div>
+
+      <div className="mb-3">
+        <label className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-blue-bright/80">
+          Reason — Game / Challenge
+          <span className="font-bold text-red-400" aria-hidden="true">*</span>
+          {noReason && (
+            <span className="ml-auto font-semibold normal-case tracking-normal text-amber-400">
+              Required
+            </span>
+          )}
+        </label>
+        <p className="mb-2 text-xs text-gray-400">
+          Points can only be awarded in the context of a Game or Challenge. The
+          selection determines the allowed point amount and cap, and is recorded
+          in the player&apos;s log as your justification for this award.
+        </p>
+        <select
+          value={selectedReason}
+          onChange={(e) => onSelectedReasonChange(e.target.value)}
+          className={`w-full border bg-dark-bg/60 px-3 py-2 text-base font-semibold text-white focus:outline-none ${
+            noReason
+              ? "border-amber-400/60 focus:border-amber-400"
+              : "border-blue-accent/40 focus:border-blue-bright"
+          }`}
+        >
+          <option value="">Select a Game or Challenge…</option>
+          {games.length > 0 && (
+            <optgroup label="Games">
+              {games.map((g) => (
+                <option key={`game-${g}`} value={`Game: ${g}`}>
+                  {g}
+                </option>
+              ))}
+            </optgroup>
+          )}
+          {challenges.length > 0 && (
+            <optgroup label="Challenges">
+              {challenges.map((c) => (
+                <option key={`chal-${c}`} value={`Challenge: ${c}`}>
+                  {c}
+                </option>
+              ))}
+            </optgroup>
+          )}
+        </select>
+      </div>
+
       <div className="flex flex-wrap items-center gap-2">
         {QUICK_AMOUNTS.map((amt) => (
           <button
             key={amt}
-            disabled={busy}
+            disabled={busy || noReason}
             onClick={() => onAward(amt)}
             className="min-w-[64px] border border-blue-bright/50 bg-blue-bright/10 py-3 text-lg font-bold text-blue-bright transition-all hover:border-blue-bright hover:bg-blue-bright/20 hover:shadow-[0_0_16px_rgba(0,212,255,0.5)] disabled:opacity-50"
           >
@@ -57,7 +114,7 @@ const AwardCard: React.FC<AwardCardProps> = ({
           className="w-28 border border-blue-accent/40 bg-dark-bg/60 px-3 py-3 text-center text-base font-semibold tabular-nums text-white placeholder-gray-500 focus:border-blue-bright focus:outline-none"
         />
         <button
-          disabled={busy || pointsInput === ""}
+          disabled={busy || pointsInput === "" || noReason}
           onClick={() => submitCustom(1)}
           className={primaryBtnClass}
         >
@@ -65,7 +122,7 @@ const AwardCard: React.FC<AwardCardProps> = ({
         </button>
         {isAdmin && (
           <button
-            disabled={busy || pointsInput === ""}
+            disabled={busy || pointsInput === "" || noReason}
             onClick={() => submitCustom(-1)}
             className={dangerBtnClass}
           >

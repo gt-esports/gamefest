@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useUser } from "../../hooks/useAuth";
+import { useChallenges } from "../../hooks/useChallenges";
 import { useGames } from "../../hooks/useGames";
 import { getPlayerById, type Player, usePlayers } from "../../hooks/usePlayers";
 import { useStaff } from "../../hooks/useStaff";
@@ -23,6 +24,7 @@ const PlayersPanel: React.FC = () => {
   } = usePlayers();
   const { staff } = useStaff();
   const { games } = useGames();
+  const { challenges } = useChallenges();
   const { isAdmin, isStaff, loading: rolesLoading } = useUserRoles();
   const { toasts, push, dismiss } = useToasts();
 
@@ -30,6 +32,7 @@ const PlayersPanel: React.FC = () => {
   const [sortMode, setSortMode] = useState<SortMode>("points");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [pointsInput, setPointsInput] = useState("");
+  const [awardReason, setAwardReason] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [openSection, setOpenSection] = useState<DetailSection>(null);
   const [editedPlayer, setEditedPlayer] = useState<Player | null>(null);
@@ -88,6 +91,10 @@ const PlayersPanel: React.FC = () => {
 
   const awardPoints = async (amount: number) => {
     if (amount === 0 || selectedPlayers.length === 0) return;
+    if (!awardReason) {
+      push("error", "Select a Game or Challenge first.");
+      return;
+    }
     if (amount < 0 && !isAdmin) {
       push("error", "Only admins can remove points.");
       return;
@@ -122,7 +129,7 @@ const PlayersPanel: React.FC = () => {
             points: fresh.points + amount,
             log: [
               ...fresh.log,
-              `${staffName}[${tag}] gave ${fresh.name} ${amount} points on ${timestamp}`,
+              `${staffName}[${tag}] gave ${fresh.name} ${amount} points on ${timestamp} for ${awardReason}`,
             ],
             participation: newParticipation,
           });
@@ -136,9 +143,15 @@ const PlayersPanel: React.FC = () => {
       })
     );
 
+    // Fetch fresh data while still busy so the UI unlocks with correct data atomically
+    const freshForEdit = singleSelected ? await getPlayerById(singleSelected.id) : null;
+
     await refreshPlayers();
+
+    // Batch — UI becomes interactive only after editedPlayer is already synced
     setPointsInput("");
     setBusyAward(false);
+    if (freshForEdit) setEditedPlayer(freshForEdit);
 
     if (succeeded > 0) {
       const verb = amount > 0 ? "awarded to" : "removed from";
@@ -162,12 +175,13 @@ const PlayersPanel: React.FC = () => {
     }, 0);
     if (pointsToRevoke === 0) return;
     try {
-      await patchPlayerById(player.id, {
+      const revoked = await patchPlayerById(player.id, {
         points: player.points - pointsToRevoke,
         log: player.log.filter((log) => !logsFromRole.includes(log)),
         participation: player.participation.filter((role) => role !== staffAssignment),
       });
       await refreshPlayers();
+      setEditedPlayer(revoked);
       push("success", `Revoked ${pointsToRevoke} pts from ${player.name}`);
     } catch (err) {
       push("error", err instanceof Error ? err.message : "Could not revoke.");
@@ -177,19 +191,30 @@ const PlayersPanel: React.FC = () => {
   const saveEdits = async () => {
     if (!editedPlayer || !singleSelected) return;
     setBusySave(true);
+    const snapshot = editedPlayer; // capture before any async gap
     const timestamp = new Date().toLocaleString(undefined, {
       dateStyle: "medium",
       timeStyle: "short",
     });
     const editor = user?.username || user?.fullName || "Unknown User";
+    const removedCount = singleSelected.log.filter(
+      (e) => !snapshot.log.includes(e)
+    ).length;
+    const auditEntry =
+      removedCount > 0
+        ? `${editor} removed ${removedCount} log ${removedCount === 1 ? "entry" : "entries"} from ${singleSelected.name} on ${timestamp}`
+        : `Player updated by ${editor} on ${timestamp}`;
     try {
       const updated = await patchPlayerById(singleSelected.id, {
-        points: editedPlayer.points,
-        log: [...editedPlayer.log, `Player updated by ${editor} on ${timestamp}`],
-        participation: editedPlayer.participation,
-        teamAssignments: editedPlayer.teamAssignments,
+        points: snapshot.points,
+        log: [...snapshot.log, auditEntry],
+        participation: snapshot.participation,
+        teamAssignments: snapshot.teamAssignments,
       });
       await refreshPlayers();
+      // Only sync editedPlayer back from server if the admin hasn't made further
+      // edits while the save was in flight (e.g. deleted another log entry).
+      setEditedPlayer((current) => (current === snapshot ? updated : current));
       push("success", `Saved changes to ${updated.name}`);
     } catch (err) {
       push("error", err instanceof Error ? err.message : "Could not save.");
@@ -238,8 +263,6 @@ const PlayersPanel: React.FC = () => {
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[340px,1fr]">
-      <ToastStack toasts={toasts} onDismiss={dismiss} />
-
       <RosterRail
         players={filteredPlayers}
         totalCount={players.length}
@@ -252,7 +275,12 @@ const PlayersPanel: React.FC = () => {
         onAddClick={() => setShowAddModal(true)}
       />
 
-      <section className="flex flex-col gap-4">
+      <section className="relative flex flex-col gap-4">
+        <ToastStack
+          toasts={toasts}
+          onDismiss={dismiss}
+          className="pointer-events-none absolute right-0 top-0 z-10 flex flex-col gap-2"
+        />
         {selectedPlayers.length === 0 && (
           <div className="flex items-center justify-center border border-dashed border-blue-accent/25 bg-navy-blue/20 p-10 text-center">
             <div>
@@ -280,6 +308,10 @@ const PlayersPanel: React.FC = () => {
               pointsInput={pointsInput}
               onPointsInputChange={setPointsInput}
               onAward={(amount) => void awardPoints(amount)}
+              games={games.map((g) => g.name)}
+              challenges={challenges.map((c) => c.name)}
+              selectedReason={awardReason}
+              onSelectedReasonChange={setAwardReason}
             />
           </>
         )}
