@@ -6,19 +6,23 @@ import type {
   UpdateStaffMemberInput,
 } from "../schemas/StaffSchema";
 
+type AssignmentData = {
+  id: string;
+  name: string;
+  points_per_award: number;
+  max_points: number;
+};
+
 type StaffJoinRow = {
   user_id: string;
-  assignment: string | null;
+  game_assignment_id: string | null;
+  challenge_assignment_id: string | null;
   users:
-    | {
-        username: string | null;
-        display_name: string | null;
-      }
-    | Array<{
-        username: string | null;
-        display_name: string | null;
-      }>
+    | { username: string | null; fname: string | null; lname: string | null }
+    | Array<{ username: string | null; fname: string | null; lname: string | null }>
     | null;
+  games: AssignmentData | AssignmentData[] | null;
+  challenges: AssignmentData | AssignmentData[] | null;
 };
 
 const unwrapRelation = <T>(value: T | T[] | null | undefined): T | null => {
@@ -26,19 +30,30 @@ const unwrapRelation = <T>(value: T | T[] | null | undefined): T | null => {
   return Array.isArray(value) ? value[0] || null : value;
 };
 
+const STAFF_SELECT =
+  "user_id, game_assignment_id, challenge_assignment_id, users(username, fname, lname), games(id, name, points_per_award, max_points), challenges(id, name, points_per_award, max_points)";
+
 const toStaff = (row: StaffJoinRow): StaffMember => {
   const user = unwrapRelation(row.users);
+  const full = [user?.fname, user?.lname].filter(Boolean).join(" ");
+  const game = unwrapRelation(row.games);
+  const challenge = unwrapRelation(row.challenges);
+
   return {
     userId: row.user_id,
-    name: user?.display_name || user?.username || "Unknown",
-    assignment: row.assignment,
+    name: full || user?.username || "Unknown",
+    assignmentType: game ? "game" : challenge ? "challenge" : null,
+    assignmentId: game?.id ?? challenge?.id ?? null,
+    assignmentName: game?.name ?? challenge?.name ?? null,
+    pointsPerAward: game?.points_per_award ?? challenge?.points_per_award ?? null,
+    maxPoints: game?.max_points ?? challenge?.max_points ?? null,
   };
 };
 
 export const fetchStaff = async (): Promise<StaffMember[]> => {
   const { data, error } = await supabase
     .from("user_roles")
-    .select("user_id, assignment, users ( username, display_name )")
+    .select(STAFF_SELECT)
     .eq("role", "staff");
 
   if (error) throw error;
@@ -52,20 +67,18 @@ export const fetchStaff = async (): Promise<StaffMember[]> => {
 export const createStaffMember = async (
   input: CreateStaffMemberInput
 ): Promise<StaffMember> => {
-  const trimmedAssignment =
-    typeof input.assignment === "string" ? input.assignment.trim() : "";
-
   const { error } = await supabase.from("user_roles").insert({
     user_id: input.userId,
     role: "staff",
-    assignment: trimmedAssignment ? trimmedAssignment : null,
+    game_assignment_id: input.gameAssignmentId ?? null,
+    challenge_assignment_id: input.challengeAssignmentId ?? null,
   });
 
   if (error) throw error;
 
   const { data, error: readError } = await supabase
     .from("user_roles")
-    .select("user_id, assignment, users ( username, display_name )")
+    .select(STAFF_SELECT)
     .eq("user_id", input.userId)
     .eq("role", "staff")
     .maybeSingle();
@@ -80,12 +93,19 @@ export const updateStaffByUserId = async (
   userId: string,
   input: UpdateStaffMemberInput
 ): Promise<StaffMember> => {
-  const updates: { assignment?: string | null } = {};
+  const updates: {
+    game_assignment_id?: string | null;
+    challenge_assignment_id?: string | null;
+  } = {};
 
-  if ("assignment" in input) {
-    const trimmedAssignment =
-      typeof input.assignment === "string" ? input.assignment.trim() : "";
-    updates.assignment = trimmedAssignment ? trimmedAssignment : null;
+  if ("gameAssignmentId" in input) {
+    updates.game_assignment_id = input.gameAssignmentId ?? null;
+    // Clearing the other FK prevents the DB constraint violation.
+    if (input.gameAssignmentId) updates.challenge_assignment_id = null;
+  }
+  if ("challengeAssignmentId" in input) {
+    updates.challenge_assignment_id = input.challengeAssignmentId ?? null;
+    if (input.challengeAssignmentId) updates.game_assignment_id = null;
   }
 
   if (Object.keys(updates).length > 0) {
@@ -100,7 +120,7 @@ export const updateStaffByUserId = async (
 
   const { data, error: readError } = await supabase
     .from("user_roles")
-    .select("user_id, assignment, users ( username, display_name )")
+    .select(STAFF_SELECT)
     .eq("user_id", userId)
     .eq("role", "staff")
     .maybeSingle();

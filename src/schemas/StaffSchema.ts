@@ -1,16 +1,25 @@
-// Staff is derived from user_roles (role='staff' or 'admin') joined with users.
-// A "staff member" is a user who holds a staff role, with an optional assignment.
+// Staff assignment is now tied to a specific game or challenge via FK.
+// assignmentType: which kind of entity they're assigned to (null = floater, no award privilege).
+// assignmentId: the game/challenge UUID.
+// assignmentName: display name of the game/challenge.
+// pointsPerAward / maxPoints: inherited from the assigned game/challenge.
 export type StaffMember = {
     userId: string;
     name: string;
-    assignment: string | null;
+    assignmentType: 'game' | 'challenge' | null;
+    assignmentId: string | null;
+    assignmentName: string | null;
+    pointsPerAward: number | null;
+    maxPoints: number | null;
 };
 
 export type CreateStaffMemberInput = {
     userId: string;
-    assignment?: string | null;
+    gameAssignmentId?: string | null;
+    challengeAssignmentId?: string | null;
 };
 
 export type UpdateStaffMemberInput = {
-    assignment?: string | null;
+    gameAssignmentId?: string | null;
+    challengeAssignmentId?: string | null;
 };
