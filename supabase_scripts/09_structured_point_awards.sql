@@ -72,3 +72,8 @@ create policy "staff_admin_can_insert_activity" on public.player_activity
 create policy "admin_can_delete_activity" on public.player_activity
   for delete to authenticated
   using (public.has_app_role(array['admin']));
+
+-- NOTE: No UPDATE policy is defined intentionally.
+-- player_activity rows are immutable audit records.
+-- To "undo" an award, the application deletes the row(s) and
+-- adjusts players.points accordingly. Updates are never needed.
