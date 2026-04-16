@@ -9,7 +9,7 @@ import iconOW2 from "../assets/game-icons/ow2.png";
 import iconVal from "../assets/game-icons/val.png";
 import iconCS from "../assets/game-icons/cs.png";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "../hooks/useAuth";
+import { useAuth } from "../hooks/useAuth";
 
 type GameEntry = { icon: string; name: string };
 
@@ -51,8 +51,16 @@ function DayCard({ day, date, games }: { day: string; date: string; games: GameE
 
 function Home() {
   const navigate = useNavigate();
-  const { isLoaded, user } = useUser();
+  const { isLoaded, user, signInWithDiscord } = useAuth();
   console.log('home:', { isLoaded, user });
+
+  const handleRegister = () => {
+    if (user) {
+      void navigate('/profile');
+    } else {
+      void signInWithDiscord();
+    }
+  };
 
   return (
     <div className="flex w-full flex-col bg-streak bg-cover">
@@ -65,7 +73,7 @@ function Home() {
             className="w-[90vw] max-w-5xl drop-shadow-2xl"
           />
           <button
-            onClick={() => navigate("/register")}
+            onClick={handleRegister}
             className="mt-8 rounded-md bg-gradient-to-r from-[#004466] to-[#0099BB] px-8 py-4 font-bayon text-4xl text-white hover:shadow-lg hover:shadow-[#0099BB]/50 sm:mt-12 sm:px-12 sm:py-5 sm:text-6xl"
           >
             REGISTER NOW

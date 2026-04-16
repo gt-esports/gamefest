@@ -116,10 +116,16 @@ const PlayerCard = () => {
                   <div className="mt-4 inline-flex w-fit rounded-full bg-[#1f2d4f] px-4 py-2 font-bayon text-lg text-[#9fb4e6]">
                     NOT REGISTERED
                   </div>
+                  <p className="mt-3 font-quicksand text-sm font-semibold text-white">
+                    You're not registered yet
+                  </p>
+                  <p className="mt-1 font-quicksand text-xs text-gray-400">
+                    Secure your spot at GameFest 2026 by completing your registration.
+                  </p>
                   <button
                     type="button"
                     onClick={() => navigate("/register")}
-                    className="mt-4 w-fit rounded bg-gradient-to-r from-[#004466] to-[#0099BB] px-4 py-2 font-bayon text-sm text-white hover:shadow-lg hover:shadow-[#0099BB]/50"
+                    className="mt-4 w-fit rounded bg-gradient-to-r from-[#004466] to-[#0099BB] px-6 py-3 font-bayon text-lg text-white hover:shadow-lg hover:shadow-[#0099BB]/50"
                   >
                     REGISTER NOW
                   </button>
