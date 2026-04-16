@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
-import type { Challenge, CreateChallengeInput } from "../schemas/ChallengesSchema";
+import type { Challenge, CreateChallengeInput, UpdateChallengeInput } from "../schemas/ChallengesSchema";
 
 export const fetchChallenges = async (): Promise<Challenge[]> => {
   const { data, error } = await supabase
     .from("challenges")
-    .select("id, name")
+    .select("id, name, points_per_award, max_points")
     .order("name", { ascending: true });
 
   if (error) throw error;
@@ -13,14 +13,20 @@ export const fetchChallenges = async (): Promise<Challenge[]> => {
   return (data || []).map((row) => ({
     id: row.id,
     name: row.name,
+    pointsPerAward: row.points_per_award,
+    maxPoints: row.max_points,
   }));
 };
 
 export const createChallenge = async (input: CreateChallengeInput): Promise<Challenge> => {
   const { data, error } = await supabase
     .from("challenges")
-    .insert({ name: input.name.trim() })
-    .select("id, name")
+    .insert({
+      name: input.name.trim(),
+      points_per_award: input.pointsPerAward ?? 10,
+      max_points: input.maxPoints ?? 50,
+    })
+    .select("id, name, points_per_award, max_points")
     .single();
 
   if (error) throw error;
@@ -28,6 +34,49 @@ export const createChallenge = async (input: CreateChallengeInput): Promise<Chal
   return {
     id: data.id,
     name: data.name,
+    pointsPerAward: data.points_per_award,
+    maxPoints: data.max_points,
+  };
+};
+
+export const updateChallengeById = async (
+  id: string,
+  input: UpdateChallengeInput
+): Promise<Challenge> => {
+  const updates: { name?: string; points_per_award?: number; max_points?: number } = {};
+
+  if (typeof input.name === "string" && input.name.trim()) {
+    updates.name = input.name.trim();
+  }
+  if (typeof input.pointsPerAward === "number") {
+    updates.points_per_award = input.pointsPerAward;
+  }
+  if (typeof input.maxPoints === "number") {
+    updates.max_points = input.maxPoints;
+  }
+
+  if (Object.keys(updates).length > 0) {
+    const { error } = await supabase
+      .from("challenges")
+      .update(updates)
+      .eq("id", id);
+
+    if (error) throw error;
+  }
+
+  const { data, error: readError } = await supabase
+    .from("challenges")
+    .select("id, name, points_per_award, max_points")
+    .eq("id", id)
+    .single();
+
+  if (readError) throw readError;
+
+  return {
+    id: data.id,
+    name: data.name,
+    pointsPerAward: data.points_per_award,
+    maxPoints: data.max_points,
   };
 };
 
@@ -76,6 +125,15 @@ export const useChallenges = () => {
     [refresh]
   );
 
+  const patchChallengeById = useCallback(
+    async (id: string, input: UpdateChallengeInput) => {
+      const challenge = await updateChallengeById(id, input);
+      await refresh();
+      return challenge;
+    },
+    [refresh]
+  );
+
   const removeChallengeByName = useCallback(
     async (name: string) => {
       await deleteChallengeByName(name);
@@ -90,6 +148,7 @@ export const useChallenges = () => {
     error,
     refresh,
     addChallenge,
+    patchChallengeById,
     removeChallengeByName,
   };
 };
