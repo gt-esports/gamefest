@@ -15,6 +15,7 @@ type AssignmentData = {
 
 type StaffJoinRow = {
   user_id: string;
+  role: string;
   game_assignment_id: string | null;
   challenge_assignment_id: string | null;
   users:
@@ -31,7 +32,7 @@ const unwrapRelation = <T>(value: T | T[] | null | undefined): T | null => {
 };
 
 const STAFF_SELECT =
-  "user_id, game_assignment_id, challenge_assignment_id, users(username, fname, lname), games(id, name, points_per_award, max_points), challenges(id, name, points_per_award, max_points)";
+  "user_id, role, game_assignment_id, challenge_assignment_id, users(username, fname, lname), games(id, name, points_per_award, max_points), challenges(id, name, points_per_award, max_points)";
 
 const toStaff = (row: StaffJoinRow): StaffMember => {
   const user = unwrapRelation(row.users);
@@ -41,6 +42,7 @@ const toStaff = (row: StaffJoinRow): StaffMember => {
 
   return {
     userId: row.user_id,
+    role: (row.role === "admin" ? "admin" : "staff") as "staff" | "admin",
     name: full || user?.username || "Unknown",
     assignmentType: game ? "game" : challenge ? "challenge" : null,
     assignmentId: game?.id ?? challenge?.id ?? null,
@@ -54,7 +56,7 @@ export const fetchStaff = async (): Promise<StaffMember[]> => {
   const { data, error } = await supabase
     .from("user_roles")
     .select(STAFF_SELECT)
-    .eq("role", "staff");
+    .in("role", ["staff", "admin"]);
 
   if (error) throw error;
 
@@ -67,20 +69,37 @@ export const fetchStaff = async (): Promise<StaffMember[]> => {
 export const createStaffMember = async (
   input: CreateStaffMemberInput
 ): Promise<StaffMember> => {
-  const { error } = await supabase.from("user_roles").insert({
-    user_id: input.userId,
-    role: "staff",
-    game_assignment_id: input.gameAssignmentId ?? null,
-    challenge_assignment_id: input.challengeAssignmentId ?? null,
-  });
+  // Check whether this user already has a user_roles row (e.g. admin).
+  // If so, update their assignment in place rather than inserting a duplicate row.
+  const { data: existingRows } = await supabase
+    .from("user_roles")
+    .select("user_id")
+    .eq("user_id", input.userId)
+    .limit(1);
 
-  if (error) throw error;
+  if (existingRows && existingRows.length > 0) {
+    const { error } = await supabase
+      .from("user_roles")
+      .update({
+        game_assignment_id: input.gameAssignmentId ?? null,
+        challenge_assignment_id: input.challengeAssignmentId ?? null,
+      })
+      .eq("user_id", input.userId);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from("user_roles").insert({
+      user_id: input.userId,
+      role: "staff",
+      game_assignment_id: input.gameAssignmentId ?? null,
+      challenge_assignment_id: input.challengeAssignmentId ?? null,
+    });
+    if (error) throw error;
+  }
 
   const { data, error: readError } = await supabase
     .from("user_roles")
     .select(STAFF_SELECT)
     .eq("user_id", input.userId)
-    .eq("role", "staff")
     .maybeSingle();
 
   if (readError) throw readError;
@@ -112,8 +131,7 @@ export const updateStaffByUserId = async (
     const { error } = await supabase
       .from("user_roles")
       .update(updates)
-      .eq("user_id", userId)
-      .eq("role", "staff");
+      .eq("user_id", userId);
 
     if (error) throw error;
   }
@@ -122,7 +140,6 @@ export const updateStaffByUserId = async (
     .from("user_roles")
     .select(STAFF_SELECT)
     .eq("user_id", userId)
-    .eq("role", "staff")
     .maybeSingle();
 
   if (readError) throw readError;

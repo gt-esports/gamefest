@@ -5,6 +5,7 @@
 // pointsPerAward / maxPoints: inherited from the assigned game/challenge.
 export type StaffMember = {
     userId: string;
+    role: 'staff' | 'admin';
     name: string;
     assignmentType: 'game' | 'challenge' | null;
     assignmentId: string | null;

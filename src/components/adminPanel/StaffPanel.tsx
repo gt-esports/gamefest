@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../../utils/supabaseClient";
 import { useChallenges } from "../../hooks/useChallenges";
 import { useGames } from "../../hooks/useGames";
@@ -283,7 +284,7 @@ const StaffPanel: React.FC = () => {
                   </button>
                 )}
               </div>
-              {isAdmin && (
+              {isAdmin && member.role !== "admin" && (
                 <button
                   onClick={() => void handleRemove(member.userId, member.name)}
                   className={dangerBtnClass}
@@ -296,16 +297,18 @@ const StaffPanel: React.FC = () => {
         })}
       </div>
 
-      {showAddModal && (
+      {showAddModal &&
+        createPortal(
         <div
-          className="fixed inset-0 z-40 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
           onClick={resetAddModal}
         >
           <div
-            className="w-full max-w-md border border-blue-bright/40 bg-navy-blue shadow-[0_0_60px_rgba(0,212,255,0.25)]"
+            className="flex w-full max-w-md flex-col overflow-hidden border border-blue-bright/40 bg-navy-blue shadow-[0_0_60px_rgba(0,212,255,0.25)]"
+            style={{ maxHeight: "calc(100dvh - 2rem)" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-blue-accent/20 bg-dark-navy/60 px-5 py-4">
+            <div className="flex shrink-0 items-center justify-between border-b border-blue-accent/20 bg-dark-navy/60 px-5 py-4">
               <h3 className="font-zuume text-2xl font-bold uppercase tracking-wider text-white">
                 Add Staff Member
               </h3>
@@ -316,7 +319,7 @@ const StaffPanel: React.FC = () => {
                 ✕
               </button>
             </div>
-            <div className="space-y-4 p-5">
+            <div className="flex-1 space-y-4 overflow-y-auto p-5">
               <Field label="Find User *">
                 <input
                   autoFocus
@@ -375,7 +378,7 @@ const StaffPanel: React.FC = () => {
                 />
               </Field>
             </div>
-            <div className="flex items-center justify-end gap-2 border-t border-blue-accent/20 bg-dark-navy/60 px-5 py-3">
+            <div className="flex shrink-0 items-center justify-end gap-2 border-t border-blue-accent/20 bg-dark-navy/60 px-5 py-3">
               <button onClick={resetAddModal} className={ghostBtnClass}>
                 Cancel
               </button>
@@ -388,7 +391,8 @@ const StaffPanel: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

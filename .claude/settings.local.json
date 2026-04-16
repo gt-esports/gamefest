@@ -12,7 +12,8 @@
       "Bash(git push:*)",
       "Bash(grep -A 5 \"\\\\.update\\\\|\\\\.patch\" /Users/kevinhu/Programming/GTEsports/gamefest/src/hooks/*.ts)",
       "Bash(echo \"exit=$?\")",
-      "Bash(echo \"tsc=$?\")"
+      "Bash(echo \"tsc=$?\")",
+      "Bash(git commit:*)"
     ]
   }
 }
