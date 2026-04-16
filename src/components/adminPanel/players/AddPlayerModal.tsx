@@ -38,8 +38,8 @@ const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ games, onClose, onSubmi
         const [{ data: userRows }, { data: playerRows }] = await Promise.all([
           supabase
             .from("users")
-            .select("id, username, display_name")
-            .or(`username.ilike.%${q}%,display_name.ilike.%${q}%`)
+            .select("id, username, fname, lname")
+            .or(`username.ilike.%${q}%,fname.ilike.%${q}%,lname.ilike.%${q}%`)
             .limit(20),
           supabase.from("players").select("user_id"),
         ]);
@@ -49,7 +49,7 @@ const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ games, onClose, onSubmi
           .filter((u) => !claimed.has(u.id))
           .map((u) => ({
             id: u.id,
-            name: u.display_name || u.username || "Unknown",
+            name: [u.fname, u.lname].filter(Boolean).join(" ") || u.username || "Unknown",
             username: u.username,
           }));
         setUsers(options);
@@ -105,7 +105,7 @@ const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ games, onClose, onSubmi
                 setQuery(e.target.value);
                 setSelectedUserId("");
               }}
-              placeholder="Search by username or display name…"
+              placeholder="Search by name or username…"
               className={inputClass}
             />
           </Field>

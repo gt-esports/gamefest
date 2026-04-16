@@ -46,8 +46,8 @@ type PlayerWithUserRow = {
   points: number | null;
   raffle_placing?: number | null;
   users:
-    | { username: string | null; display_name: string | null }
-    | Array<{ username: string | null; display_name: string | null }>
+    | { username: string | null; fname: string | null; lname: string | null }
+    | Array<{ username: string | null; fname: string | null; lname: string | null }>
     | null;
 };
 
@@ -56,13 +56,14 @@ const unwrapRel = <T>(v: T | T[] | null | undefined): T | null =>
 
 const displayName = (row: PlayerWithUserRow): string => {
   const u = unwrapRel(row.users);
-  return u?.display_name || u?.username || "Unknown";
+  const full = [u?.fname, u?.lname].filter(Boolean).join(" ");
+  return full || u?.username || "Unknown";
 };
 
 export const fetchRaffleWinners = async (): Promise<RaffleWinner[]> => {
   const { data, error } = await supabase
     .from("players")
-    .select("id, points, raffle_placing, users ( username, display_name )")
+    .select("id, points, raffle_placing, users ( username, fname, lname )")
     .eq("raffle_winner", true)
     .order("raffle_placing", { ascending: true });
 
@@ -90,7 +91,7 @@ export const pickRaffleWinners = async (
 
   const { data: players, error: playersError } = await supabase
     .from("players")
-    .select("id, points, users ( username, display_name )")
+    .select("id, points, users ( username, fname, lname )")
     .order("points", { ascending: false });
 
   if (playersError) throw playersError;

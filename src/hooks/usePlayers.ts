@@ -24,11 +24,13 @@ type PlayerRowWithUser = {
   users:
     | {
         username: string | null;
-        display_name: string | null;
+        fname: string | null;
+        lname: string | null;
       }
     | Array<{
         username: string | null;
-        display_name: string | null;
+        fname: string | null;
+        lname: string | null;
       }>
     | null;
 };
@@ -54,7 +56,7 @@ type AssignmentJoinRow = {
 };
 
 const PLAYER_SELECT =
-  "id, points, participation, log, raffle_winner, raffle_placing, user_id, users ( username, display_name )";
+  "id, points, participation, log, raffle_winner, raffle_placing, user_id, users ( username, fname, lname )";
 
 const unwrapRelation = <T>(value: T | T[] | null | undefined): T | null => {
   if (!value) return null;
@@ -66,23 +68,28 @@ const normalizeStringArray = (value: string[] | null | undefined): string[] =>
 
 const displayNameFor = (row: PlayerRowWithUser): string => {
   const user = unwrapRelation(row.users);
-  return user?.display_name || user?.username || "Unknown";
+  const full = [user?.fname, user?.lname].filter(Boolean).join(" ");
+  return full || user?.username || "Unknown";
 };
 
 const toPlayer = (
   row: PlayerRowWithUser,
   teamAssignments: TeamAssignment[]
-): Player => ({
-  id: row.id,
-  userId: row.user_id,
-  name: displayNameFor(row),
-  points: row.points ?? 0,
-  participation: normalizeStringArray(row.participation),
-  log: normalizeStringArray(row.log),
-  teamAssignments,
-  raffleWinner: row.raffle_winner ?? false,
-  rafflePlacing: row.raffle_placing ?? 0,
-});
+): Player => {
+  const user = unwrapRelation(row.users);
+  return {
+    id: row.id,
+    userId: row.user_id,
+    name: displayNameFor(row),
+    username: user?.username ?? null,
+    points: row.points ?? 0,
+    participation: normalizeStringArray(row.participation),
+    log: normalizeStringArray(row.log),
+    teamAssignments,
+    raffleWinner: row.raffle_winner ?? false,
+    rafflePlacing: row.raffle_placing ?? 0,
+  };
+};
 
 const mapPlayerAssignments = (
   assignments: AssignmentJoinRow[]

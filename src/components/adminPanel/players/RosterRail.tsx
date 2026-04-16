@@ -93,12 +93,23 @@ const RosterRail: React.FC<RosterRailProps> = ({
             >
               {sortMode === "points" ? String(idx + 1).padStart(2, "0") : ""}
             </span>
-            <span
-              className={`flex-1 truncate text-base font-medium ${
-                selected ? "text-white" : "text-gray-100 group-hover:text-white"
-              }`}
-            >
-              {p.name}
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span
+                className={`truncate text-sm font-semibold ${
+                  selected ? "text-blue-bright" : "text-gray-400 group-hover:text-gray-300"
+                }`}
+              >
+                {p.username ? `@${p.username}` : "—"}
+              </span>
+              {p.name && p.name !== p.username && (
+                <span
+                  className={`truncate text-base font-medium ${
+                    selected ? "text-white" : "text-gray-100 group-hover:text-white"
+                  }`}
+                >
+                  {p.name}
+                </span>
+              )}
             </span>
             <span
               className={`text-sm font-semibold tabular-nums ${
