@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../utils/supabaseClient";
+import { useChallenges } from "../../hooks/useChallenges";
+import { useGames } from "../../hooks/useGames";
 import { useStaff } from "../../hooks/useStaff";
+import { useUserRoles } from "../../hooks/useUserRoles";
 import { Field, SectionTitle, ToastStack } from "./shared/ui";
 import { useToasts } from "./shared/useToasts";
 import {
@@ -16,6 +19,19 @@ type UserOption = {
   username: string | null;
 };
 
+// "" = no assignment (floater), "game:<uuid>" or "challenge:<uuid>" otherwise.
+type AssignmentValue = string;
+
+const parseAssignmentValue = (
+  value: AssignmentValue
+): { gameId: string | null; challengeId: string | null } => {
+  if (value.startsWith("game:"))
+    return { gameId: value.slice(5), challengeId: null };
+  if (value.startsWith("challenge:"))
+    return { gameId: null, challengeId: value.slice(10) };
+  return { gameId: null, challengeId: null };
+};
+
 const StaffPanel: React.FC = () => {
   const {
     staff,
@@ -23,17 +39,21 @@ const StaffPanel: React.FC = () => {
     patchStaffByUserId,
     removeStaffByUserId,
   } = useStaff();
+  const { games } = useGames();
+  const { challenges } = useChallenges();
+  const { isAdmin } = useUserRoles();
   const { toasts, push, dismiss } = useToasts();
 
   const [query, setQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingBuffer, setEditingBuffer] = useState<Record<string, string>>({});
+  // Maps userId → pending assignment dropdown value (if user is editing inline)
+  const [editingBuffer, setEditingBuffer] = useState<Record<string, AssignmentValue>>({});
 
   // Add-modal state
   const [userQuery, setUserQuery] = useState("");
   const [userResults, setUserResults] = useState<UserOption[]>([]);
   const [selectedUserId, setSelectedUserId] = useState("");
-  const [newAssignment, setNewAssignment] = useState("");
+  const [newAssignmentValue, setNewAssignmentValue] = useState<AssignmentValue>("");
   const [searching, setSearching] = useState(false);
 
   const filtered = useMemo(() => {
@@ -42,11 +62,19 @@ const StaffPanel: React.FC = () => {
     return staff.filter(
       (m) =>
         m.name.toLowerCase().includes(q) ||
-        (m.assignment || "").toLowerCase().includes(q)
+        (m.assignmentName || "").toLowerCase().includes(q)
     );
   }, [staff, query]);
 
-  // User search for the add-modal — excludes users already on staff.
+  // Build a helper: staffMember → current dropdown value string
+  const staffAssignmentValue = (userId: string): AssignmentValue => {
+    const member = staff.find((m) => m.userId === userId);
+    if (!member?.assignmentId) return "";
+    return member.assignmentType === "game"
+      ? `game:${member.assignmentId}`
+      : `challenge:${member.assignmentId}`;
+  };
+
   useEffect(() => {
     if (!showAddModal) return;
     let cancelled = false;
@@ -59,8 +87,8 @@ const StaffPanel: React.FC = () => {
     const handle = setTimeout(async () => {
       const { data } = await supabase
         .from("users")
-        .select("id, username, display_name")
-        .or(`username.ilike.%${q}%,display_name.ilike.%${q}%`)
+        .select("id, username, fname, lname")
+        .or(`username.ilike.%${q}%,fname.ilike.%${q}%,lname.ilike.%${q}%`)
         .limit(20);
       if (cancelled) return;
       const claimed = new Set(staff.map((s) => s.userId));
@@ -69,7 +97,10 @@ const StaffPanel: React.FC = () => {
           .filter((u) => !claimed.has(u.id))
           .map((u) => ({
             id: u.id,
-            name: u.display_name || u.username || "Unknown",
+            name:
+              [u.fname, u.lname].filter(Boolean).join(" ") ||
+              u.username ||
+              "Unknown",
             username: u.username,
           }))
       );
@@ -86,7 +117,7 @@ const StaffPanel: React.FC = () => {
     setUserQuery("");
     setUserResults([]);
     setSelectedUserId("");
-    setNewAssignment("");
+    setNewAssignmentValue("");
   };
 
   const handleAdd = async () => {
@@ -94,24 +125,33 @@ const StaffPanel: React.FC = () => {
       push("error", "Please pick a user.");
       return;
     }
+    const { gameId, challengeId } = parseAssignmentValue(newAssignmentValue);
     try {
       await addStaffMember({
         userId: selectedUserId,
-        assignment: newAssignment.trim(),
+        gameAssignmentId: gameId,
+        challengeAssignmentId: challengeId,
       });
-      push("success", `Added to staff`);
+      push("success", "Added to staff");
       resetAddModal();
     } catch (err) {
-      push("error", err instanceof Error ? err.message : "Failed to add staff.");
+      push(
+        "error",
+        err instanceof Error ? err.message : "Failed to add staff."
+      );
     }
   };
 
   const handlePatchAssignment = async (userId: string) => {
     const nextValue = editingBuffer[userId];
     if (nextValue === undefined) return;
+    const { gameId, challengeId } = parseAssignmentValue(nextValue);
     try {
-      await patchStaffByUserId(userId, { assignment: nextValue });
-      push("success", `Updated assignment`);
+      await patchStaffByUserId(userId, {
+        gameAssignmentId: gameId,
+        challengeAssignmentId: challengeId,
+      });
+      push("success", "Updated assignment");
       setEditingBuffer((prev) => {
         const next = { ...prev };
         delete next[userId];
@@ -123,6 +163,7 @@ const StaffPanel: React.FC = () => {
   };
 
   const handleRemove = async (userId: string, name: string) => {
+    if (!isAdmin) return;
     if (!window.confirm(`Remove ${name} from staff?`)) return;
     try {
       await removeStaffByUserId(userId);
@@ -132,6 +173,39 @@ const StaffPanel: React.FC = () => {
     }
   };
 
+  // Shared assignment dropdown rendered in both the list rows and the add-modal.
+  const AssignmentSelect: React.FC<{
+    value: AssignmentValue;
+    onChange: (v: AssignmentValue) => void;
+    className?: string;
+  }> = ({ value, onChange, className = "" }) => (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={`border bg-dark-bg/60 px-3 py-2 text-sm font-semibold text-white focus:outline-none border-blue-accent/40 focus:border-blue-bright ${className}`}
+    >
+      <option value="">No assignment (floater)</option>
+      {games.length > 0 && (
+        <optgroup label="Games">
+          {games.map((g) => (
+            <option key={`game-${g.id}`} value={`game:${g.id}`}>
+              {g.name} ({g.pointsPerAward} pts, cap {g.maxPoints})
+            </option>
+          ))}
+        </optgroup>
+      )}
+      {challenges.length > 0 && (
+        <optgroup label="Challenges">
+          {challenges.map((c) => (
+            <option key={`challenge-${c.id}`} value={`challenge:${c.id}`}>
+              {c.name} ({c.pointsPerAward} pts, cap {c.maxPoints})
+            </option>
+          ))}
+        </optgroup>
+      )}
+    </select>
+  );
+
   return (
     <div>
       <ToastStack toasts={toasts} onDismiss={dismiss} />
@@ -139,7 +213,10 @@ const StaffPanel: React.FC = () => {
       <SectionTitle
         eyebrow="Personnel"
         right={
-          <button onClick={() => setShowAddModal(true)} className={primaryBtnClass}>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className={primaryBtnClass}
+          >
             + Add Staff
           </button>
         }
@@ -158,54 +235,62 @@ const StaffPanel: React.FC = () => {
       </div>
 
       <div className="border border-blue-accent/20 bg-navy-blue/40">
-        <div className="grid grid-cols-[1fr,1.5fr,auto] items-center gap-4 border-b border-blue-accent/20 bg-dark-navy/40 px-5 py-3 font-bayon text-xs uppercase tracking-[0.25em] text-blue-bright/80">
+        <div className="grid grid-cols-[1fr,2fr,auto] items-center gap-4 border-b border-blue-accent/20 bg-dark-navy/40 px-5 py-3 font-bayon text-xs uppercase tracking-[0.25em] text-blue-bright/80">
           <span>Name</span>
           <span>Assignment</span>
           <span className="pr-2">Actions</span>
         </div>
         {filtered.length === 0 && (
-          <div className="p-6 text-center text-sm text-gray-400">No staff match.</div>
+          <div className="p-6 text-center text-sm text-gray-400">
+            No staff match.
+          </div>
         )}
         {filtered.map((member) => {
-          const currentValue =
+          const currentDropdownValue =
             editingBuffer[member.userId] !== undefined
               ? editingBuffer[member.userId]
-              : member.assignment || "";
+              : staffAssignmentValue(member.userId);
+          const savedDropdownValue = staffAssignmentValue(member.userId);
           const dirty =
             editingBuffer[member.userId] !== undefined &&
-            editingBuffer[member.userId] !== (member.assignment || "");
+            editingBuffer[member.userId] !== savedDropdownValue;
+
           return (
             <div
               key={member.userId}
-              className="grid grid-cols-[1fr,1.5fr,auto] items-center gap-4 border-b border-blue-accent/10 px-5 py-3 last:border-b-0 hover:bg-white/[0.03]"
+              className="grid grid-cols-[1fr,2fr,auto] items-center gap-4 border-b border-blue-accent/10 px-5 py-3 last:border-b-0 hover:bg-white/[0.03]"
             >
-              <div className="truncate text-base font-medium text-white">{member.name}</div>
+              <div className="truncate text-base font-medium text-white">
+                {member.name}
+              </div>
               <div className="flex items-center gap-2">
-                <input
-                  value={currentValue}
-                  placeholder="No assignment"
-                  onChange={(e) =>
+                <AssignmentSelect
+                  value={currentDropdownValue}
+                  onChange={(v) =>
                     setEditingBuffer((prev) => ({
                       ...prev,
-                      [member.userId]: e.target.value,
+                      [member.userId]: v,
                     }))
                   }
-                  onBlur={() => dirty && void handlePatchAssignment(member.userId)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") void handlePatchAssignment(member.userId);
-                  }}
-                  className={`flex-1 ${inputClass} ${dirty ? "border-amber-400/60" : ""}`}
+                  className={`flex-1 ${dirty ? "border-amber-400/60" : ""}`}
                 />
                 {dirty && (
-                  <span className="text-xs font-semibold text-amber-300">unsaved</span>
+                  <button
+                    onClick={() => void handlePatchAssignment(member.userId)}
+                    className={`${primaryBtnClass} text-xs`}
+                  >
+                    Save
+                  </button>
                 )}
               </div>
-              <button
-                onClick={() => void handleRemove(member.userId, member.name)}
-                className={dangerBtnClass}
-              >
-                Remove
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => void handleRemove(member.userId, member.name)}
+                  className={dangerBtnClass}
+                >
+                  Remove
+                </button>
+              )}
             </div>
           );
         })}
@@ -241,14 +326,16 @@ const StaffPanel: React.FC = () => {
                     setUserQuery(e.target.value);
                     setSelectedUserId("");
                   }}
-                  placeholder="Search by username or display name…"
+                  placeholder="Search by name or username…"
                   className={inputClass}
                 />
               </Field>
               {userQuery.trim().length >= 2 && (
                 <div className="max-h-48 overflow-y-auto border border-blue-accent/20 bg-dark-bg/40">
                   {searching && (
-                    <div className="p-3 text-sm text-gray-400">Searching…</div>
+                    <div className="p-3 text-sm text-gray-400">
+                      Searching…
+                    </div>
                   )}
                   {!searching && userResults.length === 0 && (
                     <div className="p-3 text-sm text-gray-400">
@@ -271,7 +358,9 @@ const StaffPanel: React.FC = () => {
                         >
                           <span className="font-medium">{u.name}</span>
                           {u.username && u.username !== u.name && (
-                            <span className="text-xs text-gray-400">@{u.username}</span>
+                            <span className="text-xs text-gray-400">
+                              @{u.username}
+                            </span>
                           )}
                         </button>
                       );
@@ -279,12 +368,10 @@ const StaffPanel: React.FC = () => {
                 </div>
               )}
               <Field label="Assignment (optional)">
-                <input
-                  type="text"
-                  value={newAssignment}
-                  onChange={(e) => setNewAssignment(e.target.value)}
-                  placeholder="e.g. photobooth, check-in"
-                  className={inputClass}
+                <AssignmentSelect
+                  value={newAssignmentValue}
+                  onChange={setNewAssignmentValue}
+                  className="w-full"
                 />
               </Field>
             </div>
