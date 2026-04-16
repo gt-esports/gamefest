@@ -2,14 +2,25 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useUser } from "../../hooks/useAuth";
 import { useChallenges } from "../../hooks/useChallenges";
 import { useGames } from "../../hooks/useGames";
-import { getPlayerById, type Player, usePlayers } from "../../hooks/usePlayers";
+import {
+  getPlayerById,
+  type Player,
+  usePlayers,
+} from "../../hooks/usePlayers";
+import {
+  deleteActivitiesBy,
+  getActivityTotal,
+  recordActivity,
+} from "../../hooks/usePlayerActivity";
 import { useStaff } from "../../hooks/useStaff";
 import { useUserRoles } from "../../hooks/useUserRoles";
 import { ToastStack } from "./shared/ui";
 import { useToasts } from "./shared/useToasts";
 import AddPlayerModal from "./players/AddPlayerModal";
 import AwardCard from "./players/AwardCard";
-import PlayerDetailCard, { type DetailSection } from "./players/PlayerDetailCard";
+import PlayerDetailCard, {
+  type DetailSection,
+} from "./players/PlayerDetailCard";
 import RosterRail, { type SortMode } from "./players/RosterRail";
 import SelectionChips from "./players/SelectionChips";
 
@@ -31,6 +42,7 @@ const PlayersPanel: React.FC = () => {
   const [query, setQuery] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("points");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  // Admin-only award state
   const [pointsInput, setPointsInput] = useState("");
   const [awardReason, setAwardReason] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -45,7 +57,6 @@ const PlayersPanel: React.FC = () => {
     () => staff.find((m) => m.userId === user?.id),
     [user?.id, staff]
   );
-  const staffAssignment = currentStaff?.assignment || "staff";
   const staffName =
     currentStaff?.name || user?.username || user?.fullName || "Unknown Staff";
 
@@ -54,7 +65,11 @@ const PlayersPanel: React.FC = () => {
     const base =
       q.length === 0
         ? players
-        : players.filter((p) => p.name.toLowerCase().includes(q));
+        : players.filter(
+            (p) =>
+              p.name.toLowerCase().includes(q) ||
+              (p.username?.toLowerCase().includes(q) ?? false)
+          );
     const sorted = [...base];
     if (sortMode === "points") sorted.sort((a, b) => b.points - a.points);
     else sorted.sort((a, b) => a.name.localeCompare(b.name));
@@ -65,9 +80,9 @@ const PlayersPanel: React.FC = () => {
     () => players.filter((p) => selectedIds.has(p.id)),
     [players, selectedIds]
   );
-  const singleSelected = selectedPlayers.length === 1 ? selectedPlayers[0] : null;
+  const singleSelected =
+    selectedPlayers.length === 1 ? selectedPlayers[0] : null;
 
-  // Reset the edit buffer when the single-selection identity changes.
   useEffect(() => {
     if (singleSelected) {
       setEditedPlayer(singleSelected);
@@ -89,96 +104,214 @@ const PlayersPanel: React.FC = () => {
   };
   const clearSelection = () => setSelectedIds(new Set());
 
-  const awardPoints = async (amount: number) => {
-    if (amount === 0 || selectedPlayers.length === 0) return;
-    if (!awardReason) {
-      push("error", "Select a Game or Challenge first.");
-      return;
-    }
-    if (amount < 0 && !isAdmin) {
-      push("error", "Only admins can remove points.");
-      return;
-    }
-    if (amount < 0 && selectedPlayers.some((p) => p.points + amount < 0)) {
-      push("error", "Cannot remove — some players would go below 0.");
-      return;
-    }
-
+  /**
+   * Staff path: amount and game/challenge are fixed by the staff member's
+   * assignment. Checks per-player cap via player_activity, then inserts an
+   * activity row and updates the player's total points.
+   *
+   * Admin path: amount comes from the UI (quick button or custom input).
+   * No cap is enforced — admins can add or remove any amount.
+   */
+  const awardPoints = async (adminAmount?: number) => {
+    if (selectedPlayers.length === 0) return;
     setBusyAward(true);
+
     const timestamp = new Date().toLocaleString(undefined, {
       dateStyle: "medium",
       timeStyle: "short",
     });
-    const tag = isAdmin ? "ADMIN" : staffAssignment;
-    let succeeded = 0;
-    let blocked = 0;
 
-    await Promise.all(
-      selectedPlayers.map(async (player) => {
-        try {
-          const fresh = await getPlayerById(player.id);
-          if (!fresh) return;
-          if (!isAdmin && fresh.participation.includes(staffAssignment)) {
-            blocked++;
-            return;
-          }
-          const newParticipation = isAdmin
-            ? fresh.participation
-            : Array.from(new Set([...fresh.participation, staffAssignment]));
-          await patchPlayerById(player.id, {
-            points: fresh.points + amount,
-            log: [
-              ...fresh.log,
-              `${staffName}[${tag}] gave ${fresh.name} ${amount} points on ${timestamp} for ${awardReason}`,
-            ],
-            participation: newParticipation,
-          });
-          succeeded++;
-        } catch (err) {
+    try {
+      if (!isAdmin) {
+        // ── Staff path ──────────────────────────────────────────────────────
+        if (
+          !currentStaff?.assignmentId ||
+          currentStaff.pointsPerAward === null ||
+          currentStaff.maxPoints === null
+        ) {
           push(
             "error",
-            `Failed for ${player.name}: ${err instanceof Error ? err.message : "error"}`
+            "You have no game/challenge assignment. Contact an admin."
+          );
+          return;
+        }
+
+        const amount = currentStaff.pointsPerAward;
+        const gameId =
+          currentStaff.assignmentType === "game"
+            ? currentStaff.assignmentId
+            : null;
+        const challengeId =
+          currentStaff.assignmentType === "challenge"
+            ? currentStaff.assignmentId
+            : null;
+        const maxPts = currentStaff.maxPoints;
+        const tag = currentStaff.assignmentName!;
+
+        let succeeded = 0;
+        let capped = 0;
+
+        await Promise.all(
+          selectedPlayers.map(async (player) => {
+            try {
+              const currentTotal = await getActivityTotal(
+                player.id,
+                gameId,
+                challengeId
+              );
+              if (currentTotal + amount > maxPts) {
+                capped++;
+                return;
+              }
+              if (!user?.id) return;
+              await recordActivity(
+                player.id,
+                gameId,
+                challengeId,
+                amount,
+                user.id
+              );
+              const fresh = await getPlayerById(player.id);
+              if (!fresh) return;
+              await patchPlayerById(player.id, {
+                points: fresh.points + amount,
+                log: [
+                  ...fresh.log,
+                  `${staffName}[${tag}] gave ${fresh.name} ${amount} pts on ${timestamp}`,
+                ],
+              });
+              succeeded++;
+            } catch (err) {
+              push(
+                "error",
+                `Failed for ${player.name}: ${
+                  err instanceof Error ? err.message : "error"
+                }`
+              );
+            }
+          })
+        );
+
+        const freshForEdit = singleSelected
+          ? await getPlayerById(singleSelected.id)
+          : null;
+        await refreshPlayers();
+        if (freshForEdit) setEditedPlayer(freshForEdit);
+
+        if (succeeded > 0) {
+          push(
+            "success",
+            `${amount} pts awarded to ${succeeded} player${
+              succeeded === 1 ? "" : "s"
+            }`
           );
         }
-      })
-    );
+        if (capped > 0) {
+          push(
+            "info",
+            `Skipped ${capped} — already at or near the ${maxPts}-pt cap for ${tag}`
+          );
+        }
+      } else {
+        // ── Admin path ──────────────────────────────────────────────────────
+        const amount = adminAmount ?? 0;
+        if (amount === 0) return;
 
-    // Fetch fresh data while still busy so the UI unlocks with correct data atomically
-    const freshForEdit = singleSelected ? await getPlayerById(singleSelected.id) : null;
+        if (!awardReason) {
+          push("error", "Select a Game or Challenge first.");
+          return;
+        }
+        if (amount < 0 && selectedPlayers.some((p) => p.points + amount < 0)) {
+          push("error", "Cannot remove — some players would go below 0.");
+          return;
+        }
 
-    await refreshPlayers();
+        let succeeded = 0;
 
-    // Batch — UI becomes interactive only after editedPlayer is already synced
-    setPointsInput("");
-    setBusyAward(false);
-    if (freshForEdit) setEditedPlayer(freshForEdit);
+        await Promise.all(
+          selectedPlayers.map(async (player) => {
+            try {
+              const fresh = await getPlayerById(player.id);
+              if (!fresh) return;
+              await patchPlayerById(player.id, {
+                points: fresh.points + amount,
+                log: [
+                  ...fresh.log,
+                  `${staffName}[ADMIN] gave ${fresh.name} ${amount} pts on ${timestamp} for ${awardReason}`,
+                ],
+              });
+              succeeded++;
+            } catch (err) {
+              push(
+                "error",
+                `Failed for ${player.name}: ${
+                  err instanceof Error ? err.message : "error"
+                }`
+              );
+            }
+          })
+        );
 
-    if (succeeded > 0) {
-      const verb = amount > 0 ? "awarded to" : "removed from";
-      push(
-        "success",
-        `${Math.abs(amount)} pts ${verb} ${succeeded} player${succeeded === 1 ? "" : "s"}`
-      );
-    }
-    if (blocked > 0) {
-      push("info", `Skipped ${blocked} — already received '${staffAssignment}' points`);
+        const freshForEdit = singleSelected
+          ? await getPlayerById(singleSelected.id)
+          : null;
+        await refreshPlayers();
+        setPointsInput("");
+        if (freshForEdit) setEditedPlayer(freshForEdit);
+
+        if (succeeded > 0) {
+          const verb = amount > 0 ? "awarded to" : "removed from";
+          push(
+            "success",
+            `${Math.abs(amount)} pts ${verb} ${succeeded} player${
+              succeeded === 1 ? "" : "s"
+            }`
+          );
+        }
+      }
+    } finally {
+      setBusyAward(false);
     }
   };
 
   const revokeMyAssignment = async (player: Player) => {
-    const logsFromRole = player.log.filter((log) =>
-      log.includes(`[${staffAssignment}] gave ${player.name}`)
-    );
-    const pointsToRevoke = logsFromRole.reduce((sum, log) => {
-      const match = log.match(/gave .*? (-?\d+) points/);
-      return match ? sum + parseInt(match[1], 10) : sum;
-    }, 0);
-    if (pointsToRevoke === 0) return;
+    if (!currentStaff?.assignmentId || !user?.id) return;
+
+    const gameId =
+      currentStaff.assignmentType === "game"
+        ? currentStaff.assignmentId
+        : null;
+    const challengeId =
+      currentStaff.assignmentType === "challenge"
+        ? currentStaff.assignmentId
+        : null;
+
     try {
+      const pointsToRevoke = await deleteActivitiesBy(
+        player.id,
+        user.id,
+        gameId,
+        challengeId
+      );
+
+      if (pointsToRevoke === 0) {
+        push("info", "No awards to revoke for this player.");
+        return;
+      }
+
+      const fresh = await getPlayerById(player.id);
+      if (!fresh) return;
+
+      const timestamp = new Date().toLocaleString(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
       const revoked = await patchPlayerById(player.id, {
-        points: player.points - pointsToRevoke,
-        log: player.log.filter((log) => !logsFromRole.includes(log)),
-        participation: player.participation.filter((role) => role !== staffAssignment),
+        points: Math.max(0, fresh.points - pointsToRevoke),
+        log: [
+          ...fresh.log,
+          `${staffName}[${currentStaff.assignmentName}] revoked ${pointsToRevoke} pts from ${fresh.name} on ${timestamp}`,
+        ],
       });
       await refreshPlayers();
       setEditedPlayer(revoked);
@@ -191,7 +324,7 @@ const PlayersPanel: React.FC = () => {
   const saveEdits = async () => {
     if (!editedPlayer || !singleSelected) return;
     setBusySave(true);
-    const snapshot = editedPlayer; // capture before any async gap
+    const snapshot = editedPlayer;
     const timestamp = new Date().toLocaleString(undefined, {
       dateStyle: "medium",
       timeStyle: "short",
@@ -202,7 +335,9 @@ const PlayersPanel: React.FC = () => {
     ).length;
     const auditEntry =
       removedCount > 0
-        ? `${editor} removed ${removedCount} log ${removedCount === 1 ? "entry" : "entries"} from ${singleSelected.name} on ${timestamp}`
+        ? `${editor} removed ${removedCount} log ${
+            removedCount === 1 ? "entry" : "entries"
+          } from ${singleSelected.name} on ${timestamp}`
         : `Player updated by ${editor} on ${timestamp}`;
     try {
       const updated = await patchPlayerById(singleSelected.id, {
@@ -212,9 +347,9 @@ const PlayersPanel: React.FC = () => {
         teamAssignments: snapshot.teamAssignments,
       });
       await refreshPlayers();
-      // Only sync editedPlayer back from server if the admin hasn't made further
-      // edits while the save was in flight (e.g. deleted another log entry).
-      setEditedPlayer((current) => (current === snapshot ? updated : current));
+      setEditedPlayer((current) =>
+        current === snapshot ? updated : current
+      );
       push("success", `Saved changes to ${updated.name}`);
     } catch (err) {
       push("error", err instanceof Error ? err.message : "Could not save.");
@@ -224,7 +359,9 @@ const PlayersPanel: React.FC = () => {
   };
 
   const handleRemovePlayer = async (player: Player) => {
-    if (!window.confirm(`Really remove ${player.name}? This is permanent.`)) return;
+    if (!isAdmin) return;
+    if (!window.confirm(`Really remove ${player.name}? This is permanent.`))
+      return;
     try {
       await removePlayerById(player.id);
       setSelectedIds((prev) => {
@@ -238,7 +375,11 @@ const PlayersPanel: React.FC = () => {
     }
   };
 
-  const handleRegister = async (userId: string, game: string, team: string) => {
+  const handleRegister = async (
+    userId: string,
+    game: string,
+    team: string
+  ) => {
     try {
       await addPlayer({
         userId,
@@ -247,13 +388,17 @@ const PlayersPanel: React.FC = () => {
       push("success", `Registered player`);
       setShowAddModal(false);
     } catch (err) {
-      push("error", err instanceof Error ? err.message : "Failed to register player");
+      push(
+        "error",
+        err instanceof Error ? err.message : "Failed to register player"
+      );
     }
   };
 
   /* ------------------------------- Render ------------------------------- */
 
-  if (rolesLoading) return <div className="p-4 text-gray-300">Loading permissions...</div>;
+  if (rolesLoading)
+    return <div className="p-4 text-gray-300">Loading permissions...</div>;
   if (!isStaff)
     return (
       <div className="p-4 font-semibold text-red-300">
@@ -302,16 +447,20 @@ const PlayersPanel: React.FC = () => {
               onClear={clearSelection}
             />
             <AwardCard
-              staffAssignment={staffAssignment}
               isAdmin={isAdmin}
               busy={busyAward}
-              pointsInput={pointsInput}
-              onPointsInputChange={setPointsInput}
-              onAward={(amount) => void awardPoints(amount)}
+              onAward={awardPoints}
+              // Staff-mode props
+              assignmentName={currentStaff?.assignmentName}
+              pointsPerAward={currentStaff?.pointsPerAward}
+              maxPoints={currentStaff?.maxPoints}
+              // Admin-mode props
               games={games.map((g) => g.name)}
               challenges={challenges.map((c) => c.name)}
               selectedReason={awardReason}
               onSelectedReasonChange={setAwardReason}
+              pointsInput={pointsInput}
+              onPointsInputChange={setPointsInput}
             />
           </>
         )}
@@ -324,7 +473,7 @@ const PlayersPanel: React.FC = () => {
             openSection={openSection}
             onOpenSection={setOpenSection}
             isAdmin={isAdmin}
-            staffAssignment={staffAssignment}
+            staffAssignment={currentStaff?.assignmentName ?? "staff"}
             games={games}
             busySave={busySave}
             onSave={() => void saveEdits()}
