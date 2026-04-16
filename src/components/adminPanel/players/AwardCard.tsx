@@ -4,30 +4,76 @@ import { dangerBtnClass, primaryBtnClass } from "../shared/styles";
 const QUICK_AMOUNTS = [1, 5, 10, 25];
 
 type AwardCardProps = {
-  staffAssignment: string;
   isAdmin: boolean;
   busy: boolean;
-  pointsInput: string;
-  onPointsInputChange: (v: string) => void;
-  onAward: (amount: number) => void;
-  games: string[];
-  challenges: string[];
-  selectedReason: string;
-  onSelectedReasonChange: (v: string) => void;
+  onAward: (amount?: number) => void;
+  // Staff-mode props (used when isAdmin=false)
+  assignmentName?: string | null;
+  pointsPerAward?: number | null;
+  maxPoints?: number | null;
+  // Admin-mode props (used when isAdmin=true)
+  games?: string[];
+  challenges?: string[];
+  selectedReason?: string;
+  onSelectedReasonChange?: (v: string) => void;
+  pointsInput?: string;
+  onPointsInputChange?: (v: string) => void;
 };
 
 const AwardCard: React.FC<AwardCardProps> = ({
-  staffAssignment,
   isAdmin,
   busy,
-  pointsInput,
-  onPointsInputChange,
   onAward,
-  games,
-  challenges,
-  selectedReason,
+  assignmentName,
+  pointsPerAward,
+  maxPoints,
+  games = [],
+  challenges = [],
+  selectedReason = "",
   onSelectedReasonChange,
+  pointsInput = "",
+  onPointsInputChange,
 }) => {
+  if (!isAdmin) {
+    // ── Staff mode ────────────────────────────────────────────
+    const hasAssignment = !!assignmentName && pointsPerAward !== null && pointsPerAward !== undefined;
+
+    return (
+      <div className="border border-blue-bright/30 bg-gradient-to-br from-navy-blue/80 to-card-bg/80 p-5 shadow-[0_0_30px_rgba(0,212,255,0.08)]">
+        <h3 className="mb-4 font-zuume text-2xl font-bold uppercase tracking-wider text-white">
+          Award Points
+        </h3>
+
+        {!hasAssignment ? (
+          <p className="rounded border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm font-semibold text-amber-300">
+            You have no game or challenge assignment. Contact an admin to be assigned.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            <div className="border border-blue-accent/20 bg-dark-navy/40 px-4 py-3">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-blue-bright/70">
+                Your Assignment
+              </p>
+              <p className="text-lg font-bold text-white">{assignmentName}</p>
+              <p className="mt-1 text-xs text-gray-400">
+                <span className="font-semibold text-blue-bright">{pointsPerAward} pts</span> per award
+                {" · "}cap: <span className="font-semibold text-blue-bright">{maxPoints} pts</span> per player
+              </p>
+            </div>
+            <button
+              disabled={busy}
+              onClick={() => onAward()}
+              className={`w-full py-4 font-zuume text-xl font-bold uppercase tracking-wider ${primaryBtnClass} disabled:opacity-50`}
+            >
+              {busy ? "Awarding…" : `Award ${pointsPerAward} pts`}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Admin mode ──────────────────────────────────────────────
   const noReason = selectedReason === "";
 
   const submitCustom = (sign: 1 | -1) => {
@@ -37,16 +83,10 @@ const AwardCard: React.FC<AwardCardProps> = ({
 
   return (
     <div className="border border-blue-bright/30 bg-gradient-to-br from-navy-blue/80 to-card-bg/80 p-5 shadow-[0_0_30px_rgba(0,212,255,0.08)]">
-      <div className="mb-4 flex items-baseline justify-between">
-        <h3 className="font-zuume text-2xl font-bold uppercase tracking-wider text-white">
-          Award Points
-        </h3>
-        {!isAdmin && (
-          <span className="text-xs font-semibold text-blue-bright/80">
-            Assignment: <span className="text-blue-bright">{staffAssignment}</span>
-          </span>
-        )}
-      </div>
+      <h3 className="mb-4 font-zuume text-2xl font-bold uppercase tracking-wider text-white">
+        Award Points
+        <span className="ml-3 text-sm font-normal normal-case tracking-normal text-amber-300">Admin</span>
+      </h3>
 
       <div className="mb-3">
         <label className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-blue-bright/80">
@@ -58,14 +98,9 @@ const AwardCard: React.FC<AwardCardProps> = ({
             </span>
           )}
         </label>
-        <p className="mb-2 text-xs text-gray-400">
-          Points can only be awarded in the context of a Game or Challenge. The
-          selection determines the allowed point amount and cap, and is recorded
-          in the player&apos;s log as your justification for this award.
-        </p>
         <select
           value={selectedReason}
-          onChange={(e) => onSelectedReasonChange(e.target.value)}
+          onChange={(e) => onSelectedReasonChange?.(e.target.value)}
           className={`w-full border bg-dark-bg/60 px-3 py-2 text-base font-semibold text-white focus:outline-none ${
             noReason
               ? "border-amber-400/60 focus:border-amber-400"
@@ -110,7 +145,7 @@ const AwardCard: React.FC<AwardCardProps> = ({
           type="number"
           placeholder="Custom"
           value={pointsInput}
-          onChange={(e) => onPointsInputChange(e.target.value)}
+          onChange={(e) => onPointsInputChange?.(e.target.value)}
           className="w-28 border border-blue-accent/40 bg-dark-bg/60 px-3 py-3 text-center text-base font-semibold tabular-nums text-white placeholder-gray-500 focus:border-blue-bright focus:outline-none"
         />
         <button
@@ -120,15 +155,13 @@ const AwardCard: React.FC<AwardCardProps> = ({
         >
           Award
         </button>
-        {isAdmin && (
-          <button
-            disabled={busy || pointsInput === "" || noReason}
-            onClick={() => submitCustom(-1)}
-            className={dangerBtnClass}
-          >
-            Remove
-          </button>
-        )}
+        <button
+          disabled={busy || pointsInput === "" || noReason}
+          onClick={() => submitCustom(-1)}
+          className={dangerBtnClass}
+        >
+          Remove
+        </button>
       </div>
     </div>
   );
