@@ -108,6 +108,9 @@ const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ games, onClose, onSubmi
               placeholder="Search by name or username…"
               className={inputClass}
             />
+            <p className="mt-1 text-xs text-gray-500">
+              Only users who have previously logged into the site will appear in search results.
+            </p>
           </Field>
           {query.trim().length >= 2 && (
             <div className="max-h-48 overflow-y-auto border border-blue-accent/20 bg-dark-bg/40">

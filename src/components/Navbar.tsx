@@ -83,7 +83,7 @@ function Navbar() {
 
   return (
     <div
-      className={`fixed z-10 flex h-[--navbar-height] w-full items-center justify-between border-0 bg-transparent transition-all duration-500 md:flex md:px-20 md:py-6 ${isScrolled ? "bg-opacity-70 backdrop-blur-md" : "bg-transparent"
+      className={`fixed z-50 flex h-[--navbar-height] w-full items-center justify-between border-0 bg-transparent transition-all duration-500 md:flex md:px-20 md:py-6 ${isScrolled ? "bg-opacity-70 backdrop-blur-md" : "bg-transparent"
         }`}
     >
       <div className="font-zuume font-bold italic text-4xl tracking-wide">
