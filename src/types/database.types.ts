@@ -110,6 +110,7 @@ export interface Database {
           fname: string | null;
           id: string;
           lname: string | null;
+          profile_completed: boolean;
           username: string | null;
         };
         Insert: {
@@ -118,6 +119,7 @@ export interface Database {
           fname?: string | null;
           id: string;
           lname?: string | null;
+          profile_completed?: boolean;
           username?: string | null;
         };
         Update: {
@@ -126,6 +128,7 @@ export interface Database {
           fname?: string | null;
           id?: string;
           lname?: string | null;
+          profile_completed?: boolean;
           username?: string | null;
         };
         Relationships: [];

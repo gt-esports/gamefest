@@ -23,9 +23,7 @@ const ProfileCompletionGate = () => {
 
   if (!isLoaded || !user || loading || !profile) return null;
   if (location.pathname.startsWith("/auth/callback")) return null;
-
-  const needsName = !profile.fname?.trim() || !profile.lname?.trim();
-  if (!needsName) return null;
+  if (profile.profile_completed) return null;
 
   return (
     <CompleteProfileModal

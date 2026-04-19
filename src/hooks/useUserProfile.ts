@@ -52,7 +52,7 @@ export const useUserProfile = (userId: string | null | undefined) => {
       if (!userId) throw new Error("Not signed in");
       const { data, error: updateError } = await supabase
         .from("users")
-        .update({ fname, lname })
+        .update({ fname, lname, profile_completed: true })
         .eq("id", userId)
         .select("*")
         .single();
