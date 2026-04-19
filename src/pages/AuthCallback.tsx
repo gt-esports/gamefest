@@ -49,9 +49,16 @@ function AuthCallback() {
     void fastPath();
 
     const timeoutId = setTimeout(() => {
-      subscription.unsubscribe();
-      setStatus("Sign in failed. Please try again.");
-    }, 8000);
+      void supabase.auth.getSession().then(({ data }) => {
+        if (data.session) {
+          subscription.unsubscribe();
+          redirect();
+          return;
+        }
+        subscription.unsubscribe();
+        setStatus("Sign in failed. Please try again.");
+      });
+    }, 15000);
 
     return () => {
       clearTimeout(timeoutId);
