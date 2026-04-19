@@ -35,41 +35,23 @@ function AuthCallback() {
       }
     });
 
-    let timeoutId: ReturnType<typeof setTimeout>;
-
-    const run = async () => {
-      // Fast path: session may already exist if Supabase finished the exchange
-      // before this component mounted.
+    // Supabase (detectSessionInUrl: true) performs the PKCE exchange during
+    // client construction. We only need to wait for it to finish. Do NOT call
+    // exchangeCodeForSession here — that would consume the OAuth code a second
+    // time and fail with "Unable to exchange external code".
+    const fastPath = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
         subscription.unsubscribe();
         redirect();
-        return;
       }
-
-      // Fallback: if auto-detect didn't fire (e.g. route mismatch), exchange
-      // the code manually. This primarily catches edge cases.
-      const code = params.get("code");
-      if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) {
-          console.error("[AuthCallback] exchangeCodeForSession failed:", error);
-          subscription.unsubscribe();
-          setStatus(`Sign in failed: ${error.message}`);
-          return;
-        }
-        // onAuthStateChange will fire with the new session.
-        return;
-      }
-
-      // No session, no code — wait briefly for auto-detect, then give up.
-      timeoutId = setTimeout(() => {
-        subscription.unsubscribe();
-        setStatus("Sign in failed. Please try again.");
-      }, 5000);
     };
+    void fastPath();
 
-    void run();
+    const timeoutId = setTimeout(() => {
+      subscription.unsubscribe();
+      setStatus("Sign in failed. Please try again.");
+    }, 8000);
 
     return () => {
       clearTimeout(timeoutId);
