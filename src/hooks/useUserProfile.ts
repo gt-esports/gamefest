@@ -17,17 +17,29 @@ export const useUserProfile = (userId: string | null | undefined) => {
     }
     setLoading(true);
     setError(null);
-    const { data, error: fetchError } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
-    if (fetchError) {
-      setError(fetchError.message);
-      setProfile(null);
-    } else {
-      setProfile(data);
+    // On first sign-in, the `handle_new_user` trigger inserts this row
+    // asynchronously. Retry briefly so we don't return null before it lands.
+    const delays = [0, 250, 500, 1000, 2000];
+    for (let i = 0; i < delays.length; i++) {
+      if (delays[i] > 0) await new Promise((r) => setTimeout(r, delays[i]));
+      const { data, error: fetchError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
+      if (fetchError) {
+        setError(fetchError.message);
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
+      if (data) {
+        setProfile(data);
+        setLoading(false);
+        return;
+      }
     }
+    setProfile(null);
     setLoading(false);
   }, [userId]);
 
