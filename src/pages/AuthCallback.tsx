@@ -10,6 +10,13 @@ function AuthCallback() {
   const redirected = useRef(false);
 
   useEffect(() => {
+    // Surface provider-side errors immediately (e.g. user denied consent).
+    const providerError = params.get("error_description") || params.get("error");
+    if (providerError) {
+      setStatus(`Sign in failed: ${providerError}`);
+      return;
+    }
+
     const redirect = () => {
       if (redirected.current) return;
       redirected.current = true;
@@ -17,7 +24,8 @@ function AuthCallback() {
       navigate("/profile", { replace: true });
     };
 
-    // Subscribe FIRST so we never miss a SIGNED_IN event fired during exchange.
+    // Subscribe FIRST so we never miss a SIGNED_IN event fired by Supabase's
+    // auto URL detection (detectSessionInUrl: true in supabaseClient).
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -30,7 +38,8 @@ function AuthCallback() {
     let timeoutId: ReturnType<typeof setTimeout>;
 
     const run = async () => {
-      // Fast path: session may already exist if exchange happened before mount.
+      // Fast path: session may already exist if Supabase finished the exchange
+      // before this component mounted.
       const { data } = await supabase.auth.getSession();
       if (data.session) {
         subscription.unsubscribe();
@@ -38,26 +47,22 @@ function AuthCallback() {
         return;
       }
 
-      const code =
-        params.get("code") ||
-        new URLSearchParams(window.location.hash.replace(/^#/, "")).get("code");
-
+      // Fallback: if auto-detect didn't fire (e.g. route mismatch), exchange
+      // the code manually. This primarily catches edge cases.
+      const code = params.get("code");
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (!error) {
-          // onAuthStateChange fires and calls redirect() — nothing more to do.
-          return;
-        }
-        // Exchange failed (code may have been consumed). Check session once more.
-        const { data: retryData } = await supabase.auth.getSession();
-        if (retryData.session) {
+        if (error) {
+          console.error("[AuthCallback] exchangeCodeForSession failed:", error);
           subscription.unsubscribe();
-          redirect();
+          setStatus(`Sign in failed: ${error.message}`);
           return;
         }
+        // onAuthStateChange will fire with the new session.
+        return;
       }
 
-      // No code and no session — show failure after a short grace period.
+      // No session, no code — wait briefly for auto-detect, then give up.
       timeoutId = setTimeout(() => {
         subscription.unsubscribe();
         setStatus("Sign in failed. Please try again.");
