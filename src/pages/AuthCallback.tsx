@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../utils/supabaseClient";
 
@@ -6,19 +6,37 @@ function AuthCallback() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [status, setStatus] = useState("Completing sign in...");
+  // Prevent double-redirect from StrictMode double-invoke or race conditions.
+  const redirected = useRef(false);
 
   useEffect(() => {
-    let cancelled = false;
-
     const redirect = () => {
-      if (!cancelled) {
-        setStatus("Signed in. Redirecting...");
-        navigate("/profile", { replace: true });
-      }
+      if (redirected.current) return;
+      redirected.current = true;
+      setStatus("Signed in. Redirecting...");
+      navigate("/profile", { replace: true });
     };
 
+    // Subscribe FIRST so we never miss a SIGNED_IN event fired during exchange.
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        subscription.unsubscribe();
+        redirect();
+      }
+    });
+
+    let timeoutId: ReturnType<typeof setTimeout>;
+
     const run = async () => {
-      setStatus("Completing sign in...");
+      // Fast path: session may already exist if exchange happened before mount.
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        subscription.unsubscribe();
+        redirect();
+        return;
+      }
 
       const code =
         params.get("code") ||
@@ -27,45 +45,30 @@ function AuthCallback() {
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (!error) {
+          // onAuthStateChange fires and calls redirect() — nothing more to do.
+          return;
+        }
+        // Exchange failed (code may have been consumed). Check session once more.
+        const { data: retryData } = await supabase.auth.getSession();
+        if (retryData.session) {
+          subscription.unsubscribe();
           redirect();
           return;
         }
-        // Code may have already been consumed — fall through to session check.
       }
 
-      // Check for an existing session (e.g. code was consumed by a previous render).
-      const { data, error: sessionError } = await supabase.auth.getSession();
-      if (!sessionError && data.session) {
-        redirect();
-        return;
-      }
-
-      // Last resort: wait for an auth state event (handles async exchange in flight).
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (session) {
-          subscription.unsubscribe();
-          redirect();
-        }
-      });
-
-      const timeout = setTimeout(() => {
+      // No code and no session — show failure after a short grace period.
+      timeoutId = setTimeout(() => {
         subscription.unsubscribe();
-        if (!cancelled) {
-          setStatus("Missing authorization code. Please sign in again.");
-        }
-      }, 8000);
-
-      return () => {
-        cancelled = true;
-        clearTimeout(timeout);
-        subscription.unsubscribe();
-      };
+        setStatus("Sign in failed. Please try again.");
+      }, 5000);
     };
 
     void run();
 
     return () => {
-      cancelled = true;
+      clearTimeout(timeoutId);
+      subscription.unsubscribe();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps -- run once on mount only
 
