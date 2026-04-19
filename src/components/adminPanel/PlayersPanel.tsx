@@ -17,7 +17,7 @@ import { useUserRoles } from "../../hooks/useUserRoles";
 import { ToastStack } from "./shared/ui";
 import { useToasts } from "./shared/useToasts";
 import AddPlayerModal from "./players/AddPlayerModal";
-import AwardCard from "./players/AwardCard";
+import AwardCard, { type AwardMode } from "./players/AwardCard";
 import PlayerDetailCard, {
   type DetailSection,
 } from "./players/PlayerDetailCard";
@@ -45,6 +45,7 @@ const PlayersPanel: React.FC = () => {
   // Admin-only award state
   const [pointsInput, setPointsInput] = useState("");
   const [awardReason, setAwardReason] = useState("");
+  const [awardMode, setAwardMode] = useState<AwardMode>("custom");
   const [showAddModal, setShowAddModal] = useState(false);
   const [openSection, setOpenSection] = useState<DetailSection>(null);
   const [editedPlayer, setEditedPlayer] = useState<Player | null>(null);
@@ -214,59 +215,151 @@ const PlayersPanel: React.FC = () => {
         }
       } else {
         // ── Admin path ──────────────────────────────────────────────────────
-        const amount = adminAmount ?? 0;
-        if (amount === 0) return;
+        if (awardMode === "structured") {
+          // Derive game/challenge from "game:<id>" or "challenge:<id>"
+          const colonIdx = awardReason.indexOf(":");
+          const reasonType = awardReason.slice(0, colonIdx);
+          const reasonId = awardReason.slice(colonIdx + 1);
+          const selectedGame =
+            reasonType === "game"
+              ? games.find((g) => g.id === reasonId) ?? null
+              : null;
+          const selectedChallenge =
+            reasonType === "challenge"
+              ? challenges.find((c) => c.id === reasonId) ?? null
+              : null;
+          const entry = selectedGame ?? selectedChallenge;
 
-        if (!awardReason) {
-          push("error", "Select a Game or Challenge first.");
-          return;
-        }
-        if (amount < 0 && selectedPlayers.some((p) => p.points + amount < 0)) {
-          push("error", "Cannot remove — some players would go below 0.");
-          return;
-        }
+          if (!entry) {
+            push("error", "Select a Game or Challenge first.");
+            return;
+          }
 
-        let succeeded = 0;
+          const amount = entry.pointsPerAward;
+          const maxPts = entry.maxPoints;
+          const gameId = selectedGame?.id ?? null;
+          const challengeId = selectedChallenge?.id ?? null;
+          const tag = entry.name;
 
-        await Promise.all(
-          selectedPlayers.map(async (player) => {
-            try {
-              const fresh = await getPlayerById(player.id);
-              if (!fresh) return;
-              await patchPlayerById(player.id, {
-                points: fresh.points + amount,
-                log: [
-                  ...fresh.log,
-                  `${staffName}[ADMIN] gave ${fresh.name} ${amount} pts on ${timestamp} for ${awardReason}`,
-                ],
-              });
-              succeeded++;
-            } catch (err) {
-              push(
-                "error",
-                `Failed for ${player.name}: ${
-                  err instanceof Error ? err.message : "error"
-                }`
-              );
-            }
-          })
-        );
+          let succeeded = 0;
+          let capped = 0;
 
-        const freshForEdit = singleSelected
-          ? await getPlayerById(singleSelected.id)
-          : null;
-        await refreshPlayers();
-        setPointsInput("");
-        if (freshForEdit) setEditedPlayer(freshForEdit);
-
-        if (succeeded > 0) {
-          const verb = amount > 0 ? "awarded to" : "removed from";
-          push(
-            "success",
-            `${Math.abs(amount)} pts ${verb} ${succeeded} player${
-              succeeded === 1 ? "" : "s"
-            }`
+          await Promise.all(
+            selectedPlayers.map(async (player) => {
+              try {
+                const currentTotal = await getActivityTotal(
+                  player.id,
+                  gameId,
+                  challengeId
+                );
+                if (currentTotal + amount > maxPts) {
+                  capped++;
+                  return;
+                }
+                if (!user?.id) return;
+                await recordActivity(
+                  player.id,
+                  gameId,
+                  challengeId,
+                  amount,
+                  user.id
+                );
+                const fresh = await getPlayerById(player.id);
+                if (!fresh) return;
+                await patchPlayerById(player.id, {
+                  points: fresh.points + amount,
+                  log: [
+                    ...fresh.log,
+                    `${staffName}[ADMIN] gave ${fresh.name} ${amount} pts on ${timestamp} for ${tag}`,
+                  ],
+                });
+                succeeded++;
+              } catch (err) {
+                push(
+                  "error",
+                  `Failed for ${player.name}: ${
+                    err instanceof Error ? err.message : "error"
+                  }`
+                );
+              }
+            })
           );
+
+          const freshForEdit = singleSelected
+            ? await getPlayerById(singleSelected.id)
+            : null;
+          await refreshPlayers();
+          if (freshForEdit) setEditedPlayer(freshForEdit);
+
+          if (succeeded > 0) {
+            push(
+              "success",
+              `${amount} pts awarded to ${succeeded} player${
+                succeeded === 1 ? "" : "s"
+              }`
+            );
+          }
+          if (capped > 0) {
+            push(
+              "info",
+              `Skipped ${capped} player${capped === 1 ? "" : "s"} — already at the ${maxPts}-pt cap for ${tag}`
+            );
+          }
+        } else {
+          // ── Custom sub-path ─────────────────────────────────────────────
+          const amount = adminAmount ?? 0;
+          if (amount === 0) return;
+
+          if (
+            amount < 0 &&
+            selectedPlayers.some((p) => p.points + amount < 0)
+          ) {
+            push("error", "Cannot remove — some players would go below 0.");
+            return;
+          }
+
+          let succeeded = 0;
+
+          await Promise.all(
+            selectedPlayers.map(async (player) => {
+              try {
+                const fresh = await getPlayerById(player.id);
+                if (!fresh) return;
+                await patchPlayerById(player.id, {
+                  points: fresh.points + amount,
+                  log: [
+                    ...fresh.log,
+                    `${staffName}[ADMIN] gave ${fresh.name} ${amount} pts on ${timestamp}`,
+                  ],
+                });
+                succeeded++;
+              } catch (err) {
+                push(
+                  "error",
+                  `Failed for ${player.name}: ${
+                    err instanceof Error ? err.message : "error"
+                  }`
+                );
+              }
+            })
+          );
+
+          const freshForEdit = singleSelected
+            ? await getPlayerById(singleSelected.id)
+            : null;
+          await refreshPlayers();
+          setPointsInput("");
+          if (freshForEdit) setEditedPlayer(freshForEdit);
+
+          if (succeeded > 0) {
+            const verb = amount > 0 ? "awarded to" : "removed from";
+            push(
+              "success",
+              `${Math.abs(amount)} pts ${verb} ${succeeded} player${
+                succeeded === 1 ? "" : "s"
+              }`
+            );
+          }
         }
       }
     } finally {
@@ -455,12 +548,14 @@ const PlayersPanel: React.FC = () => {
               pointsPerAward={currentStaff?.pointsPerAward}
               maxPoints={currentStaff?.maxPoints}
               // Admin-mode props
-              games={games.map((g) => g.name)}
-              challenges={challenges.map((c) => c.name)}
+              games={games}
+              challenges={challenges}
               selectedReason={awardReason}
               onSelectedReasonChange={setAwardReason}
               pointsInput={pointsInput}
               onPointsInputChange={setPointsInput}
+              awardMode={awardMode}
+              onAwardModeChange={setAwardMode}
             />
           </>
         )}

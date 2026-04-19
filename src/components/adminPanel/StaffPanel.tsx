@@ -261,8 +261,15 @@ const StaffPanel: React.FC = () => {
               key={member.userId}
               className="grid grid-cols-[1fr,2fr,auto] items-center gap-4 border-b border-blue-accent/10 px-5 py-3 last:border-b-0 hover:bg-white/[0.03]"
             >
-              <div className="truncate text-base font-medium text-white">
-                {member.name}
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="truncate text-base font-medium text-white">
+                  {member.name}
+                </span>
+                {member.role === "admin" && (
+                  <span className="shrink-0 rounded-sm bg-blue-bright/20 px-1.5 py-0.5 font-bayon text-[10px] uppercase tracking-widest text-blue-bright border border-blue-bright/40">
+                    Admin
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <AssignmentSelect
