@@ -6,10 +6,21 @@ import type { Challenge } from "../../../schemas/ChallengesSchema";
 const QUICK_AMOUNTS = [1, 5, 10, 25];
 export type AwardMode = "custom" | "structured";
 
+export type LastAwardSummary = {
+  amount: number;
+  tag: string;
+  playerCount: number;
+  playerNamePreview: string;
+};
+
 type AwardCardProps = {
   isAdmin: boolean;
   busy: boolean;
   onAward: (amount?: number) => void;
+  // Undo last award (staff mode + admin structured mode)
+  lastAward?: LastAwardSummary | null;
+  onUndoLast?: () => void;
+  busyUndo?: boolean;
   // Staff-mode props (used when isAdmin=false)
   assignmentName?: string | null;
   pointsPerAward?: number | null;
@@ -25,10 +36,41 @@ type AwardCardProps = {
   onAwardModeChange?: (mode: AwardMode) => void;
 };
 
+const UndoLastBanner: React.FC<{
+  last: LastAwardSummary;
+  busyUndo: boolean;
+  onUndoLast: () => void;
+}> = ({ last, busyUndo, onUndoLast }) => (
+  <div className="mt-3 flex items-center justify-between gap-3 border border-amber-400/40 bg-amber-400/10 px-3 py-2">
+    <div className="min-w-0 text-xs text-amber-200">
+      <span className="font-semibold">Last award:</span>{" "}
+      <span className="font-bold text-amber-100">{last.amount} pts</span>
+      {" to "}
+      <span className="truncate">{last.playerNamePreview}</span>
+      {last.playerCount > 1 && (
+        <span> +{last.playerCount - 1} more</span>
+      )}
+      {last.tag && (
+        <span className="text-amber-300/80"> · {last.tag}</span>
+      )}
+    </div>
+    <button
+      disabled={busyUndo}
+      onClick={onUndoLast}
+      className="shrink-0 border border-amber-300/60 bg-amber-300/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-amber-200 transition-colors hover:bg-amber-300/20 disabled:opacity-50"
+    >
+      {busyUndo ? "Undoing…" : "Undo"}
+    </button>
+  </div>
+);
+
 const AwardCard: React.FC<AwardCardProps> = ({
   isAdmin,
   busy,
   onAward,
+  lastAward = null,
+  onUndoLast,
+  busyUndo = false,
   assignmentName,
   pointsPerAward,
   maxPoints,
@@ -41,6 +83,7 @@ const AwardCard: React.FC<AwardCardProps> = ({
   awardMode = "custom",
   onAwardModeChange,
 }) => {
+  const canUndo = !!lastAward && !!onUndoLast;
   const switchMode = (mode: AwardMode) => {
     onAwardModeChange?.(mode);
     if (mode === "custom") onSelectedReasonChange?.("");
@@ -90,6 +133,13 @@ const AwardCard: React.FC<AwardCardProps> = ({
             >
               {busy ? "Awarding…" : `Award ${pointsPerAward} pts`}
             </button>
+            {canUndo && lastAward && onUndoLast && (
+              <UndoLastBanner
+                last={lastAward}
+                busyUndo={busyUndo}
+                onUndoLast={onUndoLast}
+              />
+            )}
           </div>
         )}
       </div>
@@ -216,6 +266,13 @@ const AwardCard: React.FC<AwardCardProps> = ({
                 {busy ? "Awarding…" : `Award ${selectedEntry.pointsPerAward} pts`}
               </button>
             </>
+          )}
+          {canUndo && lastAward && onUndoLast && (
+            <UndoLastBanner
+              last={lastAward}
+              busyUndo={busyUndo}
+              onUndoLast={onUndoLast}
+            />
           )}
         </div>
       )}

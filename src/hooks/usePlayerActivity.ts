@@ -10,14 +10,34 @@ export const recordActivity = async (
   challengeId: string | null,
   pointsAwarded: number,
   awardedByUserId: string
+): Promise<string> => {
+  const { data, error } = await supabase
+    .from("player_activity")
+    .insert({
+      player_id: playerId,
+      game_id: gameId,
+      challenge_id: challengeId,
+      points_awarded: pointsAwarded,
+      awarded_by: awardedByUserId,
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return data.id;
+};
+
+/**
+ * Delete specific activity rows by ID. Used by the "undo last award" flow
+ * to reverse a single batch of awards without touching earlier history.
+ */
+export const deleteActivitiesByIds = async (
+  ids: string[]
 ): Promise<void> => {
-  const { error } = await supabase.from("player_activity").insert({
-    player_id: playerId,
-    game_id: gameId,
-    challenge_id: challengeId,
-    points_awarded: pointsAwarded,
-    awarded_by: awardedByUserId,
-  });
+  if (ids.length === 0) return;
+  const { error } = await supabase
+    .from("player_activity")
+    .delete()
+    .in("id", ids);
   if (error) throw error;
 };
 

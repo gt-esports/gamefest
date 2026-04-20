@@ -9,6 +9,7 @@ import {
 } from "../../hooks/usePlayers";
 import {
   deleteActivitiesBy,
+  deleteActivitiesByIds,
   getActivityTotal,
   recordActivity,
 } from "../../hooks/usePlayerActivity";
@@ -17,7 +18,10 @@ import { useUserRoles } from "../../hooks/useUserRoles";
 import { ToastStack } from "./shared/ui";
 import { useToasts } from "./shared/useToasts";
 import AddPlayerModal from "./players/AddPlayerModal";
-import AwardCard, { type AwardMode } from "./players/AwardCard";
+import AwardCard, {
+  type AwardMode,
+  type LastAwardSummary,
+} from "./players/AwardCard";
 import PlayerDetailCard, {
   type DetailSection,
 } from "./players/PlayerDetailCard";
@@ -51,6 +55,20 @@ const PlayersPanel: React.FC = () => {
   const [editedPlayer, setEditedPlayer] = useState<Player | null>(null);
   const [busyAward, setBusyAward] = useState(false);
   const [busySave, setBusySave] = useState(false);
+  const [busyUndo, setBusyUndo] = useState(false);
+
+  // Tracks the most recent game/challenge award batch so staff/admin can
+  // intuitively undo it. Cleared on a new award, selection change, or undo.
+  type LastAwardBatch = {
+    activities: {
+      activityId: string;
+      playerId: string;
+      playerName: string;
+      points: number;
+    }[];
+    summary: LastAwardSummary;
+  };
+  const [lastAward, setLastAward] = useState<LastAwardBatch | null>(null);
 
   /* ---------------------------- Derived state ---------------------------- */
 
@@ -92,6 +110,12 @@ const PlayersPanel: React.FC = () => {
       setEditedPlayer(null);
     }
   }, [singleSelected?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Clear the "undo last award" affordance whenever the roster selection
+  // changes — undo only makes sense in the context of the current batch.
+  useEffect(() => {
+    setLastAward(null);
+  }, [selectedIds]);
 
   /* ------------------------------ Actions ------------------------------ */
 
@@ -149,8 +173,8 @@ const PlayersPanel: React.FC = () => {
         const maxPts = currentStaff.maxPoints;
         const tag = currentStaff.assignmentName!;
 
-        let succeeded = 0;
         let capped = 0;
+        const batch: LastAwardBatch["activities"] = [];
 
         await Promise.all(
           selectedPlayers.map(async (player) => {
@@ -165,7 +189,7 @@ const PlayersPanel: React.FC = () => {
                 return;
               }
               if (!user?.id) return;
-              await recordActivity(
+              const activityId = await recordActivity(
                 player.id,
                 gameId,
                 challengeId,
@@ -181,7 +205,12 @@ const PlayersPanel: React.FC = () => {
                   `${staffName}[${tag}] gave ${fresh.name} ${amount} pts on ${timestamp}`,
                 ],
               });
-              succeeded++;
+              batch.push({
+                activityId,
+                playerId: player.id,
+                playerName: fresh.name,
+                points: amount,
+              });
             } catch (err) {
               push(
                 "error",
@@ -199,13 +228,22 @@ const PlayersPanel: React.FC = () => {
         await refreshPlayers();
         if (freshForEdit) setEditedPlayer(freshForEdit);
 
-        if (succeeded > 0) {
+        if (batch.length > 0) {
           push(
             "success",
-            `${amount} pts awarded to ${succeeded} player${
-              succeeded === 1 ? "" : "s"
+            `${amount} pts awarded to ${batch.length} player${
+              batch.length === 1 ? "" : "s"
             }`
           );
+          setLastAward({
+            activities: batch,
+            summary: {
+              amount,
+              tag,
+              playerCount: batch.length,
+              playerNamePreview: batch[0].playerName,
+            },
+          });
         }
         if (capped > 0) {
           push(
@@ -241,8 +279,8 @@ const PlayersPanel: React.FC = () => {
           const challengeId = selectedChallenge?.id ?? null;
           const tag = entry.name;
 
-          let succeeded = 0;
           let capped = 0;
+          const batch: LastAwardBatch["activities"] = [];
 
           await Promise.all(
             selectedPlayers.map(async (player) => {
@@ -257,7 +295,7 @@ const PlayersPanel: React.FC = () => {
                   return;
                 }
                 if (!user?.id) return;
-                await recordActivity(
+                const activityId = await recordActivity(
                   player.id,
                   gameId,
                   challengeId,
@@ -273,7 +311,12 @@ const PlayersPanel: React.FC = () => {
                     `${staffName}[ADMIN] gave ${fresh.name} ${amount} pts on ${timestamp} for ${tag}`,
                   ],
                 });
-                succeeded++;
+                batch.push({
+                  activityId,
+                  playerId: player.id,
+                  playerName: fresh.name,
+                  points: amount,
+                });
               } catch (err) {
                 push(
                   "error",
@@ -291,13 +334,22 @@ const PlayersPanel: React.FC = () => {
           await refreshPlayers();
           if (freshForEdit) setEditedPlayer(freshForEdit);
 
-          if (succeeded > 0) {
+          if (batch.length > 0) {
             push(
               "success",
-              `${amount} pts awarded to ${succeeded} player${
-                succeeded === 1 ? "" : "s"
+              `${amount} pts awarded to ${batch.length} player${
+                batch.length === 1 ? "" : "s"
               }`
             );
+            setLastAward({
+              activities: batch,
+              summary: {
+                amount,
+                tag,
+                playerCount: batch.length,
+                playerNamePreview: batch[0].playerName,
+              },
+            });
           }
           if (capped > 0) {
             push(
@@ -307,6 +359,9 @@ const PlayersPanel: React.FC = () => {
           }
         } else {
           // ── Custom sub-path ─────────────────────────────────────────────
+          // Custom points aren't tracked in player_activity, so clear any
+          // stale "undo last award" banner from a prior structured award.
+          setLastAward(null);
           const amount = adminAmount ?? 0;
           if (amount === 0) return;
 
@@ -411,6 +466,68 @@ const PlayersPanel: React.FC = () => {
       push("success", `Revoked ${pointsToRevoke} pts from ${player.name}`);
     } catch (err) {
       push("error", err instanceof Error ? err.message : "Could not revoke.");
+    }
+  };
+
+  const undoLastAward = async () => {
+    if (!lastAward || lastAward.activities.length === 0) return;
+    setBusyUndo(true);
+    const batch = lastAward;
+    const timestamp = new Date().toLocaleString(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+    const tagLabel = isAdmin ? "ADMIN" : batch.summary.tag;
+    try {
+      await deleteActivitiesByIds(
+        batch.activities.map((a) => a.activityId)
+      );
+
+      let undone = 0;
+      await Promise.all(
+        batch.activities.map(async (entry) => {
+          try {
+            const fresh = await getPlayerById(entry.playerId);
+            if (!fresh) return;
+            await patchPlayerById(entry.playerId, {
+              points: Math.max(0, fresh.points - entry.points),
+              log: [
+                ...fresh.log,
+                `${staffName}[${tagLabel}] undid ${entry.points} pts from ${fresh.name} on ${timestamp}`,
+              ],
+            });
+            undone++;
+          } catch (err) {
+            push(
+              "error",
+              `Failed to undo for ${entry.playerName}: ${
+                err instanceof Error ? err.message : "error"
+              }`
+            );
+          }
+        })
+      );
+
+      const freshForEdit = singleSelected
+        ? await getPlayerById(singleSelected.id)
+        : null;
+      await refreshPlayers();
+      if (freshForEdit) setEditedPlayer(freshForEdit);
+      setLastAward(null);
+
+      if (undone > 0) {
+        push(
+          "success",
+          `Undid last award for ${undone} player${undone === 1 ? "" : "s"}`
+        );
+      }
+    } catch (err) {
+      push(
+        "error",
+        err instanceof Error ? err.message : "Could not undo last award."
+      );
+    } finally {
+      setBusyUndo(false);
     }
   };
 
@@ -543,6 +660,9 @@ const PlayersPanel: React.FC = () => {
               isAdmin={isAdmin}
               busy={busyAward}
               onAward={awardPoints}
+              lastAward={lastAward?.summary ?? null}
+              onUndoLast={() => void undoLastAward()}
+              busyUndo={busyUndo}
               // Staff-mode props
               assignmentName={currentStaff?.assignmentName}
               pointsPerAward={currentStaff?.pointsPerAward}
