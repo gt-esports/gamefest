@@ -41,7 +41,13 @@ const RegistrationPage = () => {
     try {
       await register(form);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Registration failed. Please try again.");
+      const message =
+        (err instanceof Error && err.message) ||
+        (typeof err === "object" && err !== null && "message" in err && typeof (err as { message: unknown }).message === "string"
+          ? (err as { message: string }).message
+          : null) ||
+        "Registration failed. Please try again.";
+      setSubmitError(message);
     } finally {
       setSubmitting(false);
     }
