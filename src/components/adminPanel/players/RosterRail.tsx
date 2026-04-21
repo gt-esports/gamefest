@@ -1,4 +1,5 @@
 import React from "react";
+import type { CheckInRecord } from "../../../hooks/useCheckIn";
 import type { Player } from "../../../hooks/usePlayers";
 
 export type SortMode = "points" | "name";
@@ -7,6 +8,7 @@ type RosterRailProps = {
   players: Player[];
   totalCount: number;
   selectedIds: Set<string>;
+  checkIns: Map<string, CheckInRecord>;
   query: string;
   onQueryChange: (q: string) => void;
   sortMode: SortMode;
@@ -19,6 +21,7 @@ const RosterRail: React.FC<RosterRailProps> = ({
   players,
   totalCount,
   selectedIds,
+  checkIns,
   query,
   onQueryChange,
   sortMode,
@@ -117,6 +120,15 @@ const RosterRail: React.FC<RosterRailProps> = ({
               }`}
             >
               {p.points.toLocaleString()}
+            </span>
+            <span
+              className={`shrink-0 rounded-sm px-1.5 py-0.5 font-bayon text-[10px] uppercase tracking-wider ${
+                checkIns.get(p.userId)?.checkedIn
+                  ? "bg-green-400/15 text-green-400 ring-1 ring-green-400/30"
+                  : "bg-gray-700/60 text-gray-500 ring-1 ring-gray-600/40"
+              }`}
+            >
+              {checkIns.get(p.userId)?.checkedIn ? "✓ Checked In" : "Not In"}
             </span>
           </button>
         );

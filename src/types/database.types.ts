@@ -182,6 +182,9 @@ export interface Database {
           school: string | null;
           heard_from: string | null;
           created_at: string;
+          checked_in: boolean;
+          checked_in_at: string | null;
+          checked_in_by: string | null;
         };
         Insert: {
           id?: string;
@@ -193,6 +196,9 @@ export interface Database {
           school?: string | null;
           heard_from?: string | null;
           created_at?: string;
+          checked_in?: boolean;
+          checked_in_at?: string | null;
+          checked_in_by?: string | null;
         };
         Update: {
           id?: string;
@@ -204,6 +210,9 @@ export interface Database {
           school?: string | null;
           heard_from?: string | null;
           created_at?: string;
+          checked_in?: boolean;
+          checked_in_at?: string | null;
+          checked_in_by?: string | null;
         };
         Relationships: [
           {

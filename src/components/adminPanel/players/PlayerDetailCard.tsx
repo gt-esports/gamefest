@@ -1,4 +1,5 @@
 import React from "react";
+import type { CheckInRecord } from "../../../hooks/useCheckIn";
 import type { Player } from "../../../hooks/usePlayers";
 import type { Game } from "../../../schemas/GamesSchema";
 import { dangerBtnClass, primaryBtnClass } from "../shared/styles";
@@ -16,9 +17,12 @@ type PlayerDetailCardProps = {
   staffAssignment: string;
   games: Game[];
   busySave: boolean;
+  checkInRecord: CheckInRecord | null;
   onSave: () => void;
   onRemove: () => void;
   onRevoke: () => void;
+  onCheckIn: () => void;
+  onCheckOut: () => void;
 };
 
 const PlayerDetailCard: React.FC<PlayerDetailCardProps> = ({
@@ -31,9 +35,12 @@ const PlayerDetailCard: React.FC<PlayerDetailCardProps> = ({
   staffAssignment,
   games,
   busySave,
+  checkInRecord,
   onSave,
   onRemove,
   onRevoke,
+  onCheckIn,
+  onCheckOut,
 }) => {
   const showRevoke =
     !isAdmin &&
@@ -49,9 +56,38 @@ const PlayerDetailCard: React.FC<PlayerDetailCardProps> = ({
       <div className="flex items-center justify-between border-b border-blue-accent/20 bg-dark-navy/40 px-5 py-4">
         <div className="flex-1">
           <h3 className="text-2xl font-bold text-white">{player.name}</h3>
-          <p className="mt-1 font-bayon text-xs uppercase tracking-[0.25em] text-gray-400">
-            Player Profile
-          </p>
+          <div className="mt-1 flex items-center gap-3">
+            <p className="font-bayon text-xs uppercase tracking-[0.25em] text-gray-400">
+              Player Profile
+            </p>
+            {checkInRecord?.checkedIn ? (
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
+                <span className="font-bayon text-xs uppercase tracking-[0.2em] text-green-400">
+                  Checked In
+                </span>
+                <button
+                  onClick={onCheckOut}
+                  className="ml-1 text-xs text-gray-500 hover:text-red-300"
+                >
+                  (undo)
+                </button>
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-gray-600" />
+                <span className="font-bayon text-xs uppercase tracking-[0.2em] text-gray-500">
+                  Not Checked In
+                </span>
+                <button
+                  onClick={onCheckIn}
+                  className="ml-1 text-xs font-semibold text-blue-bright hover:text-white"
+                >
+                  Check In →
+                </button>
+              </span>
+            )}
+          </div>
         </div>
         <div className="text-right">
           <div className="font-zuume text-4xl font-extrabold tabular-nums text-blue-bright">

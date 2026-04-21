@@ -17,6 +17,9 @@ type AwardCardProps = {
   isAdmin: boolean;
   busy: boolean;
   onAward: (amount?: number) => void;
+  // How many of the selected players are checked in
+  checkedInCount: number;
+  selectedCount: number;
   // Undo last award (staff mode + admin structured mode)
   lastAward?: LastAwardSummary | null;
   onUndoLast?: () => void;
@@ -68,6 +71,8 @@ const AwardCard: React.FC<AwardCardProps> = ({
   isAdmin,
   busy,
   onAward,
+  checkedInCount,
+  selectedCount,
   lastAward = null,
   onUndoLast,
   busyUndo = false,
@@ -89,6 +94,21 @@ const AwardCard: React.FC<AwardCardProps> = ({
     if (mode === "custom") onSelectedReasonChange?.("");
   };
 
+  const noneCheckedIn = checkedInCount === 0;
+  const someNotCheckedIn = checkedInCount < selectedCount;
+
+  const checkInWarning = noneCheckedIn ? (
+    <div className="mb-4 rounded border border-red-400/40 bg-red-400/10 px-4 py-3 text-sm font-semibold text-red-300">
+      {selectedCount === 1
+        ? "This player is not checked in. Check them in before awarding points."
+        : "None of the selected players are checked in. Check them in before awarding points."}
+    </div>
+  ) : someNotCheckedIn ? (
+    <div className="mb-4 rounded border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm text-amber-300">
+      <span className="font-semibold">{selectedCount - checkedInCount} player{selectedCount - checkedInCount !== 1 ? "s" : ""}</span> not checked in — they will be skipped.
+    </div>
+  ) : null;
+
   if (!isAdmin) {
     // ── Staff mode ────────────────────────────────────────────
     const hasAssignment =
@@ -109,6 +129,7 @@ const AwardCard: React.FC<AwardCardProps> = ({
           </p>
         ) : (
           <div className="space-y-4">
+            {checkInWarning}
             <div className="border border-blue-accent/20 bg-dark-navy/40 px-4 py-3">
               <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-blue-bright/70">
                 Your Assignment
@@ -127,7 +148,7 @@ const AwardCard: React.FC<AwardCardProps> = ({
               </p>
             </div>
             <button
-              disabled={busy}
+              disabled={busy || noneCheckedIn}
               onClick={() => onAward()}
               className={`w-full py-4 font-zuume text-xl font-bold uppercase tracking-wider ${primaryBtnClass} disabled:opacity-50`}
             >
@@ -149,7 +170,6 @@ const AwardCard: React.FC<AwardCardProps> = ({
   // ── Admin mode ──────────────────────────────────────────────
   const isStructured = awardMode === "structured";
   const noReason = isStructured && selectedReason === "";
-
   // Derive selected game/challenge object from "game:<id>" or "challenge:<id>"
   let selectedEntry: Game | Challenge | null = null;
   if (isStructured && selectedReason) {
@@ -174,6 +194,8 @@ const AwardCard: React.FC<AwardCardProps> = ({
           Admin
         </span>
       </h3>
+
+      {checkInWarning}
 
       {/* Mode selector */}
       <div className="mb-4 flex border border-blue-accent/30">
@@ -259,7 +281,7 @@ const AwardCard: React.FC<AwardCardProps> = ({
                 per player
               </div>
               <button
-                disabled={busy}
+                disabled={busy || noneCheckedIn}
                 onClick={() => onAward()}
                 className={`w-full py-3 font-zuume text-xl font-bold uppercase tracking-wider ${primaryBtnClass} disabled:opacity-50`}
               >
@@ -283,7 +305,7 @@ const AwardCard: React.FC<AwardCardProps> = ({
           {QUICK_AMOUNTS.map((amt) => (
             <button
               key={amt}
-              disabled={busy}
+              disabled={busy || noneCheckedIn}
               onClick={() => onAward(amt)}
               className="min-w-[64px] border border-blue-bright/50 bg-blue-bright/10 py-3 text-lg font-bold text-blue-bright transition-all hover:border-blue-bright hover:bg-blue-bright/20 hover:shadow-[0_0_16px_rgba(0,212,255,0.5)] disabled:opacity-50"
             >
@@ -299,14 +321,14 @@ const AwardCard: React.FC<AwardCardProps> = ({
             className="w-28 border border-blue-accent/40 bg-dark-bg/60 px-3 py-3 text-center text-base font-semibold tabular-nums text-white placeholder-gray-500 focus:border-blue-bright focus:outline-none"
           />
           <button
-            disabled={busy || pointsInput === ""}
+            disabled={busy || noneCheckedIn || pointsInput === ""}
             onClick={() => submitCustom(1)}
             className={primaryBtnClass}
           >
             Award
           </button>
           <button
-            disabled={busy || pointsInput === ""}
+            disabled={busy || noneCheckedIn || pointsInput === ""}
             onClick={() => submitCustom(-1)}
             className={dangerBtnClass}
           >

@@ -13,6 +13,7 @@ import {
   getActivityTotal,
   recordActivity,
 } from "../../hooks/usePlayerActivity";
+import { useCheckInRoster } from "../../hooks/useCheckIn";
 import { useStaff } from "../../hooks/useStaff";
 import { useUserRoles } from "../../hooks/useUserRoles";
 import { ToastStack } from "./shared/ui";
@@ -41,6 +42,7 @@ const PlayersPanel: React.FC = () => {
   const { games } = useGames();
   const { challenges } = useChallenges();
   const { isAdmin, isStaff, loading: rolesLoading } = useUserRoles();
+  const { checkIns, checkIn, checkOut } = useCheckInRoster();
   const { toasts, push, dismiss } = useToasts();
 
   const [query, setQuery] = useState("");
@@ -174,11 +176,16 @@ const PlayersPanel: React.FC = () => {
         const tag = currentStaff.assignmentName!;
 
         let capped = 0;
+        let notCheckedIn = 0;
         const batch: LastAwardBatch["activities"] = [];
 
         await Promise.all(
           selectedPlayers.map(async (player) => {
             try {
+              if (!checkIns.get(player.userId)?.checkedIn) {
+                notCheckedIn++;
+                return;
+              }
               const currentTotal = await getActivityTotal(
                 player.id,
                 gameId,
@@ -245,6 +252,12 @@ const PlayersPanel: React.FC = () => {
             },
           });
         }
+        if (notCheckedIn > 0) {
+          push(
+            "info",
+            `Skipped ${notCheckedIn} player${notCheckedIn === 1 ? "" : "s"} — not checked in`
+          );
+        }
         if (capped > 0) {
           push(
             "info",
@@ -280,11 +293,16 @@ const PlayersPanel: React.FC = () => {
           const tag = entry.name;
 
           let capped = 0;
+          let notCheckedIn = 0;
           const batch: LastAwardBatch["activities"] = [];
 
           await Promise.all(
             selectedPlayers.map(async (player) => {
               try {
+                if (!checkIns.get(player.userId)?.checkedIn) {
+                  notCheckedIn++;
+                  return;
+                }
                 const currentTotal = await getActivityTotal(
                   player.id,
                   gameId,
@@ -351,6 +369,12 @@ const PlayersPanel: React.FC = () => {
               },
             });
           }
+          if (notCheckedIn > 0) {
+            push(
+              "info",
+              `Skipped ${notCheckedIn} player${notCheckedIn === 1 ? "" : "s"} — not checked in`
+            );
+          }
           if (capped > 0) {
             push(
               "info",
@@ -374,10 +398,15 @@ const PlayersPanel: React.FC = () => {
           }
 
           let succeeded = 0;
+          let notCheckedIn = 0;
 
           await Promise.all(
             selectedPlayers.map(async (player) => {
               try {
+                if (!checkIns.get(player.userId)?.checkedIn) {
+                  notCheckedIn++;
+                  return;
+                }
                 const fresh = await getPlayerById(player.id);
                 if (!fresh) return;
                 await patchPlayerById(player.id, {
@@ -406,6 +435,12 @@ const PlayersPanel: React.FC = () => {
           setPointsInput("");
           if (freshForEdit) setEditedPlayer(freshForEdit);
 
+          if (notCheckedIn > 0) {
+            push(
+              "info",
+              `Skipped ${notCheckedIn} player${notCheckedIn === 1 ? "" : "s"} — not checked in`
+            );
+          }
           if (succeeded > 0) {
             const verb = amount > 0 ? "awarded to" : "removed from";
             push(
@@ -605,6 +640,25 @@ const PlayersPanel: React.FC = () => {
     }
   };
 
+  const handleCheckIn = async (player: Player) => {
+    if (!user?.id) return;
+    try {
+      await checkIn(player.userId, user.id);
+      push("success", `${player.name} checked in`);
+    } catch (err) {
+      push("error", err instanceof Error ? err.message : "Check-in failed");
+    }
+  };
+
+  const handleCheckOut = async (player: Player) => {
+    try {
+      await checkOut(player.userId);
+      push("success", `${player.name} checked out`);
+    } catch (err) {
+      push("error", err instanceof Error ? err.message : "Check-out failed");
+    }
+  };
+
   /* ------------------------------- Render ------------------------------- */
 
   if (rolesLoading)
@@ -622,6 +676,7 @@ const PlayersPanel: React.FC = () => {
         players={filteredPlayers}
         totalCount={players.length}
         selectedIds={selectedIds}
+        checkIns={checkIns}
         query={query}
         onQueryChange={setQuery}
         sortMode={sortMode}
@@ -660,6 +715,8 @@ const PlayersPanel: React.FC = () => {
               isAdmin={isAdmin}
               busy={busyAward}
               onAward={awardPoints}
+              checkedInCount={selectedPlayers.filter((p) => checkIns.get(p.userId)?.checkedIn).length}
+              selectedCount={selectedPlayers.length}
               lastAward={lastAward?.summary ?? null}
               onUndoLast={() => void undoLastAward()}
               busyUndo={busyUndo}
@@ -691,9 +748,12 @@ const PlayersPanel: React.FC = () => {
             staffAssignment={currentStaff?.assignmentName ?? "staff"}
             games={games}
             busySave={busySave}
+            checkInRecord={checkIns.get(singleSelected.userId) ?? null}
             onSave={() => void saveEdits()}
             onRemove={() => void handleRemovePlayer(singleSelected)}
             onRevoke={() => void revokeMyAssignment(singleSelected)}
+            onCheckIn={() => void handleCheckIn(singleSelected)}
+            onCheckOut={() => void handleCheckOut(singleSelected)}
           />
         )}
       </section>

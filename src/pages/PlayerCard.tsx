@@ -110,6 +110,23 @@ const PlayerCard = () => {
                   <p className="text-sm text-gray-400">
                     {registration.admission_type === "BYOC" ? "BYOC" : "General Admission"}
                   </p>
+                  <div className="mt-4 flex items-center gap-2">
+                    {registration.checked_in ? (
+                      <>
+                        <span className="h-2 w-2 rounded-full bg-green-400" />
+                        <span className="font-bayon text-sm uppercase tracking-wider text-green-400">
+                          Checked In
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="h-2 w-2 rounded-full bg-gray-500" />
+                        <span className="font-bayon text-sm uppercase tracking-wider text-gray-400">
+                          Not Checked In
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </>
               ) : (
                 <>
