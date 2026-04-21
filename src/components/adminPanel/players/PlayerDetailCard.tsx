@@ -46,6 +46,12 @@ const PlayerDetailCard: React.FC<PlayerDetailCardProps> = ({
     !isAdmin &&
     player.participation.includes(staffAssignment) &&
     player.log.some((log) => log.includes(`[${staffAssignment}] gave ${player.name}`));
+  const checkedInAtLabel = checkInRecord?.checkedInAt
+    ? new Date(checkInRecord.checkedInAt).toLocaleString(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
+    : null;
 
   const toggle = (s: Exclude<DetailSection, null>) =>
     onOpenSection(openSection === s ? null : s);
@@ -53,43 +59,55 @@ const PlayerDetailCard: React.FC<PlayerDetailCardProps> = ({
   return (
     <div className="border border-blue-accent/20 bg-navy-blue/40">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-blue-accent/20 bg-dark-navy/40 px-5 py-4">
+      <div className="flex flex-col gap-4 border-b border-blue-accent/20 bg-dark-navy/40 px-5 py-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1">
           <h3 className="text-2xl font-bold text-white">{player.name}</h3>
-          <div className="mt-1 flex items-center gap-3">
-            <p className="font-bayon text-xs uppercase tracking-[0.25em] text-gray-400">
-              Player Profile
-            </p>
-            {checkInRecord?.checkedIn ? (
-              <span className="flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
-                <span className="font-bayon text-xs uppercase tracking-[0.2em] text-green-400">
+          <p className="mt-1 font-bayon text-xs uppercase tracking-[0.25em] text-gray-400">
+            Player Profile
+          </p>
+
+          {checkInRecord?.checkedIn ? (
+            <div className="mt-4 inline-flex max-w-xl flex-col gap-3 border border-green-400/30 bg-green-400/10 px-4 py-3 shadow-[0_0_24px_rgba(74,222,128,0.14)]">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-green-400" />
+                <span className="font-bayon text-xs uppercase tracking-[0.22em] text-green-300">
                   Checked In
                 </span>
-                <button
-                  onClick={onCheckOut}
-                  className="ml-1 text-xs text-gray-500 hover:text-red-300"
-                >
-                  (undo)
-                </button>
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-gray-600" />
-                <span className="font-bayon text-xs uppercase tracking-[0.2em] text-gray-500">
-                  Not Checked In
+              </div>
+              <p className="text-sm text-green-50/90">
+                {checkedInAtLabel
+                  ? `Checked in on ${checkedInAtLabel}.`
+                  : "Player has already been checked in."}
+              </p>
+              <button
+                onClick={onCheckOut}
+                className="w-fit text-xs font-semibold text-green-200 underline decoration-green-300/40 underline-offset-4 transition-colors hover:text-white"
+              >
+                Undo Check-In
+              </button>
+            </div>
+          ) : (
+            <div className="mt-4 flex max-w-xl flex-col gap-3 border border-amber-300/40 bg-amber-300/10 px-4 py-4 shadow-[0_0_30px_rgba(252,211,77,0.12)]">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-amber-300" />
+                <span className="font-bayon text-xs uppercase tracking-[0.22em] text-amber-200">
+                  Awaiting Event Check-In
                 </span>
-                <button
-                  onClick={onCheckIn}
-                  className="ml-1 text-xs font-semibold text-blue-bright hover:text-white"
-                >
-                  Check In →
-                </button>
-              </span>
-            )}
-          </div>
+              </div>
+              <p className="text-sm text-amber-50/90">
+                This player still needs to be checked in before staff can award
+                points.
+              </p>
+              <button
+                onClick={onCheckIn}
+                className="inline-flex w-full items-center justify-center border border-amber-300 bg-amber-300 px-4 py-3 font-bayon text-sm uppercase tracking-[0.28em] text-dark-bg transition-all hover:shadow-[0_0_24px_rgba(252,211,77,0.35)] sm:w-auto sm:min-w-[220px]"
+              >
+                Check In Player
+              </button>
+            </div>
+          )}
         </div>
-        <div className="text-right">
+        <div className="text-left sm:text-right">
           <div className="font-zuume text-4xl font-extrabold tabular-nums text-blue-bright">
             {player.points.toLocaleString()}
           </div>

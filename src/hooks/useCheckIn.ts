@@ -45,6 +45,22 @@ export const checkOutByUserId = async (userId: string): Promise<void> => {
   }
 };
 
+export const resetAllCheckInStatuses = async (): Promise<number> => {
+  const { data, error } = await supabase
+    .from("registrations")
+    .update({
+      checked_in: false,
+      checked_in_at: null,
+      checked_in_by: null,
+    })
+    .eq("checked_in", true)
+    .select("user_id");
+
+  if (error) throw error;
+
+  return data?.length ?? 0;
+};
+
 // For staff/admin panels — fetches check-in status for all registered users.
 // Players without a registrations row are included with checkedIn: false.
 export const useCheckInRoster = () => {

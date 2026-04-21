@@ -2,18 +2,24 @@ import React, { useEffect, useState } from "react";
 import StaffPanel from "./StaffPanel";
 import PlayersPanel from "./PlayersPanel";
 import GameEditorPanel from "./GameEditorPanel";
+import SettingsPanel from "./SettingsPanel";
 
 type RootAdminPanelProps = {
   isAdmin: boolean;
 };
 
-type TabKey = "players" | "staff" | "games";
+type TabKey = "players" | "staff" | "games" | "settings";
 
 const RootAdminPanel: React.FC<RootAdminPanelProps> = ({ isAdmin }) => {
   const [activeTab, setActiveTab] = useState<TabKey>("players");
 
   useEffect(() => {
-    if (!isAdmin && (activeTab === "staff" || activeTab === "games")) {
+    if (
+      !isAdmin &&
+      (activeTab === "staff" ||
+        activeTab === "games" ||
+        activeTab === "settings")
+    ) {
       setActiveTab("players");
     }
   }, [activeTab, isAdmin]);
@@ -22,6 +28,7 @@ const RootAdminPanel: React.FC<RootAdminPanelProps> = ({ isAdmin }) => {
     { key: "players", label: "Players / Points" },
     { key: "staff", label: "Staff Roster", adminOnly: true },
     { key: "games", label: "Games & Challenges", adminOnly: true },
+    { key: "settings", label: "Settings", adminOnly: true },
   ];
 
   return (
@@ -59,6 +66,7 @@ const RootAdminPanel: React.FC<RootAdminPanelProps> = ({ isAdmin }) => {
         {activeTab === "players" && <PlayersPanel />}
         {isAdmin && activeTab === "staff" && <StaffPanel />}
         {isAdmin && activeTab === "games" && <GameEditorPanel />}
+        {isAdmin && activeTab === "settings" && <SettingsPanel />}
       </div>
     </div>
   );

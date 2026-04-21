@@ -7,6 +7,8 @@ export type SortMode = "points" | "name";
 type RosterRailProps = {
   players: Player[];
   totalCount: number;
+  checkedInCount: number;
+  pendingCheckInCount: number;
   selectedIds: Set<string>;
   checkIns: Map<string, CheckInRecord>;
   query: string;
@@ -20,6 +22,8 @@ type RosterRailProps = {
 const RosterRail: React.FC<RosterRailProps> = ({
   players,
   totalCount,
+  checkedInCount,
+  pendingCheckInCount,
   selectedIds,
   checkIns,
   query,
@@ -71,6 +75,25 @@ const RosterRail: React.FC<RosterRailProps> = ({
           </button>
         ))}
       </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="border border-amber-300/35 bg-amber-300/10 px-3 py-2">
+          <div className="font-bayon text-[10px] uppercase tracking-[0.25em] text-amber-200">
+            Awaiting Check-In
+          </div>
+          <div className="mt-1 text-lg font-semibold tabular-nums text-amber-100">
+            {pendingCheckInCount}
+          </div>
+        </div>
+        <div className="border border-green-400/25 bg-green-400/10 px-3 py-2">
+          <div className="font-bayon text-[10px] uppercase tracking-[0.25em] text-green-300">
+            Checked In
+          </div>
+          <div className="mt-1 text-lg font-semibold tabular-nums text-green-100">
+            {checkedInCount}
+          </div>
+        </div>
+      </div>
     </div>
 
     <div className="max-h-[560px] flex-1 overflow-y-auto">
@@ -79,58 +102,83 @@ const RosterRail: React.FC<RosterRailProps> = ({
       )}
       {players.map((p, idx) => {
         const selected = selectedIds.has(p.id);
+        const checkedIn = checkIns.get(p.userId)?.checkedIn ?? false;
         return (
-          <button
+          <div
             key={p.id}
-            onClick={() => onToggleSelect(p.id)}
             className={`group flex w-full items-center gap-3 border-l-2 px-4 py-2.5 text-left transition-colors ${
               selected
-                ? "border-blue-bright bg-blue-bright/10"
-                : "border-transparent hover:border-blue-accent/60 hover:bg-white/[0.04]"
+                ? `border-blue-bright bg-blue-bright/10 ${
+                    checkedIn ? "" : "ring-1 ring-inset ring-amber-300/45"
+                  }`
+                : checkedIn
+                ? "border-transparent hover:border-blue-accent/60 hover:bg-white/[0.04]"
+                : "border-amber-300/70 bg-amber-300/[0.08] hover:border-amber-300 hover:bg-amber-300/[0.12]"
             }`}
           >
-            <span
-              className={`w-6 font-bayon text-xs tabular-nums ${
-                selected ? "text-blue-bright" : "text-gray-500"
-              }`}
+            <button
+              onClick={() => onToggleSelect(p.id)}
+              className="flex min-w-0 flex-1 items-center gap-3 py-2.5 text-left"
             >
-              {sortMode === "points" ? String(idx + 1).padStart(2, "0") : ""}
-            </span>
-            <span className="flex min-w-0 flex-1 flex-col">
               <span
-                className={`truncate text-sm font-semibold ${
-                  selected ? "text-blue-bright" : "text-gray-400 group-hover:text-gray-300"
+                className={`w-6 font-bayon text-xs tabular-nums ${
+                  selected
+                    ? "text-blue-bright"
+                    : checkedIn
+                    ? "text-gray-500"
+                    : "text-amber-200"
                 }`}
               >
-                {p.username ? `@${p.username}` : "—"}
+                {sortMode === "points" ? String(idx + 1).padStart(2, "0") : ""}
               </span>
-              {p.name && p.name !== p.username && (
+              <span className="flex min-w-0 flex-1 flex-col">
                 <span
-                  className={`truncate text-base font-medium ${
-                    selected ? "text-white" : "text-gray-100 group-hover:text-white"
+                  className={`truncate text-sm font-semibold ${
+                    selected
+                      ? "text-blue-bright"
+                      : checkedIn
+                      ? "text-gray-400 group-hover:text-gray-300"
+                      : "text-amber-100"
                   }`}
                 >
-                  {p.name}
+                  {p.username ? `@${p.username}` : "—"}
                 </span>
-              )}
-            </span>
-            <span
-              className={`text-sm font-semibold tabular-nums ${
-                selected ? "text-blue-bright" : "text-gray-300"
-              }`}
-            >
-              {p.points.toLocaleString()}
-            </span>
-            <span
-              className={`shrink-0 rounded-sm px-1.5 py-0.5 font-bayon text-[10px] uppercase tracking-wider ${
-                checkIns.get(p.userId)?.checkedIn
-                  ? "bg-green-400/15 text-green-400 ring-1 ring-green-400/30"
-                  : "bg-gray-700/60 text-gray-500 ring-1 ring-gray-600/40"
-              }`}
-            >
-              {checkIns.get(p.userId)?.checkedIn ? "✓ Checked In" : "Not In"}
-            </span>
-          </button>
+                {p.name && p.name !== p.username && (
+                  <span
+                    className={`truncate text-base font-medium ${
+                      selected
+                        ? "text-white"
+                        : checkedIn
+                        ? "text-gray-100 group-hover:text-white"
+                        : "text-white"
+                    }`}
+                  >
+                    {p.name}
+                  </span>
+                )}
+              </span>
+              <span
+                className={`text-sm font-semibold tabular-nums ${
+                  selected
+                    ? "text-blue-bright"
+                    : checkedIn
+                    ? "text-gray-300"
+                    : "text-amber-100"
+                }`}
+              >
+                {p.points.toLocaleString()}
+              </span>
+              <span
+                className={`shrink-0 rounded-sm px-1.5 py-0.5 font-bayon text-[10px] uppercase tracking-wider ${
+                  checkedIn
+                    ? "bg-green-400/15 text-green-400 ring-1 ring-green-400/30"
+                    : "bg-amber-300/20 text-amber-100 ring-1 ring-amber-300/35"
+                }`}
+              >
+                {checkedIn ? "✓ Checked In" : "Needs Check-In"}
+              </span>
+            </button>
+          </div>
         );
       })}
     </div>

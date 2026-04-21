@@ -675,6 +675,14 @@ const PlayersPanel: React.FC = () => {
       <RosterRail
         players={filteredPlayers}
         totalCount={players.length}
+        checkedInCount={
+          players.filter((player) => checkIns.get(player.userId)?.checkedIn)
+            .length
+        }
+        pendingCheckInCount={
+          players.filter((player) => !checkIns.get(player.userId)?.checkedIn)
+            .length
+        }
         selectedIds={selectedIds}
         checkIns={checkIns}
         query={query}
