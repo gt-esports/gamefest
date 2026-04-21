@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useUser } from "../../hooks/useAuth";
-import { useChallenges } from "../../hooks/useChallenges";
 import { useGames } from "../../hooks/useGames";
 import {
   getPlayerById,
@@ -19,10 +18,7 @@ import { useUserRoles } from "../../hooks/useUserRoles";
 import { ToastStack } from "./shared/ui";
 import { useToasts } from "./shared/useToasts";
 import AddPlayerModal from "./players/AddPlayerModal";
-import AwardCard, {
-  type AwardMode,
-  type LastAwardSummary,
-} from "./players/AwardCard";
+import AwardCard, { type LastAwardSummary } from "./players/AwardCard";
 import PlayerDetailCard, {
   type DetailSection,
 } from "./players/PlayerDetailCard";
@@ -40,7 +36,6 @@ const PlayersPanel: React.FC = () => {
   } = usePlayers();
   const { staff } = useStaff();
   const { games } = useGames();
-  const { challenges } = useChallenges();
   const { isAdmin, isStaff, loading: rolesLoading } = useUserRoles();
   const { checkIns, checkIn, checkOut } = useCheckInRoster();
   const { toasts, push, dismiss } = useToasts();
@@ -48,10 +43,8 @@ const PlayersPanel: React.FC = () => {
   const [query, setQuery] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("points");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  // Admin-only award state
+  // Shared custom-award input state for staff/admin.
   const [pointsInput, setPointsInput] = useState("");
-  const [awardReason, setAwardReason] = useState("");
-  const [awardMode, setAwardMode] = useState<AwardMode>("custom");
   const [showAddModal, setShowAddModal] = useState(false);
   const [openSection, setOpenSection] = useState<DetailSection>(null);
   const [editedPlayer, setEditedPlayer] = useState<Player | null>(null);
@@ -59,7 +52,7 @@ const PlayersPanel: React.FC = () => {
   const [busySave, setBusySave] = useState(false);
   const [busyUndo, setBusyUndo] = useState(false);
 
-  // Tracks the most recent game/challenge award batch so staff/admin can
+  // Tracks the most recent assignment-backed award batch so staff can
   // intuitively undo it. Cleared on a new award, selection change, or undo.
   type LastAwardBatch = {
     activities: {
@@ -132,14 +125,13 @@ const PlayersPanel: React.FC = () => {
   const clearSelection = () => setSelectedIds(new Set());
 
   /**
-   * Staff path: amount and game/challenge are fixed by the staff member's
-   * assignment. Checks per-player cap via player_activity, then inserts an
-   * activity row and updates the player's total points.
+   * Staff path: custom award amount is recorded against the staff member's
+   * assignment. Per-player cap is still enforced through player_activity.
    *
-   * Admin path: amount comes from the UI (quick button or custom input).
-   * No cap is enforced — admins can add or remove any amount.
+   * Admin path: custom amount comes from the UI. No structured game/challenge
+   * picker or cap enforcement applies, and admins can add or remove points.
    */
-  const awardPoints = async (adminAmount?: number) => {
+  const awardPoints = async (amountInput: number) => {
     if (selectedPlayers.length === 0) return;
     setBusyAward(true);
 
@@ -153,7 +145,6 @@ const PlayersPanel: React.FC = () => {
         // ── Staff path ──────────────────────────────────────────────────────
         if (
           !currentStaff?.assignmentId ||
-          currentStaff.pointsPerAward === null ||
           currentStaff.maxPoints === null
         ) {
           push(
@@ -163,7 +154,12 @@ const PlayersPanel: React.FC = () => {
           return;
         }
 
-        const amount = currentStaff.pointsPerAward;
+        const amount = Math.abs(amountInput);
+        if (amount === 0) {
+          push("error", "Enter a point amount greater than 0.");
+          return;
+        }
+
         const gameId =
           currentStaff.assignmentType === "game"
             ? currentStaff.assignmentId
@@ -233,6 +229,7 @@ const PlayersPanel: React.FC = () => {
           ? await getPlayerById(singleSelected.id)
           : null;
         await refreshPlayers();
+        setPointsInput("");
         if (freshForEdit) setEditedPlayer(freshForEdit);
 
         if (batch.length > 0) {
@@ -261,195 +258,83 @@ const PlayersPanel: React.FC = () => {
         if (capped > 0) {
           push(
             "info",
-            `Skipped ${capped} — already at or near the ${maxPts}-pt cap for ${tag}`
+            `Skipped ${capped} player${capped === 1 ? "" : "s"} — would exceed the ${maxPts}-pt cap for ${tag}`
           );
         }
       } else {
         // ── Admin path ──────────────────────────────────────────────────────
-        if (awardMode === "structured") {
-          // Derive game/challenge from "game:<id>" or "challenge:<id>"
-          const colonIdx = awardReason.indexOf(":");
-          const reasonType = awardReason.slice(0, colonIdx);
-          const reasonId = awardReason.slice(colonIdx + 1);
-          const selectedGame =
-            reasonType === "game"
-              ? games.find((g) => g.id === reasonId) ?? null
-              : null;
-          const selectedChallenge =
-            reasonType === "challenge"
-              ? challenges.find((c) => c.id === reasonId) ?? null
-              : null;
-          const entry = selectedGame ?? selectedChallenge;
+        // Custom points aren't tracked in player_activity, so clear any stale
+        // "undo last award" banner from a prior assignment-backed award.
+        setLastAward(null);
+        const amount = amountInput ?? 0;
+        if (amount === 0) {
+          push("error", "Enter a point amount greater than 0.");
+          return;
+        }
 
-          if (!entry) {
-            push("error", "Select a Game or Challenge first.");
-            return;
-          }
+        if (
+          amount < 0 &&
+          selectedPlayers.some((p) => p.points + amount < 0)
+        ) {
+          push("error", "Cannot remove — some players would go below 0.");
+          return;
+        }
 
-          const amount = entry.pointsPerAward;
-          const maxPts = entry.maxPoints;
-          const gameId = selectedGame?.id ?? null;
-          const challengeId = selectedChallenge?.id ?? null;
-          const tag = entry.name;
+        let succeeded = 0;
+        let notCheckedIn = 0;
 
-          let capped = 0;
-          let notCheckedIn = 0;
-          const batch: LastAwardBatch["activities"] = [];
-
-          await Promise.all(
-            selectedPlayers.map(async (player) => {
-              try {
-                if (!checkIns.get(player.userId)?.checkedIn) {
-                  notCheckedIn++;
-                  return;
-                }
-                const currentTotal = await getActivityTotal(
-                  player.id,
-                  gameId,
-                  challengeId
-                );
-                if (currentTotal + amount > maxPts) {
-                  capped++;
-                  return;
-                }
-                if (!user?.id) return;
-                const activityId = await recordActivity(
-                  player.id,
-                  gameId,
-                  challengeId,
-                  amount,
-                  user.id
-                );
-                const fresh = await getPlayerById(player.id);
-                if (!fresh) return;
-                await patchPlayerById(player.id, {
-                  points: fresh.points + amount,
-                  log: [
-                    ...fresh.log,
-                    `${staffName}[ADMIN] gave ${fresh.name} ${amount} pts on ${timestamp} for ${tag}`,
-                  ],
-                });
-                batch.push({
-                  activityId,
-                  playerId: player.id,
-                  playerName: fresh.name,
-                  points: amount,
-                });
-              } catch (err) {
-                push(
-                  "error",
-                  `Failed for ${player.name}: ${
-                    err instanceof Error ? err.message : "error"
-                  }`
-                );
+        await Promise.all(
+          selectedPlayers.map(async (player) => {
+            try {
+              if (!checkIns.get(player.userId)?.checkedIn) {
+                notCheckedIn++;
+                return;
               }
-            })
+              const fresh = await getPlayerById(player.id);
+              if (!fresh) return;
+
+              const logEntry =
+                amount > 0
+                  ? `${staffName}[ADMIN] gave ${fresh.name} ${amount} pts on ${timestamp}`
+                  : `${staffName}[ADMIN] removed ${Math.abs(amount)} pts from ${fresh.name} on ${timestamp}`;
+
+              await patchPlayerById(player.id, {
+                points: fresh.points + amount,
+                log: [...fresh.log, logEntry],
+              });
+              succeeded++;
+            } catch (err) {
+              push(
+                "error",
+                `Failed for ${player.name}: ${
+                  err instanceof Error ? err.message : "error"
+                }`
+              );
+            }
+          })
+        );
+
+        const freshForEdit = singleSelected
+          ? await getPlayerById(singleSelected.id)
+          : null;
+        await refreshPlayers();
+        setPointsInput("");
+        if (freshForEdit) setEditedPlayer(freshForEdit);
+
+        if (notCheckedIn > 0) {
+          push(
+            "info",
+            `Skipped ${notCheckedIn} player${notCheckedIn === 1 ? "" : "s"} — not checked in`
           );
-
-          const freshForEdit = singleSelected
-            ? await getPlayerById(singleSelected.id)
-            : null;
-          await refreshPlayers();
-          if (freshForEdit) setEditedPlayer(freshForEdit);
-
-          if (batch.length > 0) {
-            push(
-              "success",
-              `${amount} pts awarded to ${batch.length} player${
-                batch.length === 1 ? "" : "s"
-              }`
-            );
-            setLastAward({
-              activities: batch,
-              summary: {
-                amount,
-                tag,
-                playerCount: batch.length,
-                playerNamePreview: batch[0].playerName,
-              },
-            });
-          }
-          if (notCheckedIn > 0) {
-            push(
-              "info",
-              `Skipped ${notCheckedIn} player${notCheckedIn === 1 ? "" : "s"} — not checked in`
-            );
-          }
-          if (capped > 0) {
-            push(
-              "info",
-              `Skipped ${capped} player${capped === 1 ? "" : "s"} — already at the ${maxPts}-pt cap for ${tag}`
-            );
-          }
-        } else {
-          // ── Custom sub-path ─────────────────────────────────────────────
-          // Custom points aren't tracked in player_activity, so clear any
-          // stale "undo last award" banner from a prior structured award.
-          setLastAward(null);
-          const amount = adminAmount ?? 0;
-          if (amount === 0) return;
-
-          if (
-            amount < 0 &&
-            selectedPlayers.some((p) => p.points + amount < 0)
-          ) {
-            push("error", "Cannot remove — some players would go below 0.");
-            return;
-          }
-
-          let succeeded = 0;
-          let notCheckedIn = 0;
-
-          await Promise.all(
-            selectedPlayers.map(async (player) => {
-              try {
-                if (!checkIns.get(player.userId)?.checkedIn) {
-                  notCheckedIn++;
-                  return;
-                }
-                const fresh = await getPlayerById(player.id);
-                if (!fresh) return;
-                await patchPlayerById(player.id, {
-                  points: fresh.points + amount,
-                  log: [
-                    ...fresh.log,
-                    `${staffName}[ADMIN] gave ${fresh.name} ${amount} pts on ${timestamp}`,
-                  ],
-                });
-                succeeded++;
-              } catch (err) {
-                push(
-                  "error",
-                  `Failed for ${player.name}: ${
-                    err instanceof Error ? err.message : "error"
-                  }`
-                );
-              }
-            })
+        }
+        if (succeeded > 0) {
+          const verb = amount > 0 ? "awarded to" : "removed from";
+          push(
+            "success",
+            `${Math.abs(amount)} pts ${verb} ${succeeded} player${
+              succeeded === 1 ? "" : "s"
+            }`
           );
-
-          const freshForEdit = singleSelected
-            ? await getPlayerById(singleSelected.id)
-            : null;
-          await refreshPlayers();
-          setPointsInput("");
-          if (freshForEdit) setEditedPlayer(freshForEdit);
-
-          if (notCheckedIn > 0) {
-            push(
-              "info",
-              `Skipped ${notCheckedIn} player${notCheckedIn === 1 ? "" : "s"} — not checked in`
-            );
-          }
-          if (succeeded > 0) {
-            const verb = amount > 0 ? "awarded to" : "removed from";
-            push(
-              "success",
-              `${Math.abs(amount)} pts ${verb} ${succeeded} player${
-                succeeded === 1 ? "" : "s"
-              }`
-            );
-          }
         }
       }
     } finally {
@@ -728,19 +613,10 @@ const PlayersPanel: React.FC = () => {
               lastAward={lastAward?.summary ?? null}
               onUndoLast={() => void undoLastAward()}
               busyUndo={busyUndo}
-              // Staff-mode props
               assignmentName={currentStaff?.assignmentName}
-              pointsPerAward={currentStaff?.pointsPerAward}
               maxPoints={currentStaff?.maxPoints}
-              // Admin-mode props
-              games={games}
-              challenges={challenges}
-              selectedReason={awardReason}
-              onSelectedReasonChange={setAwardReason}
               pointsInput={pointsInput}
               onPointsInputChange={setPointsInput}
-              awardMode={awardMode}
-              onAwardModeChange={setAwardMode}
             />
           </>
         )}

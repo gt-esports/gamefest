@@ -1,10 +1,5 @@
 import React from "react";
 import { dangerBtnClass, primaryBtnClass } from "../shared/styles";
-import type { Game } from "../../../schemas/GamesSchema";
-import type { Challenge } from "../../../schemas/ChallengesSchema";
-
-const QUICK_AMOUNTS = [1, 5, 10, 25];
-export type AwardMode = "custom" | "structured";
 
 export type LastAwardSummary = {
   amount: number;
@@ -16,27 +11,16 @@ export type LastAwardSummary = {
 type AwardCardProps = {
   isAdmin: boolean;
   busy: boolean;
-  onAward: (amount?: number) => void;
-  // How many of the selected players are checked in
+  onAward: (amount: number) => void;
   checkedInCount: number;
   selectedCount: number;
-  // Undo last award (staff mode + admin structured mode)
   lastAward?: LastAwardSummary | null;
   onUndoLast?: () => void;
   busyUndo?: boolean;
-  // Staff-mode props (used when isAdmin=false)
   assignmentName?: string | null;
-  pointsPerAward?: number | null;
   maxPoints?: number | null;
-  // Admin-mode props (used when isAdmin=true)
-  games?: Game[];
-  challenges?: Challenge[];
-  selectedReason?: string;
-  onSelectedReasonChange?: (v: string) => void;
   pointsInput?: string;
   onPointsInputChange?: (v: string) => void;
-  awardMode?: AwardMode;
-  onAwardModeChange?: (mode: AwardMode) => void;
 };
 
 const UndoLastBanner: React.FC<{
@@ -50,9 +34,7 @@ const UndoLastBanner: React.FC<{
       <span className="font-bold text-amber-100">{last.amount} pts</span>
       {" to "}
       <span className="truncate">{last.playerNamePreview}</span>
-      {last.playerCount > 1 && (
-        <span> +{last.playerCount - 1} more</span>
-      )}
+      {last.playerCount > 1 && <span> +{last.playerCount - 1} more</span>}
       {last.tag && (
         <span className="text-amber-300/80"> · {last.tag}</span>
       )}
@@ -77,25 +59,16 @@ const AwardCard: React.FC<AwardCardProps> = ({
   onUndoLast,
   busyUndo = false,
   assignmentName,
-  pointsPerAward,
   maxPoints,
-  games = [],
-  challenges = [],
-  selectedReason = "",
-  onSelectedReasonChange,
   pointsInput = "",
   onPointsInputChange,
-  awardMode = "custom",
-  onAwardModeChange,
 }) => {
   const canUndo = !!lastAward && !!onUndoLast;
-  const switchMode = (mode: AwardMode) => {
-    onAwardModeChange?.(mode);
-    if (mode === "custom") onSelectedReasonChange?.("");
-  };
-
   const noneCheckedIn = checkedInCount === 0;
   const someNotCheckedIn = checkedInCount < selectedCount;
+  const parsedInput = parseInt(pointsInput, 10);
+  const hasCustomAmount = !Number.isNaN(parsedInput) && parsedInput !== 0;
+  const customAmount = hasCustomAmount ? Math.abs(parsedInput) : 0;
 
   const checkInWarning = noneCheckedIn ? (
     <div className="mb-4 rounded border border-red-400/40 bg-red-400/10 px-4 py-3 text-sm font-semibold text-red-300">
@@ -105,16 +78,64 @@ const AwardCard: React.FC<AwardCardProps> = ({
     </div>
   ) : someNotCheckedIn ? (
     <div className="mb-4 rounded border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm text-amber-300">
-      <span className="font-semibold">{selectedCount - checkedInCount} player{selectedCount - checkedInCount !== 1 ? "s" : ""}</span> not checked in — they will be skipped.
+      <span className="font-semibold">
+        {selectedCount - checkedInCount} player
+        {selectedCount - checkedInCount !== 1 ? "s" : ""}
+      </span>{" "}
+      not checked in — they will be skipped.
     </div>
   ) : null;
 
+  const renderCustomControls = (allowRemove: boolean) => (
+    <div className="flex flex-wrap items-center gap-2">
+      <input
+        type="number"
+        placeholder={allowRemove ? "Custom amount" : "Award amount"}
+        value={pointsInput}
+        onChange={(e) => onPointsInputChange?.(e.target.value)}
+        className="w-32 border border-blue-accent/40 bg-dark-bg/60 px-3 py-3 text-center text-base font-semibold tabular-nums text-white placeholder-gray-500 focus:border-blue-bright focus:outline-none"
+      />
+      <button
+        disabled={busy || noneCheckedIn || !hasCustomAmount}
+        onClick={() => onAward(customAmount)}
+        className={primaryBtnClass}
+      >
+        Award
+      </button>
+      {allowRemove && (
+        <button
+          disabled={busy || noneCheckedIn || !hasCustomAmount}
+          onClick={() => onAward(-customAmount)}
+          className={dangerBtnClass}
+        >
+          Remove
+        </button>
+      )}
+    </div>
+  );
+
+  const renderStaffCustomControls = () => (
+    <div className="flex flex-wrap items-center gap-2">
+      <input
+        type="number"
+        min={1}
+        placeholder="Enter points"
+        value={pointsInput}
+        onChange={(e) => onPointsInputChange?.(e.target.value)}
+        className="w-36 border border-blue-accent/40 bg-dark-bg/60 px-3 py-3 text-center text-base font-semibold tabular-nums text-white placeholder-gray-500 focus:border-blue-bright focus:outline-none"
+      />
+      <button
+        disabled={busy || noneCheckedIn || !hasCustomAmount}
+        onClick={() => onAward(customAmount)}
+        className={primaryBtnClass}
+      >
+        Award Custom Points
+      </button>
+    </div>
+  );
+
   if (!isAdmin) {
-    // ── Staff mode ────────────────────────────────────────────
-    const hasAssignment =
-      !!assignmentName &&
-      pointsPerAward !== null &&
-      pointsPerAward !== undefined;
+    const hasAssignment = !!assignmentName && maxPoints !== null && maxPoints !== undefined;
 
     return (
       <div className="border border-blue-bright/30 bg-gradient-to-br from-navy-blue/80 to-card-bg/80 p-5 shadow-[0_0_30px_rgba(0,212,255,0.08)]">
@@ -136,24 +157,25 @@ const AwardCard: React.FC<AwardCardProps> = ({
               </p>
               <p className="text-lg font-bold text-white">{assignmentName}</p>
               <p className="mt-1 text-xs text-gray-400">
-                <span className="font-semibold text-blue-bright">
-                  {pointsPerAward} pts
-                </span>{" "}
-                per award
-                {" · "}cap:{" "}
+                Custom awards are tracked against this assignment and capped at{" "}
                 <span className="font-semibold text-blue-bright">
                   {maxPoints} pts
                 </span>{" "}
-                per player
+                per player.
               </p>
             </div>
-            <button
-              disabled={busy || noneCheckedIn}
-              onClick={() => onAward()}
-              className={`w-full py-4 font-zuume text-xl font-bold uppercase tracking-wider ${primaryBtnClass} disabled:opacity-50`}
-            >
-              {busy ? "Awarding…" : `Award ${pointsPerAward} pts`}
-            </button>
+            <div className="border border-blue-accent/20 bg-dark-navy/40 px-4 py-4">
+              <div className="mb-3">
+                <p className="font-bayon text-xs uppercase tracking-[0.25em] text-blue-bright/80">
+                  Custom Award Amount
+                </p>
+                <p className="mt-1 text-sm text-gray-400">
+                  Enter any positive amount to award points against your assigned
+                  game or challenge.
+                </p>
+              </div>
+              {renderStaffCustomControls()}
+            </div>
             {canUndo && lastAward && onUndoLast && (
               <UndoLastBanner
                 last={lastAward}
@@ -167,25 +189,6 @@ const AwardCard: React.FC<AwardCardProps> = ({
     );
   }
 
-  // ── Admin mode ──────────────────────────────────────────────
-  const isStructured = awardMode === "structured";
-  const noReason = isStructured && selectedReason === "";
-  // Derive selected game/challenge object from "game:<id>" or "challenge:<id>"
-  let selectedEntry: Game | Challenge | null = null;
-  if (isStructured && selectedReason) {
-    const colonIdx = selectedReason.indexOf(":");
-    const type = selectedReason.slice(0, colonIdx);
-    const id = selectedReason.slice(colonIdx + 1);
-    if (type === "game") selectedEntry = games.find((g) => g.id === id) ?? null;
-    else if (type === "challenge")
-      selectedEntry = challenges.find((c) => c.id === id) ?? null;
-  }
-
-  const submitCustom = (sign: 1 | -1) => {
-    const v = parseInt(pointsInput, 10);
-    if (!Number.isNaN(v)) onAward(sign * Math.abs(v));
-  };
-
   return (
     <div className="border border-blue-bright/30 bg-gradient-to-br from-navy-blue/80 to-card-bg/80 p-5 shadow-[0_0_30px_rgba(0,212,255,0.08)]">
       <h3 className="mb-4 font-zuume text-2xl font-bold uppercase tracking-wider text-white">
@@ -196,146 +199,7 @@ const AwardCard: React.FC<AwardCardProps> = ({
       </h3>
 
       {checkInWarning}
-
-      {/* Mode selector */}
-      <div className="mb-4 flex border border-blue-accent/30">
-        <button
-          onClick={() => switchMode("custom")}
-          className={`flex-1 py-2 text-sm font-semibold transition-colors ${
-            awardMode === "custom"
-              ? "bg-blue-bright text-dark-bg"
-              : "text-gray-400 hover:text-white"
-          }`}
-        >
-          Custom Points
-        </button>
-        <button
-          onClick={() => switchMode("structured")}
-          className={`flex-1 border-l border-blue-accent/30 py-2 text-sm font-semibold transition-colors ${
-            awardMode === "structured"
-              ? "bg-blue-bright text-dark-bg"
-              : "text-gray-400 hover:text-white"
-          }`}
-        >
-          By Game / Challenge
-        </button>
-      </div>
-
-      {/* ── Structured mode ── */}
-      {isStructured && (
-        <div className="space-y-3">
-          <div>
-            <label className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-blue-bright/80">
-              Game / Challenge
-              <span className="font-bold text-red-400" aria-hidden="true">
-                *
-              </span>
-              {noReason && (
-                <span className="ml-auto font-semibold normal-case tracking-normal text-amber-400">
-                  Required
-                </span>
-              )}
-            </label>
-            <select
-              value={selectedReason}
-              onChange={(e) => onSelectedReasonChange?.(e.target.value)}
-              className={`w-full border bg-dark-bg/60 px-3 py-2 text-base font-semibold text-white focus:outline-none ${
-                noReason
-                  ? "border-amber-400/60 focus:border-amber-400"
-                  : "border-blue-accent/40 focus:border-blue-bright"
-              }`}
-            >
-              <option value="">Select a Game or Challenge…</option>
-              {games.length > 0 && (
-                <optgroup label="Games">
-                  {games.map((g) => (
-                    <option key={`game-${g.id}`} value={`game:${g.id}`}>
-                      {g.name}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-              {challenges.length > 0 && (
-                <optgroup label="Challenges">
-                  {challenges.map((c) => (
-                    <option key={`challenge-${c.id}`} value={`challenge:${c.id}`}>
-                      {c.name}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-            </select>
-          </div>
-
-          {selectedEntry && (
-            <>
-              <div className="border border-blue-accent/20 bg-dark-navy/40 px-4 py-3 text-xs text-gray-400">
-                Awards{" "}
-                <span className="font-semibold text-blue-bright">
-                  {selectedEntry.pointsPerAward} pts
-                </span>{" "}
-                per award · cap:{" "}
-                <span className="font-semibold text-blue-bright">
-                  {selectedEntry.maxPoints} pts
-                </span>{" "}
-                per player
-              </div>
-              <button
-                disabled={busy || noneCheckedIn}
-                onClick={() => onAward()}
-                className={`w-full py-3 font-zuume text-xl font-bold uppercase tracking-wider ${primaryBtnClass} disabled:opacity-50`}
-              >
-                {busy ? "Awarding…" : `Award ${selectedEntry.pointsPerAward} pts`}
-              </button>
-            </>
-          )}
-          {canUndo && lastAward && onUndoLast && (
-            <UndoLastBanner
-              last={lastAward}
-              busyUndo={busyUndo}
-              onUndoLast={onUndoLast}
-            />
-          )}
-        </div>
-      )}
-
-      {/* ── Custom mode ── */}
-      {!isStructured && (
-        <div className="flex flex-wrap items-center gap-2">
-          {QUICK_AMOUNTS.map((amt) => (
-            <button
-              key={amt}
-              disabled={busy || noneCheckedIn}
-              onClick={() => onAward(amt)}
-              className="min-w-[64px] border border-blue-bright/50 bg-blue-bright/10 py-3 text-lg font-bold text-blue-bright transition-all hover:border-blue-bright hover:bg-blue-bright/20 hover:shadow-[0_0_16px_rgba(0,212,255,0.5)] disabled:opacity-50"
-            >
-              +{amt}
-            </button>
-          ))}
-          <div className="mx-2 h-10 w-px bg-blue-accent/30" />
-          <input
-            type="number"
-            placeholder="Custom"
-            value={pointsInput}
-            onChange={(e) => onPointsInputChange?.(e.target.value)}
-            className="w-28 border border-blue-accent/40 bg-dark-bg/60 px-3 py-3 text-center text-base font-semibold tabular-nums text-white placeholder-gray-500 focus:border-blue-bright focus:outline-none"
-          />
-          <button
-            disabled={busy || noneCheckedIn || pointsInput === ""}
-            onClick={() => submitCustom(1)}
-            className={primaryBtnClass}
-          >
-            Award
-          </button>
-          <button
-            disabled={busy || noneCheckedIn || pointsInput === ""}
-            onClick={() => submitCustom(-1)}
-            className={dangerBtnClass}
-          >
-            Remove
-          </button>
-        </div>
-      )}
+      {renderCustomControls(true)}
     </div>
   );
 };
