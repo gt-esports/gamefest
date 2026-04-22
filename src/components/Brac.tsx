@@ -38,9 +38,45 @@ type PhaseGroupResultsResult = {
 
 const API_BASE = (import.meta.env.VITE_BACKEND_URL as string | undefined) ?? "";
 const TOURNAMENT_SLUG = "gamefest-2025-1";
+const SURFACE = "rgba(15, 31, 60, 0.9)";
+const SURFACE_SOFT = "rgba(0, 68, 102, 0.16)";
+const BORDER = "rgba(0, 153, 187, 0.35)";
+const BORDER_STRONG = "rgba(0, 212, 255, 0.7)";
+const TEXT = "#f8fbff";
+const MUTED = "rgba(219, 234, 254, 0.72)";
+const ACCENT = "#0099BB";
+const ACCENT_BRIGHT = "#00D4FF";
+const ERROR = "#f87171";
 
 function hasOtherDQ(slots: PhaseGroupSetSlot[], currentSlot: PhaseGroupSetSlot): boolean {
   return slots.some((otherSlot) => otherSlot !== currentSlot && otherSlot.standing?.stats?.score?.value === -1);
+}
+
+function getScoreStyle(slots: PhaseGroupSetSlot[], currentSlot: PhaseGroupSetSlot): { color: string; fontWeight: 600 } | undefined {
+  const score = currentSlot.standing?.stats?.score?.value ?? null;
+  if (score === -1) return { color: "#dc2626", fontWeight: 600 };
+  if (hasOtherDQ(slots, currentSlot)) return { color: "#16a34a", fontWeight: 600 };
+  if (score == null) return undefined;
+
+  const otherScores = slots
+    .filter((otherSlot) => otherSlot !== currentSlot)
+    .map((otherSlot) => otherSlot.standing?.stats?.score?.value ?? null)
+    .filter((otherScore): otherScore is number => otherScore != null && otherScore !== -1);
+
+  if (otherScores.length === 0) return undefined;
+
+  const highestOtherScore = Math.max(...otherScores);
+  const lowestOtherScore = Math.min(...otherScores);
+
+  if (score > highestOtherScore) return { color: "#16a34a", fontWeight: 600 };
+  if (score < lowestOtherScore) return { color: "#dc2626", fontWeight: 600 };
+  return undefined;
+}
+
+function getOutcomeCharacterStyle(outcome: string): { color: string; fontWeight: 600 } | undefined {
+  if (outcome === "W") return { color: "#16a34a", fontWeight: 600 };
+  if (outcome === "L") return { color: "#dc2626", fontWeight: 600 };
+  return undefined;
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -285,45 +321,47 @@ export default function Events() {
   ]);
 
   return (
-    <div>
-      <h2>Events</h2>
-      {loading && <p>Loading events + sets...</p>}
-      {error && (
-        <p style={{ color: "crimson" }}>
-          Error: {error} {API_BASE ? `(VITE_BACKEND_URL=${API_BASE})` : "(same-origin /api)"}
-        </p>
-      )}
+    <div className="">
+      <div style={{ width: "min(100%, 520px)", margin: "0 auto" }}>
+        <h2 className="m-auto w-fit">GameFest 2025</h2>
+        {loading && <p style={{ textAlign: "center", color: MUTED }}>Loading events + sets...</p>}
+        {error && (
+          <p style={{ color: ERROR, textAlign: "center" }}>
+            Error: {error} {API_BASE ? `(VITE_BACKEND_URL=${API_BASE})` : "(same-origin /api)"}
+          </p>
+        )}
 
-      <div style={{ display: "flex", justifyContent: "center", margin: "10px auto", width: "min(100%, 520px)" }}>
-        <label style={{ display: "flex", flexDirection: "column", gap: 4, width: "100%", minWidth: 280 }}>
-          <span style={{ fontSize: 12, opacity: 0.8, textAlign: "center" }}></span>
-          <select
-            value={selectedEventId}
-            onChange={(e) => {
-              setSelectedEventId(e.target.value)
-            }
-
-            }
-
-            style={{
-              width: "100%",
-              padding: 8,
-              border: "1px solid #ccc",
-              borderRadius: 6,
-              background: "#fff",
-              color: "#000",
-            }}
-          >
-            <option value="" disabled>
-              Select an event...
-            </option>
-            {events.map((event) => (
-              <option key={String(event.id)} value={String(event.id)}>
-                {event.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        {!loading && events.length > 0 && (
+          <div style={{ display: "flex", justifyContent: "center", margin: "10px auto" }}>
+            <label style={{ display: "flex", flexDirection: "column", gap: 4, width: "100%", minWidth: 280 }}>
+              <span style={{ fontSize: 12, opacity: 0.8, textAlign: "center" }}></span>
+              <select
+                value={selectedEventId}
+                onChange={(e) => {
+                  setSelectedEventId(e.target.value);
+                }}
+                style={{
+                  width: "100%",
+                  padding: 10,
+                  border: `1px solid ${BORDER}`,
+                  borderRadius: 10,
+                  background: SURFACE,
+                  color: TEXT,
+                  boxShadow: "0 10px 24px rgba(0, 0, 0, 0.22)",
+                }}
+              >
+                <option value="" disabled>
+                  Select an event...
+                </option>
+                {events.map((event) => (
+                  <option key={String(event.id)} value={String(event.id)}>
+                    {event.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
       </div>
 
       {(() => {
@@ -337,14 +375,14 @@ export default function Events() {
         const shouldDisplayDivUnderGroupedLayout = groupedForSelectedPhaseGroup ? !groupedForSelectedPhaseGroup.containsWinnersOrLosers : false;
 
         return (
-          <div style={{ border: "1px solid #ddd", padding: 10, margin: "10px 0" }}>
-            <h3 style={{ margin: 0 }}>
-              {selectedEvent?.name ?? "Event"} <span style={{ opacity: 0.7 }}>({selectedEventId})</span>
+          <div style={{ border: `1px solid ${BORDER}`, borderRadius: 16, padding: 14, margin: "10px 0" }}>
+            <h3 style={{ margin: 0, textAlign: "center", color: ACCENT_BRIGHT }}>
+              {selectedEvent?.name ?? "Event"} <span style={{ color: MUTED }}>({selectedEventId})</span>
             </h3>
 
             <div style={{ marginTop: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                <div style={{ fontSize: 12, opacity: 0.7 }}>Phases</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, position: "relative" }}>
+                <div style={{ fontSize: 12, color: MUTED, position: "absolute", left: "50%", transform: "translateX(-50%)" }}>Phases</div>
                 {phasesOpen ? (
                   <button
                     type="button"
@@ -356,11 +394,13 @@ export default function Events() {
                     style={{
                       padding: "6px 10px",
                       borderRadius: 8,
-                      border: "1px solid #ccc",
-                      background: "#fff",
-                      color: "#111",
+                      border: `1px solid ${BORDER}`,
+                      background: `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_BRIGHT} 100%)`,
+                      color: TEXT,
                       cursor: "pointer",
                       fontSize: 12,
+                      marginLeft: "auto",
+                      boxShadow: "0 10px 24px rgba(0, 153, 187, 0.28)",
                     }}
                   >
                     Close
@@ -372,11 +412,13 @@ export default function Events() {
                     style={{
                       padding: "6px 10px",
                       borderRadius: 8,
-                      border: "1px solid #ccc",
-                      background: "#fff",
-                      color: "#111",
+                      border: `1px solid ${BORDER}`,
+                      background: `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_BRIGHT} 100%)`,
+                      color: TEXT,
                       cursor: "pointer",
                       fontSize: 12,
+                      marginLeft: "auto",
+                      boxShadow: "0 10px 24px rgba(0, 153, 187, 0.28)",
                     }}
                   >
                     Open
@@ -386,12 +428,12 @@ export default function Events() {
 
               {phasesOpen && (
                 <>
-                  {loadingPhases && !phases && <p style={{ marginTop: 8, opacity: 0.8 }}>Loading phases...</p>}
-                  {phasesError && <p style={{ marginTop: 8, color: "crimson" }}>Phases error: {phasesError}</p>}
-                  {phases && phases.phases.length === 0 && <p style={{ marginTop: 8, opacity: 0.8 }}>No phases.</p>}
+                  {loadingPhases && !phases && <p style={{ marginTop: 8, color: MUTED }}>Loading phases...</p>}
+                  {phasesError && <p style={{ marginTop: 8, color: ERROR }}>Phases error: {phasesError}</p>}
+                  {phases && phases.phases.length === 0 && <p style={{ marginTop: 8, color: MUTED }}>No phases.</p>}
                   {phases && phases.phases.length > 0 && (
                     <div style={{ marginTop: 6 }}>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6, justifyContent: "center" }}>
                         {phases.phases.map((p) => {
                           const id = String(p.id);
                           const active = id === selectedPhaseId;
@@ -403,10 +445,11 @@ export default function Events() {
                               style={{
                                 padding: "8px 10px",
                                 borderRadius: 8,
-                                border: active ? "2px solid #111" : "1px solid #ccc",
-                                background: active ? "#111" : "#fff",
-                                color: active ? "#fff" : "#111",
+                                border: active ? `2px solid ${BORDER_STRONG}` : `1px solid ${BORDER}`,
+                                background: active ? `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_BRIGHT} 100%)` : SURFACE_SOFT,
+                                color: TEXT,
                                 cursor: "pointer",
+                                boxShadow: active ? "0 10px 24px rgba(0, 153, 187, 0.28)" : "none",
                               }}
                             >
                               {p.name}
@@ -416,28 +459,28 @@ export default function Events() {
                       </div>
 
                       <div style={{ marginTop: 10 }}>
-                        {!selectedPhaseId && <p style={{ marginTop: 8, opacity: 0.8 }}>Pick a phase to load pools.</p>}
+                        {!selectedPhaseId && <p style={{ marginTop: 8, color: MUTED, textAlign: "center" }}>Pick a phase to load pools.</p>}
                         {loadingPhasePools && selectedPhaseId && !phasePools && (
-                          <p style={{ marginTop: 8, opacity: 0.8 }}>Loading pools...</p>
+                          <p style={{ marginTop: 8, color: MUTED }}>Loading pools...</p>
                         )}
                         {phasePoolsError && (
-                          <p style={{ marginTop: 8, color: "crimson" }}>Pools error: {phasePoolsError}</p>
+                          <p style={{ marginTop: 8, color: ERROR }}>Pools error: {phasePoolsError}</p>
                         )}
 
                         {phasePools && (
-                          <div style={{ border: "1px solid #eee", borderRadius: 8, padding: 10, marginTop: 8 }}>
+                          <div style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: 10, marginTop: 8 }}>
                             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
                               <div>
                                 <strong>{phasePools.phaseName}</strong>{" "}
-                                <span style={{ opacity: 0.7 }}>({String(phasePools.phaseId)})</span>
+                                <span style={{ color: MUTED }}>({String(phasePools.phaseId)})</span>
                               </div>
-                              <div style={{ fontSize: 12, opacity: 0.7 }}>
+                              <div style={{ fontSize: 12, color: MUTED }}>
                                 pools: {phasePools.phaseGroups.length}
                               </div>
                             </div>
 
                             {phasePools.phaseGroups.length === 0 ? (
-                              <p style={{ marginTop: 8, opacity: 0.8 }}>No pools found for this phase.</p>
+                              <p style={{ marginTop: 8, color: MUTED }}>No pools found for this phase.</p>
                             ) : phasePools.phaseGroups.length === 1 ? null : (
                               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
                                 {phasePools.phaseGroups.map((g) => {
@@ -452,10 +495,11 @@ export default function Events() {
                                       style={{
                                         padding: "8px 10px",
                                         borderRadius: 8,
-                                        border: active ? "2px solid #111" : "1px solid #ccc",
-                                        background: active ? "#111" : "#fff",
-                                        color: active ? "#fff" : "#111",
+                                        border: active ? `2px solid ${BORDER_STRONG}` : `1px solid ${BORDER}`,
+                                        background: active ? `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_BRIGHT} 100%)` : SURFACE_SOFT,
+                                        color: TEXT,
                                         cursor: "pointer",
+                                        boxShadow: active ? "0 10px 24px rgba(0, 153, 187, 0.28)" : "none",
                                       }}
                                     >
                                       {label}
@@ -467,19 +511,19 @@ export default function Events() {
 
                             <div style={{ marginTop: 10 }}>
                               {phasePools.phaseGroups.length > 1 && !selectedPhaseGroupId && (
-                                <p style={{ marginTop: 8, opacity: 0.8 }}>Pick a pool to load matches.</p>
+                                <p style={{ marginTop: 8, color: MUTED }}>Pick a pool to load matches.</p>
                               )}
                               {loadingPhaseGroupSets && selectedPhaseGroupId && !selectedPhaseGroup && (
-                                <p style={{ marginTop: 8, opacity: 0.8 }}>Loading pool sets...</p>
+                                <p style={{ marginTop: 8, color: MUTED }}>Loading pool sets...</p>
                               )}
                               {phaseGroupSetsError && (
-                                <p style={{ marginTop: 8, color: "crimson" }}>
+                                <p style={{ marginTop: 8, color: ERROR }}>
                                   Pool sets error: {phaseGroupSetsError}
                                 </p>
                               )}
 
                               {selectedPhaseGroup && (
-                                <div style={{ borderTop: "1px solid #eee", marginTop: 10, paddingTop: 10 }}>
+                                <div style={{ borderTop: `1px solid ${BORDER}`, marginTop: 10, paddingTop: 10 }}>
                                   {/* grouped winners/losers layout */}
                                   {(() => {
                                     const grouped = groupedForSelectedPhaseGroup;
@@ -501,15 +545,15 @@ export default function Events() {
                                         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 12 }}>
                                           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                                             {winners.map((g: any) => (
-                                              <div key={g.round} style={{ flex: "1 1 320px", minWidth: 260, border: "1px solid #eee", padding: 8, borderRadius: 6 }}>
+                                              <div key={g.round} style={{ flex: "1 1 15vw", minWidth: 200, border: `1px solid ${BORDER}`, padding: 8, borderRadius: 10 }}>
                                                 <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>{g.round}</div>
                                                 {g.sets.map((s: any, i: number) => (
-                                                  <div key={`${String(s.id)}-${i}`} style={{ padding: "6px 0", borderTop: i === 0 ? "none" : "1px solid #f3f3f3" }}>
-                                                    <div style={{ fontSize: 12, opacity: 0.7 }}>Set {i + 1}</div>
+                                                  <div key={`${String(s.id)}-${i}`} style={{ padding: "6px 0", borderTop: i === 0 ? "none" : `1px solid ${BORDER}` }}>
+                                                    <div style={{ fontSize: 12, color: MUTED }}>Set {i + 1}</div>
                                                     <div style={{ marginTop: 6 }}>
                                                       {(s.slots ?? []).map((slot: any, si: number) => {
                                                         const score = slot.standing?.stats?.score?.value ?? null;
-                                                        // find winnerId for this set if available
+
                                                         const results = phaseGroupResultsResults[selectedPhaseGroupId];
                                                         const matching = results?.nodes.find((r) => String(r.id) === String(s.id));
                                                         const winnerId = matching?.winnerId ?? null;
@@ -528,11 +572,9 @@ export default function Events() {
                                                                   : String(winnerId) === String(entrantId)
                                                                     ? "W"
                                                                     : "L";
-                                                        const outcomeStyle = isDQ
-                                                          ? { color: "#dc2626", fontWeight: 600 }
-                                                          : otherDQ
-                                                            ? { color: "#16a34a", fontWeight: 600 }
-                                                            : undefined;
+                                                        const outcomeStyle = outcome === "W" || outcome === "L"
+                                                          ? getOutcomeCharacterStyle(outcome)
+                                                          : getScoreStyle(s.slots ?? [], slot);
                                                         return (
                                                           <div key={si} style={{ display: "flex", gap: 8 }}>
                                                             <div style={{ minWidth: 18, opacity: 0.7 }}>#{si + 1}</div>
@@ -550,11 +592,11 @@ export default function Events() {
 
                                           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                                             {losers.map((g: any) => (
-                                              <div key={g.round} style={{ flex: "1 1 15vw", minWidth: 260, border: "1px solid #eee", padding: 8, borderRadius: 6 }}>
+                                              <div key={g.round} style={{ flex: "1 1 15vw", minWidth: 260, border: `1px solid ${BORDER}`, padding: 8, borderRadius: 10 }}>
                                                 <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>{g.round}</div>
                                                 {g.sets.map((s: any, i: number) => (
-                                                  <div key={`${String(s.id)}-${i}`} style={{ padding: "6px 0", borderTop: i === 0 ? "none" : "1px solid #f3f3f3" }}>
-                                                    <div style={{ fontSize: 12, opacity: 0.7 }}>Set {i + 1}</div>
+                                                  <div key={`${String(s.id)}-${i}`} style={{ padding: "6px 0", borderTop: i === 0 ? "none" : `1px solid ${BORDER}` }}>
+                                                    <div style={{ fontSize: 12, color: MUTED }}>Set {i + 1}</div>
                                                     <div style={{ marginTop: 6 }}>
                                                       {(s.slots ?? []).map((slot: any, si: number) => {
                                                         const score = slot.standing?.stats?.score?.value ?? null;
@@ -576,11 +618,9 @@ export default function Events() {
                                                                   : String(winnerId) === String(entrantId)
                                                                     ? "W"
                                                                     : "L";
-                                                        const outcomeStyle = isDQ
-                                                          ? { color: "#dc2626", fontWeight: 600 }
-                                                          : otherDQ
-                                                            ? { color: "#16a34a", fontWeight: 600 }
-                                                            : undefined;
+                                                        const outcomeStyle = outcome === "W" || outcome === "L"
+                                                          ? getOutcomeCharacterStyle(outcome)
+                                                          : getScoreStyle(s.slots ?? [], slot);
                                                         return (
                                                           <div key={si} style={{ display: "flex", gap: 8 }}>
                                                             <div style={{ minWidth: 18, opacity: 0.7 }}>#{si + 1}</div>
@@ -645,20 +685,17 @@ export default function Events() {
                                               {selectedPhaseGroup.nodes.map((setNode, idx) => (
                                                 <div
                                                   key={String(setNode.id ?? idx)}
-                                                  style={{ padding: "6px 0", borderTop: "1px solid #eee" }}
+                                                  style={{ padding: "6px 0", borderTop: `1px solid ${BORDER}` }}
                                                 >
-                                                  <div style={{ fontSize: 12, opacity: 0.7 }}>Set {idx + 1}</div>
+                                                  <div style={{ fontSize: 12, color: MUTED }}>Set {idx + 1}</div>
                                                   {setNode.slots.map((slot, slotIdx) => {
                                                     const name = slot.entrant?.name ?? "TBD";
                                                     const score = slot.standing?.stats?.score?.value;
                                                     const isDQ = score === -1;
                                                     const otherDQ = hasOtherDQ(setNode.slots, slot);
                                                     const displayScore = isDQ ? "DQ" : otherDQ ? "W" : score ?? "-";
-                                                    const scoreStyle = isDQ
-                                                      ? { color: "#dc2626", fontWeight: 600 }
-                                                      : otherDQ
-                                                        ? { color: "#16a34a", fontWeight: 600 }
-                                                        : undefined;
+                                                    const scoreStyle = getOutcomeCharacterStyle(String(displayScore))
+                                                      ?? getScoreStyle(setNode.slots, slot);
                                                     return (
                                                       <div
                                                         key={String(slot.id ?? slotIdx)}
@@ -682,29 +719,29 @@ export default function Events() {
 
                                         return (
                                           <div style={{ marginTop: 10 }}>
-                                            <div style={{ fontSize: 12, opacity: 0.7 }}>
+                                            <div style={{ fontSize: 12, color: MUTED }}>
                                               Scores unavailable. Showing W/L from `winnerId`.
                                             </div>
                                             {loadingPhaseGroupResults && !results && (
-                                              <p style={{ marginTop: 8, opacity: 0.8 }}>Loading match results...</p>
+                                              <p style={{ marginTop: 8, color: MUTED }}>Loading match results...</p>
                                             )}
                                             {phaseGroupResultsError && (
-                                              <p style={{ marginTop: 8, color: "crimson" }}>
+                                              <p style={{ marginTop: 8, color: ERROR }}>
                                                 Results error: {phaseGroupResultsError}
                                               </p>
                                             )}
                                             {results && (
                                               <div style={{ marginTop: 10 }}>
                                                 {results.nodes.length === 0 ? (
-                                                  <p style={{ marginTop: 8, opacity: 0.8 }}>No matches found.</p>
+                                                  <p style={{ marginTop: 8, color: MUTED }}>No matches found.</p>
                                                 ) : (
                                                   <div>
                                                     {results.nodes.map((setNode, idx) => (
                                                       <div
                                                         key={String(setNode.id ?? idx)}
-                                                        style={{ padding: "6px 0", borderTop: "1px solid #eee" }}
+                                                        style={{ padding: "6px 0", borderTop: `1px solid ${BORDER}` }}
                                                       >
-                                                        <div style={{ fontSize: 12, opacity: 0.7 }}>
+                                                        <div style={{ fontSize: 12, color: MUTED }}>
                                                           Set {idx + 1}
                                                         </div>
                                                         {setNode.slots.map((slot, slotIdx) => {
@@ -717,6 +754,7 @@ export default function Events() {
                                                               : String(winnerId) === String(entrantId)
                                                                 ? "W"
                                                                 : "L";
+                                                          const outcomeStyle = getOutcomeCharacterStyle(outcome);
                                                           return (
                                                             <div
                                                               key={`${String(setNode.id)}-${slotIdx}`}
@@ -726,7 +764,7 @@ export default function Events() {
                                                                 #{slotIdx + 1}
                                                               </div>
                                                               <div style={{ flex: 1 }}>{name}</div>
-                                                              <div style={{ width: 24, textAlign: "right" }}>
+                                                              <div style={{ width: 24, textAlign: "right", ...outcomeStyle }}>
                                                                 {outcome}
                                                               </div>
                                                             </div>
@@ -743,27 +781,27 @@ export default function Events() {
                                       })()}
                                     </div>
 
-                                    <div style={{ flex: "1 1 240px", minWidth: 0, border: "1px solid #eee", borderRadius: 8, padding: 10 }}>
-                                      <div style={{ fontSize: 12, opacity: 0.7 }}>Standings</div>
+                                    <div style={{ flex: "1 1 240px", minWidth: 0, border: `1px solid ${BORDER}`, borderRadius: 10, padding: 10 }}>
+                                      <div style={{ fontSize: 12, color: MUTED }}>Standings</div>
                                       {(() => {
                                         const standings = eventStandingsResults[selectedEventId];
 
                                         if (loadingStandings && !standings) {
-                                          return <p style={{ marginTop: 8, opacity: 0.8 }}>Loading standings...</p>;
+                                          return <p style={{ marginTop: 8, color: MUTED }}>Loading standings...</p>;
                                         }
                                         if (standingsError) {
                                           return (
-                                            <p style={{ marginTop: 8, color: "crimson" }}>
+                                            <p style={{ marginTop: 8, color: ERROR }}>
                                               Standings error: {standingsError}
                                             </p>
                                           );
                                         }
                                         if (!standings) {
-                                          return <p style={{ marginTop: 8, opacity: 0.8 }}>No standings loaded.</p>;
+                                          return <p style={{ marginTop: 8, color: MUTED }}>No standings loaded.</p>;
                                         }
 
                                         if (standings.nodes.length === 0) {
-                                          return <p style={{ marginTop: 8, opacity: 0.8 }}>No standings found.</p>;
+                                          return <p style={{ marginTop: 8, color: MUTED }}>No standings found.</p>;
                                         }
 
                                         return (
@@ -774,7 +812,7 @@ export default function Events() {
                                                 style={{
                                                   display: "flex",
                                                   gap: 10,
-                                                  borderTop: "1px solid #eee",
+                                                  borderTop: `1px solid ${BORDER}`,
                                                   padding: "6px 0",
                                                 }}
                                               >
