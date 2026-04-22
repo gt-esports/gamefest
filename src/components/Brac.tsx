@@ -95,6 +95,8 @@ async function fetchJson<T>(path: string): Promise<T> {
   return (await response.json()) as T;
 }
 
+//
+
 export default function Events() {
   const [events, setEvents] = useState<TournamentEvent[]>([]);
   const [eventPhasesResults, setEventPhasesResults] = useState<Record<string, EventPhasesResult>>({});
