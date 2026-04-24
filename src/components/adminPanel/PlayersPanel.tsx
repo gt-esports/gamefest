@@ -120,6 +120,10 @@ const PlayersPanel: React.FC = () => {
     setLastAward(null);
   }, [selectedIds]);
 
+  useEffect(() => {
+    setPointsInput("");
+  }, [activeAssignment?.id]);
+
   /* ------------------------------ Actions ------------------------------ */
 
   const toggleSelect = (id: string) => {
