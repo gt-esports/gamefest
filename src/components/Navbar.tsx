@@ -1,25 +1,33 @@
 import { useEffect, useState, useRef } from "react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { TfiClose } from "react-icons/tfi";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import Logo from "../assets/gt-esports-logo1.png";
 import {
   SignedIn,
+  SignedOut,
   UserButton,
-  useUser,
+  useAuth,
 } from "../hooks/useAuth";
 
 function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const menuRef = useRef<HTMLUListElement | null>(null);
 
-
-
-  const { isLoaded, user } = useUser();
+  const { isLoaded, user, signInWithDiscord } = useAuth();
   console.log('navbar:', { isLoaded, user });
+
+  const handleAttend = () => {
+    if (user) {
+      void navigate('/profile');
+    } else {
+      void signInWithDiscord();
+    }
+  };
 
 
   useEffect(() => {
@@ -71,12 +79,11 @@ function Navbar() {
     //{ name: "LEADERBOARD", link: "/leaderboard" },
     //{ name: "SPONSORS", link: "/sponsor" },
     { name: "ABOUT", link: "/about" },
-    { name: "REGISTER", link: "/register" },
   ];
 
   return (
     <div
-      className={`fixed z-10 flex h-[--navbar-height] w-full items-center justify-between border-0 bg-transparent transition-all duration-500 md:flex md:px-20 md:py-6 ${isScrolled ? "bg-opacity-70 backdrop-blur-md" : "bg-transparent"
+      className={`fixed z-50 flex h-[--navbar-height] w-full items-center justify-between border-0 bg-transparent transition-all duration-500 md:flex md:px-20 md:py-6 ${isScrolled ? "bg-opacity-70 backdrop-blur-md" : "bg-transparent"
         }`}
     >
       <div className="font-zuume font-bold italic text-4xl tracking-wide">
@@ -139,6 +146,35 @@ function Navbar() {
             </NavLink>
           </li>
         ))}
+        <li
+          style={{ transitionDelay: `${links.length * 50}ms` }}
+          className={`text-md w-full py-4 text-right transition-all duration-700 ease-in-out ${open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+            }`}
+        >
+          <button
+            onClick={() => { handleAttend(); setOpen(false); }}
+            className={`${location.pathname === '/profile'
+                ? "text-blue-bright underline"
+                : "text-white"
+              } underline-offset-4 duration-500 hover:text-blue-bright`}
+          >
+            ATTEND
+          </button>
+        </li>
+        <SignedOut>
+          <li
+            style={{ transitionDelay: `${(links.length + 1) * 50}ms` }}
+            className={`text-md w-full py-4 text-right transition-all duration-700 ease-in-out ${open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+              }`}
+          >
+            <button
+              onClick={() => { void signInWithDiscord(); setOpen(false); }}
+              className="rounded bg-gradient-to-r from-[#004466] to-[#0099BB] px-4 py-2 font-bayon text-white hover:shadow-lg hover:shadow-[#0099BB]/50"
+            >
+              LOGIN
+            </button>
+          </li>
+        </SignedOut>
       </ul>
 
       {/* Desktop Menu */}
@@ -161,6 +197,27 @@ function Navbar() {
             </NavLink>
           </li>
         ))}
+        <li className="text-md py-4 md:py-0">
+          <button
+            onClick={handleAttend}
+            className={`${location.pathname === '/profile'
+                ? "text-blue-bright underline"
+                : "text-white"
+              } underline-offset-4 duration-500 hover:text-blue-bright`}
+          >
+            ATTEND
+          </button>
+        </li>
+        <SignedOut>
+          <li>
+            <button
+              onClick={() => void signInWithDiscord()}
+              className="rounded bg-gradient-to-r from-[#004466] to-[#0099BB] px-4 py-2 font-bayon text-white hover:shadow-lg hover:shadow-[#0099BB]/50"
+            >
+              LOGIN
+            </button>
+          </li>
+        </SignedOut>
         <SignedIn>
           <li className="text-white duration-500 hover:text-blue-bright">
             <div className="mt-2">

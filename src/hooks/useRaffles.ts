@@ -41,18 +41,38 @@ const pickWinnersWithWeightedChance = (
   return winners;
 };
 
+type PlayerWithUserRow = {
+  id: string;
+  points: number | null;
+  raffle_placing?: number | null;
+  users:
+    | { username: string | null; fname: string | null; lname: string | null }
+    | Array<{ username: string | null; fname: string | null; lname: string | null }>
+    | null;
+};
+
+const unwrapRel = <T>(v: T | T[] | null | undefined): T | null =>
+  !v ? null : Array.isArray(v) ? v[0] || null : v;
+
+const displayName = (row: PlayerWithUserRow): string => {
+  const u = unwrapRel(row.users);
+  const full = [u?.fname, u?.lname].filter(Boolean).join(" ");
+  return full || u?.username || "Unknown";
+};
+
 export const fetchRaffleWinners = async (): Promise<RaffleWinner[]> => {
   const { data, error } = await supabase
     .from("players")
-    .select("id, name, points, raffle_placing")
+    .select("id, points, raffle_placing, users ( username, fname, lname )")
     .eq("raffle_winner", true)
     .order("raffle_placing", { ascending: true });
 
   if (error) throw error;
 
-  return (data || []).map((row) => ({
+  const rows = (data || []) as unknown as PlayerWithUserRow[];
+  return rows.map((row) => ({
     userId: row.id,
-    name: row.name,
+    name: displayName(row),
     points: row.points ?? 0,
     place: toPlaceLabel(row.raffle_placing ?? 0),
   }));
@@ -71,17 +91,18 @@ export const pickRaffleWinners = async (
 
   const { data: players, error: playersError } = await supabase
     .from("players")
-    .select("id, name, points")
+    .select("id, points, users ( username, fname, lname )")
     .order("points", { ascending: false });
 
   if (playersError) throw playersError;
 
-  const participants: RaffleParticipant[] = (players || [])
+  const playerRows = (players || []) as unknown as PlayerWithUserRow[];
+  const participants: RaffleParticipant[] = playerRows
     .slice(3)
     .filter((participant) => (participant.points ?? 0) > 0)
     .map((participant) => ({
       userId: participant.id,
-      name: participant.name,
+      name: displayName(participant),
       points: participant.points ?? 0,
     }));
 

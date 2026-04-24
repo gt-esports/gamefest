@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(grep -v \"^$\")",
+      "Bash(git stash:*)",
+      "Bash(wc -l src/components/adminPanel/PlayersPanel.tsx src/components/adminPanel/players/*.tsx)",
+      "Bash(gh pr:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)",
+      "Bash(grep -A 5 \"\\\\.update\\\\|\\\\.patch\" /Users/kevinhu/Programming/GTEsports/gamefest/src/hooks/*.ts)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(echo \"tsc=$?\")",
+      "Bash(git commit:*)"
+    ]
+  }
+}

@@ -17,8 +17,12 @@ export const supabase = createClient<Database>(
   {
     auth: {
       persistSession: true,
+      // Supabase auto-detects ?code=... on /auth/callback and exchanges it
+      // using the stored PKCE verifier. AuthCallback just waits for the
+      // resulting SIGNED_IN event.
       detectSessionInUrl: true,
       autoRefreshToken: true,
+      flowType: "pkce",
     },
   }
 );

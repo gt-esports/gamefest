@@ -13,14 +13,20 @@ export interface Database {
         Row: {
           id: string;
           name: string;
+          points_per_award: number;
+          max_points: number;
         };
         Insert: {
           id?: string;
           name: string;
+          points_per_award?: number;
+          max_points?: number;
         };
         Update: {
           id?: string;
           name?: string;
+          points_per_award?: number;
+          max_points?: number;
         };
         Relationships: [];
       };
@@ -28,37 +34,101 @@ export interface Database {
         Row: {
           id: string;
           name: string;
+          points_per_award: number;
+          max_points: number;
         };
         Insert: {
           id?: string;
           name: string;
+          points_per_award?: number;
+          max_points?: number;
         };
         Update: {
           id?: string;
           name?: string;
+          points_per_award?: number;
+          max_points?: number;
         };
         Relationships: [];
+      };
+      player_activity: {
+        Row: {
+          id: string;
+          player_id: string;
+          game_id: string | null;
+          challenge_id: string | null;
+          points_awarded: number;
+          awarded_by: string | null;
+          awarded_at: string;
+        };
+        Insert: {
+          id?: string;
+          player_id: string;
+          game_id?: string | null;
+          challenge_id?: string | null;
+          points_awarded: number;
+          awarded_by?: string | null;
+          awarded_at?: string;
+        };
+        Update: {
+          id?: string;
+          player_id?: string;
+          game_id?: string | null;
+          challenge_id?: string | null;
+          points_awarded?: number;
+          awarded_by?: string | null;
+          awarded_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "player_activity_player_id_fkey";
+            columns: ["player_id"];
+            isOneToOne: false;
+            referencedRelation: "players";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "player_activity_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "player_activity_challenge_id_fkey";
+            columns: ["challenge_id"];
+            isOneToOne: false;
+            referencedRelation: "challenges";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       users: {
         Row: {
           avatar_url: string | null;
           created_at: string;
-          display_name: string | null;
+          fname: string | null;
           id: string;
+          lname: string | null;
+          profile_completed: boolean;
           username: string | null;
         };
         Insert: {
           avatar_url?: string | null;
           created_at?: string;
-          display_name?: string | null;
+          fname?: string | null;
           id: string;
+          lname?: string | null;
+          profile_completed?: boolean;
           username?: string | null;
         };
         Update: {
           avatar_url?: string | null;
           created_at?: string;
-          display_name?: string | null;
+          fname?: string | null;
           id?: string;
+          lname?: string | null;
+          profile_completed?: boolean;
           username?: string | null;
         };
         Relationships: [];
@@ -67,32 +137,29 @@ export interface Database {
         Row: {
           id: string;
           log: string[] | null;
-          name: string;
           participation: string[] | null;
           points: number | null;
           raffle_placing: number | null;
           raffle_winner: boolean | null;
-          user_id: string | null;
+          user_id: string;
         };
         Insert: {
           id?: string;
           log?: string[] | null;
-          name: string;
           participation?: string[] | null;
           points?: number | null;
           raffle_placing?: number | null;
           raffle_winner?: boolean | null;
-          user_id?: string | null;
+          user_id: string;
         };
         Update: {
           id?: string;
           log?: string[];
-          name?: string;
           participation?: string[];
           points?: number | null;
           raffle_placing?: number | null;
           raffle_winner?: boolean | null;
-          user_id?: string | null;
+          user_id?: string;
         };
         Relationships: [
           {
@@ -115,6 +182,9 @@ export interface Database {
           school: string | null;
           heard_from: string | null;
           created_at: string;
+          checked_in: boolean;
+          checked_in_at: string | null;
+          checked_in_by: string | null;
         };
         Insert: {
           id?: string;
@@ -126,6 +196,9 @@ export interface Database {
           school?: string | null;
           heard_from?: string | null;
           created_at?: string;
+          checked_in?: boolean;
+          checked_in_at?: string | null;
+          checked_in_by?: string | null;
         };
         Update: {
           id?: string;
@@ -137,6 +210,9 @@ export interface Database {
           school?: string | null;
           heard_from?: string | null;
           created_at?: string;
+          checked_in?: boolean;
+          checked_in_at?: string | null;
+          checked_in_by?: string | null;
         };
         Relationships: [
           {
@@ -148,41 +224,54 @@ export interface Database {
           }
         ];
       };
-      staff: {
-        Row: {
-          assignment: string | null;
-          id: string;
-          name: string;
-        };
-        Insert: {
-          assignment?: string | null;
-          id?: string;
-          name: string;
-        };
-        Update: {
-          assignment?: string | null;
-          id?: string;
-          name?: string;
-        };
-        Relationships: [];
-      };
       user_roles: {
         Row: {
+          assignment: string | null;
           created_at: string;
           role: string;
           user_id: string;
+          game_assignment_id: string | null;
+          challenge_assignment_id: string | null;
         };
         Insert: {
+          assignment?: string | null;
           created_at?: string;
           role: string;
           user_id: string;
+          game_assignment_id?: string | null;
+          challenge_assignment_id?: string | null;
         };
         Update: {
+          assignment?: string | null;
           created_at?: string;
           role?: string;
           user_id?: string;
+          game_assignment_id?: string | null;
+          challenge_assignment_id?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_roles_game_assignment_id_fkey";
+            columns: ["game_assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_roles_challenge_assignment_id_fkey";
+            columns: ["challenge_assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "challenges";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       team_assignments: {
         Row: {

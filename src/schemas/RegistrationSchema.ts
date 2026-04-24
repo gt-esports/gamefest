@@ -10,6 +10,9 @@ export type Registration = {
   school: string | null;
   heard_from: string | null;
   created_at: string;
+  checked_in: boolean;
+  checked_in_at: string | null;
+  checked_in_by: string | null;
 };
 
 export type CreateRegistrationInput = {
