@@ -51,6 +51,7 @@ const PlayersPanel: React.FC = () => {
   const [busyAward, setBusyAward] = useState(false);
   const [busySave, setBusySave] = useState(false);
   const [busyUndo, setBusyUndo] = useState(false);
+  const [activeAssignmentId, setActiveAssignmentId] = useState<string | null>(null);
 
   // Tracks the most recent assignment-backed award batch so staff can
   // intuitively undo it. Cleared on a new award, selection change, or undo.
@@ -71,6 +72,13 @@ const PlayersPanel: React.FC = () => {
     () => staff.find((m) => m.userId === user?.id),
     [user?.id, staff]
   );
+
+  const activeAssignment = useMemo(() => {
+    const list = currentStaff?.assignments ?? [];
+    if (list.length === 0) return null;
+    return list.find((a) => a.id === activeAssignmentId) ?? list[0];
+  }, [currentStaff?.assignments, activeAssignmentId]);
+
   const staffName =
     currentStaff?.name || user?.username || user?.fullName || "Unknown Staff";
 
@@ -143,10 +151,7 @@ const PlayersPanel: React.FC = () => {
     try {
       if (!isAdmin) {
         // ── Staff path ──────────────────────────────────────────────────────
-        if (
-          !currentStaff?.assignmentId ||
-          currentStaff.maxPoints === null
-        ) {
+        if (!activeAssignment) {
           push(
             "error",
             "You have no game/challenge assignment. Contact an admin."
@@ -161,15 +166,11 @@ const PlayersPanel: React.FC = () => {
         }
 
         const gameId =
-          currentStaff.assignmentType === "game"
-            ? currentStaff.assignmentId
-            : null;
+          activeAssignment.type === "game" ? activeAssignment.assignmentId : null;
         const challengeId =
-          currentStaff.assignmentType === "challenge"
-            ? currentStaff.assignmentId
-            : null;
-        const maxPts = currentStaff.maxPoints;
-        const tag = currentStaff.assignmentName!;
+          activeAssignment.type === "challenge" ? activeAssignment.assignmentId : null;
+        const maxPts = activeAssignment.maxPoints;
+        const tag = activeAssignment.assignmentName;
 
         let capped = 0;
         let notCheckedIn = 0;
@@ -343,16 +344,12 @@ const PlayersPanel: React.FC = () => {
   };
 
   const revokeMyAssignment = async (player: Player) => {
-    if (!currentStaff?.assignmentId || !user?.id) return;
+    if (!activeAssignment || !user?.id) return;
 
     const gameId =
-      currentStaff.assignmentType === "game"
-        ? currentStaff.assignmentId
-        : null;
+      activeAssignment.type === "game" ? activeAssignment.assignmentId : null;
     const challengeId =
-      currentStaff.assignmentType === "challenge"
-        ? currentStaff.assignmentId
-        : null;
+      activeAssignment.type === "challenge" ? activeAssignment.assignmentId : null;
 
     try {
       const pointsToRevoke = await deleteActivitiesBy(
@@ -378,7 +375,7 @@ const PlayersPanel: React.FC = () => {
         points: Math.max(0, fresh.points - pointsToRevoke),
         log: [
           ...fresh.log,
-          `${staffName}[${currentStaff.assignmentName}] revoked ${pointsToRevoke} pts from ${fresh.name} on ${timestamp}`,
+          `${staffName}[${activeAssignment.assignmentName}] revoked ${pointsToRevoke} pts from ${fresh.name} on ${timestamp}`,
         ],
       });
       await refreshPlayers();
@@ -613,8 +610,9 @@ const PlayersPanel: React.FC = () => {
               lastAward={lastAward?.summary ?? null}
               onUndoLast={() => void undoLastAward()}
               busyUndo={busyUndo}
-              assignmentName={currentStaff?.assignmentName}
-              maxPoints={currentStaff?.maxPoints}
+              assignments={currentStaff?.assignments ?? []}
+              activeAssignmentId={activeAssignment?.id ?? null}
+              onSelectAssignment={setActiveAssignmentId}
               pointsInput={pointsInput}
               onPointsInputChange={setPointsInput}
             />
@@ -629,7 +627,7 @@ const PlayersPanel: React.FC = () => {
             openSection={openSection}
             onOpenSection={setOpenSection}
             isAdmin={isAdmin}
-            staffAssignment={currentStaff?.assignmentName ?? "staff"}
+            staffAssignment={activeAssignment?.assignmentName ?? "staff"}
             games={games}
             busySave={busySave}
             checkInRecord={checkIns.get(singleSelected.userId) ?? null}
