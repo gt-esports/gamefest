@@ -269,19 +269,16 @@ export interface Database {
       };
       user_roles: {
         Row: {
-          assignment: string | null;
           created_at: string;
           role: string;
           user_id: string;
         };
         Insert: {
-          assignment?: string | null;
           created_at?: string;
           role: string;
           user_id: string;
         };
         Update: {
-          assignment?: string | null;
           created_at?: string;
           role?: string;
           user_id?: string;

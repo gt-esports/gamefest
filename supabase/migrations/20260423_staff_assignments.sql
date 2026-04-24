@@ -46,7 +46,8 @@ SELECT user_id, challenge_assignment_id
 FROM public.user_roles
 WHERE challenge_assignment_id IS NOT NULL;
 
--- 6. Drop the now-redundant FK columns
+-- 6. Drop the now-redundant FK columns and legacy assignment text column
 ALTER TABLE public.user_roles
   DROP COLUMN IF EXISTS game_assignment_id,
-  DROP COLUMN IF EXISTS challenge_assignment_id;
+  DROP COLUMN IF EXISTS challenge_assignment_id,
+  DROP COLUMN IF EXISTS assignment;
