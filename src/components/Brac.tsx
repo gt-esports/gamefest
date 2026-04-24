@@ -37,7 +37,7 @@ type PhaseGroupResultsResult = {
 };
 
 const API_BASE = (import.meta.env.VITE_BACKEND_URL as string | undefined) ?? "";
-const TOURNAMENT_SLUG = "gamefest-2025-1";
+const TOURNAMENT_SLUG = "gamefest-2026";
 const SURFACE = "rgba(15, 31, 60, 0.9)";
 const SURFACE_SOFT = "rgba(0, 68, 102, 0.16)";
 const BORDER = "rgba(0, 153, 187, 0.35)";
@@ -325,7 +325,7 @@ export default function Events() {
   return (
     <div className="">
       <div style={{ width: "min(100%, 520px)", margin: "0 auto" }}>
-        <h2 className="m-auto w-fit">GameFest 2025</h2>
+        <h1 className="m-auto w-fit text-lg">GameFest 2026</h1>
         {loading && <p style={{ textAlign: "center", color: MUTED }}>Loading events + sets...</p>}
         {error && (
           <p style={{ color: ERROR, textAlign: "center" }}>
@@ -722,7 +722,7 @@ export default function Events() {
                                         return (
                                           <div style={{ marginTop: 10 }}>
                                             <div style={{ fontSize: 12, color: MUTED }}>
-                                              Scores unavailable. Showing W/L from `winnerId`.
+                                              No matches found yet. Scores unavailable.`.
                                             </div>
                                             {loadingPhaseGroupResults && !results && (
                                               <p style={{ marginTop: 8, color: MUTED }}>Loading match results...</p>
@@ -735,7 +735,7 @@ export default function Events() {
                                             {results && (
                                               <div style={{ marginTop: 10 }}>
                                                 {results.nodes.length === 0 ? (
-                                                  <p style={{ marginTop: 8, color: MUTED }}>No matches found.</p>
+                                                  <p style={{ marginTop: 8, color: MUTED }}>No matches in phase found.</p>
                                                 ) : (
                                                   <div>
                                                     {results.nodes.map((setNode, idx) => (
