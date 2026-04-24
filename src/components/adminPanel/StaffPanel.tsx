@@ -144,6 +144,7 @@ const StaffPanel: React.FC = () => {
   };
 
   const handleRemoveAssignment = async (assignmentId: string) => {
+    if (!isAdmin) return;
     try {
       await removeAssignment(assignmentId);
       push("success", "Assignment removed");
@@ -286,29 +287,33 @@ const StaffPanel: React.FC = () => {
                       className="inline-flex items-center gap-1 border border-blue-accent/30 bg-blue-accent/10 px-2 py-0.5 text-xs font-semibold text-blue-bright"
                     >
                       {a.assignmentName}
-                      <button
-                        onClick={() => void handleRemoveAssignment(a.id)}
-                        className="ml-0.5 text-blue-bright/50 hover:text-red-300 leading-none"
-                        title={`Remove ${a.assignmentName}`}
-                      >
-                        ✕
-                      </button>
+                      {isAdmin && (
+                        <button
+                          onClick={() => void handleRemoveAssignment(a.id)}
+                          className="ml-0.5 text-blue-bright/50 hover:text-red-300 leading-none"
+                          title={`Remove ${a.assignmentName}`}
+                        >
+                          ✕
+                        </button>
+                      )}
                     </span>
                   ))}
-                  <button
-                    onClick={() => {
-                      if (isAddingHere) {
-                        setAddingForUser(null);
-                        setPendingAddValue("");
-                      } else {
-                        setAddingForUser(member.userId);
-                        setPendingAddValue("");
-                      }
-                    }}
-                    className="inline-flex items-center gap-1 border border-dashed border-blue-accent/40 px-2 py-0.5 text-xs text-blue-bright/60 hover:border-blue-bright/60 hover:text-blue-bright"
-                  >
-                    {isAddingHere ? "Cancel" : "+ Add"}
-                  </button>
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        if (isAddingHere) {
+                          setAddingForUser(null);
+                          setPendingAddValue("");
+                        } else {
+                          setAddingForUser(member.userId);
+                          setPendingAddValue("");
+                        }
+                      }}
+                      className="inline-flex items-center gap-1 border border-dashed border-blue-accent/40 px-2 py-0.5 text-xs text-blue-bright/60 hover:border-blue-bright/60 hover:text-blue-bright"
+                    >
+                      {isAddingHere ? "Cancel" : "+ Add"}
+                    </button>
+                  )}
                 </div>
 
                 {isAddingHere && (
