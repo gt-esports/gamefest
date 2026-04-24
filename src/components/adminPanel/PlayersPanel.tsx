@@ -554,8 +554,9 @@ const PlayersPanel: React.FC = () => {
   };
 
   const handleCheckOut = async (player: Player) => {
+    if (!user?.id) return;
     try {
-      await checkOut(player.userId);
+      await checkOut(player.userId, user.id);
       push("success", `${player.name} checked out`);
     } catch (err) {
       push("error", err instanceof Error ? err.message : "Check-out failed");

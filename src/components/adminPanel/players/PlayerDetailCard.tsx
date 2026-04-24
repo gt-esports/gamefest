@@ -1,5 +1,8 @@
-import React from "react";
-import type { CheckInRecord } from "../../../hooks/useCheckIn";
+import React, { useEffect } from "react";
+import {
+  useCheckInEvents,
+  type CheckInRecord,
+} from "../../../hooks/useCheckIn";
 import type { Player } from "../../../hooks/usePlayers";
 import type { Game } from "../../../schemas/GamesSchema";
 import { dangerBtnClass, primaryBtnClass } from "../shared/styles";
@@ -42,6 +45,13 @@ const PlayerDetailCard: React.FC<PlayerDetailCardProps> = ({
   onCheckIn,
   onCheckOut,
 }) => {
+  const { events: checkInEvents, refresh: refreshCheckInEvents } =
+    useCheckInEvents(player.userId);
+
+  useEffect(() => {
+    void refreshCheckInEvents();
+  }, [checkInRecord?.checkedIn, checkInRecord?.checkedInAt, refreshCheckInEvents]);
+
   const showRevoke =
     !isAdmin &&
     player.participation.includes(staffAssignment) &&
@@ -55,6 +65,44 @@ const PlayerDetailCard: React.FC<PlayerDetailCardProps> = ({
 
   const toggle = (s: Exclude<DetailSection, null>) =>
     onOpenSection(openSection === s ? null : s);
+
+  // Build a unified, chronologically-sorted (earliest first) timeline from the
+  // player's point/audit log strings and the check-in event log.
+  // Point log strings embed a locale-formatted timestamp after " on "; unparseable
+  // entries fall to the end so the absence of a timestamp doesn't misorder history.
+  type TimelineItem =
+    | { kind: "log"; idx: number; text: string; time: number | null }
+    | {
+        kind: "checkin";
+        id: string;
+        eventType: "check_in" | "check_out";
+        performedByName: string | null;
+        time: number;
+      };
+
+  const timeline: TimelineItem[] = [
+    ...edited.log.map((entry, idx): TimelineItem => {
+      const match = entry.match(/ on (.+)$/);
+      const parsed = match ? Date.parse(match[1]) : NaN;
+      return {
+        kind: "log",
+        idx,
+        text: entry,
+        time: Number.isNaN(parsed) ? null : parsed,
+      };
+    }),
+    ...checkInEvents.map((ev): TimelineItem => ({
+      kind: "checkin",
+      id: ev.id,
+      eventType: ev.eventType,
+      performedByName: ev.performedByName,
+      time: Date.parse(ev.occurredAt),
+    })),
+  ].sort((a, b) => {
+    if (a.time === null) return 1;
+    if (b.time === null) return -1;
+    return b.time - a.time;
+  });
 
   return (
     <div className="border border-blue-accent/20 bg-navy-blue/40">
@@ -132,35 +180,67 @@ const PlayerDetailCard: React.FC<PlayerDetailCardProps> = ({
         {/* Logs */}
         <Section
           label="Logs"
-          count={edited.log.length}
+          count={edited.log.length + checkInEvents.length}
           open={openSection === "logs"}
           onToggle={() => toggle("logs")}
         >
-          {edited.log.length === 0 && (
+          {timeline.length === 0 && (
             <p className="text-sm text-gray-400">No activity yet.</p>
           )}
           <ul className="space-y-1.5">
-            {edited.log.map((entry, idx) => (
-              <li
-                key={`${entry}-${idx}`}
-                className="flex items-start justify-between gap-3 border-l-2 border-blue-accent/40 bg-dark-bg/40 px-3 py-2 text-sm text-gray-100"
-              >
-                <span className="leading-relaxed">{entry}</span>
-                {isAdmin && (
-                  <button
-                    onClick={() =>
-                      onEdit({
-                        ...edited,
-                        log: edited.log.filter((_, i) => i !== idx),
-                      })
-                    }
-                    className="shrink-0 text-xs font-semibold text-red-300 hover:text-red-200"
+            {timeline.map((item) => {
+              if (item.kind === "checkin") {
+                const isCheckIn = item.eventType === "check_in";
+                const who = item.performedByName ?? "Unknown staff";
+                const label = isCheckIn ? "Checked in" : "Check-in undone";
+                const when = new Date(item.time).toLocaleString(undefined, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                });
+                return (
+                  <li
+                    key={`ci-${item.id}`}
+                    className={`flex items-start gap-3 border-l-2 bg-dark-bg/40 px-3 py-2 text-sm text-gray-100 ${
+                      isCheckIn ? "border-green-400/60" : "border-amber-300/60"
+                    }`}
                   >
-                    Delete
-                  </button>
-                )}
-              </li>
-            ))}
+                    <span
+                      className={`mt-1 h-2 w-2 shrink-0 rounded-full ${
+                        isCheckIn ? "bg-green-400" : "bg-amber-300"
+                      }`}
+                    />
+                    <div className="flex-1 leading-relaxed">
+                      <div>
+                        <span className="font-semibold">{label}</span>{" "}
+                        <span className="text-gray-400">by {who}</span>
+                      </div>
+                      <div className="text-xs text-gray-400">{when}</div>
+                    </div>
+                  </li>
+                );
+              }
+              return (
+                <li
+                  key={`log-${item.idx}-${item.text}`}
+                  className="flex items-start justify-between gap-3 border-l-2 border-blue-accent/40 bg-dark-bg/40 px-3 py-2 text-sm text-gray-100"
+                >
+                  <span className="leading-relaxed">{item.text}</span>
+                  {isAdmin && (
+                    <button
+                      onClick={() =>
+                        onEdit({
+                          ...edited,
+                          log: edited.log.filter((_, i) => i !== item.idx),
+                        })
+                      }
+                      className="shrink-0 text-xs font-semibold text-red-300 hover:text-red-200"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </Section>
 

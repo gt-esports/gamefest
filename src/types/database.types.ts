@@ -51,6 +51,45 @@ export interface Database {
         };
         Relationships: [];
       };
+      check_in_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          event_type: "check_in" | "check_out";
+          performed_by: string | null;
+          occurred_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          event_type: "check_in" | "check_out";
+          performed_by?: string | null;
+          occurred_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          event_type?: "check_in" | "check_out";
+          performed_by?: string | null;
+          occurred_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "check_in_events_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "check_in_events_performed_by_fkey";
+            columns: ["performed_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       player_activity: {
         Row: {
           id: string;

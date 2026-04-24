@@ -3,11 +3,13 @@ import {
   resetAllCheckInStatuses,
   useCheckInRoster,
 } from "../../hooks/useCheckIn";
+import { useUser } from "../../hooks/useAuth";
 import { dangerBtnClass } from "./shared/styles";
 import { SectionTitle, ToastStack } from "./shared/ui";
 import { useToasts } from "./shared/useToasts";
 
 const SettingsPanel: React.FC = () => {
+  const { user } = useUser();
   const { checkIns, refresh } = useCheckInRoster();
   const { toasts, push, dismiss } = useToasts();
   const [busyReset, setBusyReset] = useState(false);
@@ -17,6 +19,8 @@ const SettingsPanel: React.FC = () => {
   ).length;
 
   const handleResetCheckIns = async () => {
+    if (!user?.id) return;
+
     const confirmed = window.confirm(
       "Reset check-in status for all registered players? This will clear every current check-in."
     );
@@ -24,7 +28,7 @@ const SettingsPanel: React.FC = () => {
 
     setBusyReset(true);
     try {
-      const resetCount = await resetAllCheckInStatuses();
+      const resetCount = await resetAllCheckInStatuses(user.id);
       await refresh();
       push(
         "success",

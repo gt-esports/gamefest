@@ -8,6 +8,14 @@ export type CheckInRecord = {
   checkedInBy: string | null;
 };
 
+export type CheckInEvent = {
+  id: string;
+  eventType: "check_in" | "check_out";
+  occurredAt: string;
+  performedBy: string | null;
+  performedByName: string | null;
+};
+
 export const checkInByUserId = async (
   userId: string,
   staffUserId: string
@@ -26,9 +34,19 @@ export const checkInByUserId = async (
   if (!data || data.length === 0) {
     throw new Error("This player hasn't completed event registration. Ask them to register before checking in.");
   }
+
+  const { error: logError } = await supabase.from("check_in_events").insert({
+    user_id: userId,
+    event_type: "check_in",
+    performed_by: staffUserId,
+  });
+  if (logError) throw logError;
 };
 
-export const checkOutByUserId = async (userId: string): Promise<void> => {
+export const checkOutByUserId = async (
+  userId: string,
+  staffUserId: string
+): Promise<void> => {
   const { data, error } = await supabase
     .from("registrations")
     .update({
@@ -43,9 +61,18 @@ export const checkOutByUserId = async (userId: string): Promise<void> => {
   if (!data || data.length === 0) {
     throw new Error("Check-out failed — player may not be registered.");
   }
+
+  const { error: logError } = await supabase.from("check_in_events").insert({
+    user_id: userId,
+    event_type: "check_out",
+    performed_by: staffUserId,
+  });
+  if (logError) throw logError;
 };
 
-export const resetAllCheckInStatuses = async (): Promise<number> => {
+export const resetAllCheckInStatuses = async (
+  staffUserId: string
+): Promise<number> => {
   const { data, error } = await supabase
     .from("registrations")
     .update({
@@ -58,7 +85,19 @@ export const resetAllCheckInStatuses = async (): Promise<number> => {
 
   if (error) throw error;
 
-  return data?.length ?? 0;
+  const rows = data ?? [];
+  if (rows.length > 0) {
+    const { error: logError } = await supabase.from("check_in_events").insert(
+      rows.map((r) => ({
+        user_id: r.user_id,
+        event_type: "check_out" as const,
+        performed_by: staffUserId,
+      }))
+    );
+    if (logError) throw logError;
+  }
+
+  return rows.length;
 };
 
 // For staff/admin panels — fetches check-in status for all registered users.
@@ -132,12 +171,80 @@ export const useCheckInRoster = () => {
   );
 
   const checkOut = useCallback(
-    async (userId: string) => {
-      await checkOutByUserId(userId);
+    async (userId: string, staffUserId: string) => {
+      await checkOutByUserId(userId, staffUserId);
       await refresh();
     },
     [refresh]
   );
 
   return { checkIns, loading, error, refresh, checkIn, checkOut };
+};
+
+// Fetches the append-only check-in/check-out log for a single user,
+// newest first, with the performer's name joined for display.
+export const useCheckInEvents = (userId: string | null) => {
+  const [events, setEvents] = useState<CheckInEvent[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const refresh = useCallback(async () => {
+    if (!userId) {
+      setEvents([]);
+      return;
+    }
+    setLoading(true);
+    try {
+      setError(null);
+      const { data, error: fetchError } = await supabase
+        .from("check_in_events")
+        .select(
+          "id, event_type, occurred_at, performed_by, performer:users!check_in_events_performed_by_fkey(fname, lname, username)"
+        )
+        .eq("user_id", userId)
+        .order("occurred_at", { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      type Row = {
+        id: string;
+        event_type: "check_in" | "check_out";
+        occurred_at: string;
+        performed_by: string | null;
+        performer:
+          | { fname: string | null; lname: string | null; username: string | null }
+          | null;
+      };
+
+      setEvents(
+        ((data ?? []) as unknown as Row[]).map((r) => {
+          const p = r.performer;
+          const name = p
+            ? [p.fname, p.lname].filter(Boolean).join(" ").trim() ||
+              p.username ||
+              null
+            : null;
+          return {
+            id: r.id,
+            eventType: r.event_type,
+            occurredAt: r.occurred_at,
+            performedBy: r.performed_by,
+            performedByName: name,
+          };
+        })
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error ? err : new Error("Failed to load check-in events")
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  return { events, loading, error, refresh };
 };
