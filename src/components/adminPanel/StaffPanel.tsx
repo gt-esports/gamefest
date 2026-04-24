@@ -63,6 +63,7 @@ const StaffPanel: React.FC = () => {
     return staff.filter(
       (m) =>
         m.name.toLowerCase().includes(q) ||
+        (m.username?.toLowerCase().includes(q) ?? false) ||
         m.assignments.some((a) =>
           a.assignmentName.toLowerCase().includes(q)
         )
@@ -265,13 +266,20 @@ const StaffPanel: React.FC = () => {
               className="grid grid-cols-[1fr,2fr,auto] items-start gap-4 border-b border-blue-accent/10 px-5 py-3 last:border-b-0 hover:bg-white/[0.03]"
             >
               {/* Name column */}
-              <div className="flex items-center gap-2 min-w-0 pt-0.5">
-                <span className="truncate text-base font-medium text-white">
-                  {member.name}
-                </span>
-                {member.role === "admin" && (
-                  <span className="shrink-0 rounded-sm bg-blue-bright/20 px-1.5 py-0.5 font-bayon text-[10px] uppercase tracking-widest text-blue-bright border border-blue-bright/40">
-                    Admin
+              <div className="flex flex-col min-w-0 pt-0.5 gap-0.5">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="truncate text-base font-medium text-white">
+                    {member.name}
+                  </span>
+                  {member.role === "admin" && (
+                    <span className="shrink-0 rounded-sm bg-blue-bright/20 px-1.5 py-0.5 font-bayon text-[10px] uppercase tracking-widest text-blue-bright border border-blue-bright/40">
+                      Admin
+                    </span>
+                  )}
+                </div>
+                {member.username && (
+                  <span className="truncate text-xs text-gray-400">
+                    @{member.username}
                   </span>
                 )}
               </div>

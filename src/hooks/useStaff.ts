@@ -84,6 +84,7 @@ export const fetchStaff = async (): Promise<StaffMember[]> => {
       userId: row.user_id,
       role: (row.role === "admin" ? "admin" : "staff") as "staff" | "admin",
       name: full || user?.username || "Unknown",
+      username: user?.username ?? null,
       assignments: assignmentsByUser.get(row.user_id) ?? [],
     };
   });
