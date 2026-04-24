@@ -128,6 +128,7 @@ const StaffPanel: React.FC = () => {
   };
 
   const handleAddAssignment = async (userId: string) => {
+    if (!isAdmin) return;
     const parsed = parseAssignmentValue(pendingAddValue);
     if (!parsed) {
       push("error", "Pick a game or challenge first.");
