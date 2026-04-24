@@ -1,4 +1,5 @@
 import React from "react";
+import type { StaffAssignment } from "../../../schemas/StaffSchema";
 import { dangerBtnClass, primaryBtnClass } from "../shared/styles";
 
 export type LastAwardSummary = {
@@ -17,8 +18,10 @@ type AwardCardProps = {
   lastAward?: LastAwardSummary | null;
   onUndoLast?: () => void;
   busyUndo?: boolean;
-  assignmentName?: string | null;
-  maxPoints?: number | null;
+  // Staff-only: list of assignments + which one is active
+  assignments?: StaffAssignment[];
+  activeAssignmentId?: string | null;
+  onSelectAssignment?: (id: string) => void;
   pointsInput?: string;
   onPointsInputChange?: (v: string) => void;
 };
@@ -35,9 +38,7 @@ const UndoLastBanner: React.FC<{
       {" to "}
       <span className="truncate">{last.playerNamePreview}</span>
       {last.playerCount > 1 && <span> +{last.playerCount - 1} more</span>}
-      {last.tag && (
-        <span className="text-amber-300/80"> · {last.tag}</span>
-      )}
+      {last.tag && <span className="text-amber-300/80"> · {last.tag}</span>}
     </div>
     <button
       disabled={busyUndo}
@@ -58,8 +59,9 @@ const AwardCard: React.FC<AwardCardProps> = ({
   lastAward = null,
   onUndoLast,
   busyUndo = false,
-  assignmentName,
-  maxPoints,
+  assignments = [],
+  activeAssignmentId = null,
+  onSelectAssignment,
   pointsInput = "",
   onPointsInputChange,
 }) => {
@@ -69,6 +71,9 @@ const AwardCard: React.FC<AwardCardProps> = ({
   const parsedInput = parseInt(pointsInput, 10);
   const hasCustomAmount = !Number.isNaN(parsedInput) && parsedInput !== 0;
   const customAmount = hasCustomAmount ? Math.abs(parsedInput) : 0;
+
+  const activeAssignment =
+    assignments.find((a) => a.id === activeAssignmentId) ?? assignments[0] ?? null;
 
   const checkInWarning = noneCheckedIn ? (
     <div className="mb-4 rounded border border-red-400/40 bg-red-400/10 px-4 py-3 text-sm font-semibold text-red-300">
@@ -135,15 +140,13 @@ const AwardCard: React.FC<AwardCardProps> = ({
   );
 
   if (!isAdmin) {
-    const hasAssignment = !!assignmentName && maxPoints !== null && maxPoints !== undefined;
-
     return (
       <div className="border border-blue-bright/30 bg-gradient-to-br from-navy-blue/80 to-card-bg/80 p-5 shadow-[0_0_30px_rgba(0,212,255,0.08)]">
         <h3 className="mb-4 font-zuume text-2xl font-bold uppercase tracking-wider text-white">
           Award Points
         </h3>
 
-        {!hasAssignment ? (
+        {assignments.length === 0 ? (
           <p className="rounded border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm font-semibold text-amber-300">
             You have no game or challenge assignment. Contact an admin to be
             assigned.
@@ -151,19 +154,52 @@ const AwardCard: React.FC<AwardCardProps> = ({
         ) : (
           <div className="space-y-4">
             {checkInWarning}
-            <div className="border border-blue-accent/20 bg-dark-navy/40 px-4 py-3">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-blue-bright/70">
-                Your Assignment
-              </p>
-              <p className="text-lg font-bold text-white">{assignmentName}</p>
-              <p className="mt-1 text-xs text-gray-400">
-                Custom awards are tracked against this assignment and capped at{" "}
-                <span className="font-semibold text-blue-bright">
-                  {maxPoints} pts
-                </span>{" "}
-                per player.
-              </p>
-            </div>
+
+            {/* Assignment selector — only shown when 2+ assignments */}
+            {assignments.length > 1 && (
+              <div className="border border-blue-accent/20 bg-dark-navy/40 px-4 py-3">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-blue-bright/70">
+                  Award Points For
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {assignments.map((a) => {
+                    const isActive = a.id === (activeAssignment?.id ?? null);
+                    return (
+                      <button
+                        key={a.id}
+                        onClick={() => onSelectAssignment?.(a.id)}
+                        className={`border px-3 py-1.5 text-sm font-semibold transition-colors ${
+                          isActive
+                            ? "border-blue-bright bg-blue-bright/20 text-blue-bright"
+                            : "border-blue-accent/30 bg-transparent text-gray-300 hover:border-blue-bright/60 hover:text-white"
+                        }`}
+                      >
+                        {a.assignmentName}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {activeAssignment && (
+              <div className="border border-blue-accent/20 bg-dark-navy/40 px-4 py-3">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-blue-bright/70">
+                  {assignments.length === 1 ? "Your Assignment" : "Selected Assignment"}
+                </p>
+                <p className="text-lg font-bold text-white">
+                  {activeAssignment.assignmentName}
+                </p>
+                <p className="mt-1 text-xs text-gray-400">
+                  Custom awards are tracked against this assignment and capped at{" "}
+                  <span className="font-semibold text-blue-bright">
+                    {activeAssignment.maxPoints} pts
+                  </span>{" "}
+                  per player.
+                </p>
+              </div>
+            )}
+
             <div className="border border-blue-accent/20 bg-dark-navy/40 px-4 py-4">
               <div className="mb-3">
                 <p className="font-bayon text-xs uppercase tracking-[0.25em] text-blue-bright/80">
