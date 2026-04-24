@@ -224,30 +224,67 @@ export interface Database {
           }
         ];
       };
+      staff_assignments: {
+        Row: {
+          id: string;
+          user_id: string;
+          game_id: string | null;
+          challenge_id: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          game_id?: string | null;
+          challenge_id?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          game_id?: string | null;
+          challenge_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "staff_assignments_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_assignments_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_assignments_challenge_id_fkey";
+            columns: ["challenge_id"];
+            isOneToOne: false;
+            referencedRelation: "challenges";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       user_roles: {
         Row: {
           assignment: string | null;
           created_at: string;
           role: string;
           user_id: string;
-          game_assignment_id: string | null;
-          challenge_assignment_id: string | null;
         };
         Insert: {
           assignment?: string | null;
           created_at?: string;
           role: string;
           user_id: string;
-          game_assignment_id?: string | null;
-          challenge_assignment_id?: string | null;
         };
         Update: {
           assignment?: string | null;
           created_at?: string;
           role?: string;
           user_id?: string;
-          game_assignment_id?: string | null;
-          challenge_assignment_id?: string | null;
         };
         Relationships: [
           {
@@ -255,20 +292,6 @@ export interface Database {
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "users";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "user_roles_game_assignment_id_fkey";
-            columns: ["game_assignment_id"];
-            isOneToOne: false;
-            referencedRelation: "games";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "user_roles_challenge_assignment_id_fkey";
-            columns: ["challenge_assignment_id"];
-            isOneToOne: false;
-            referencedRelation: "challenges";
             referencedColumns: ["id"];
           }
         ];
