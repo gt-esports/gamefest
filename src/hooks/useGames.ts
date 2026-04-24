@@ -2,16 +2,16 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
 import type { Game, GameTeam, UpdateGameInput } from "../schemas/GamesSchema";
 
+type PlayerUserJoin = {
+  users:
+    | { username: string | null; fname: string | null; lname: string | null }
+    | Array<{ username: string | null; fname: string | null; lname: string | null }>
+    | null;
+};
+
 type TeamAssignmentJoinRow = {
   team_id: string | null;
-  players:
-    | {
-        name: string | null;
-      }
-    | Array<{
-        name: string | null;
-      }>
-    | null;
+  players: PlayerUserJoin | PlayerUserJoin[] | null;
 };
 
 const unwrapRelation = <T>(value: T | T[] | null | undefined): T | null => {
@@ -20,7 +20,7 @@ const unwrapRelation = <T>(value: T | T[] | null | undefined): T | null => {
 };
 
 export const fetchGames = async (name?: string): Promise<Game[]> => {
-  let gameQuery = supabase.from("games").select("id, name").order("name");
+  let gameQuery = supabase.from("games").select("id, name, points_per_award, max_points").order("name");
 
   if (name) {
     gameQuery = gameQuery.eq("name", name);
@@ -47,25 +47,37 @@ export const fetchGames = async (name?: string): Promise<Game[]> => {
   if (teamIds.length > 0) {
     const { data, error } = await supabase
       .from("team_assignments")
-      .select("team_id, players(name)")
+      .select("team_id, players ( users ( username, fname, lname ) )")
       .in("team_id", teamIds);
 
     if (error) throw error;
-    assignments = (data || []) as TeamAssignmentJoinRow[];
+    assignments = (data || []) as unknown as TeamAssignmentJoinRow[];
   }
 
   const teamPlayers = new Map<string, string[]>();
 
   for (const assignment of assignments) {
     const player = unwrapRelation(assignment.players);
-    if (!assignment.team_id || !player?.name) continue;
+    const user = unwrapRelation(player?.users);
+    const full = [user?.fname, user?.lname].filter(Boolean).join(" ");
+    const displayName = full || user?.username || null;
+    if (!assignment.team_id || !displayName) continue;
 
     const existing = teamPlayers.get(assignment.team_id) || [];
-    existing.push(player.name);
+    existing.push(displayName);
     teamPlayers.set(assignment.team_id, existing);
   }
 
-  const gameMap = new Map(games.map((game) => [game.id, { name: game.name, teams: [] as GameTeam[] }]));
+  const gameMap = new Map(games.map((game) => [
+    game.id,
+    {
+      id: game.id,
+      name: game.name,
+      pointsPerAward: game.points_per_award,
+      maxPoints: game.max_points,
+      teams: [] as GameTeam[],
+    }
+  ]));
 
   for (const team of teams || []) {
     if (!team.game_id) continue;
@@ -89,18 +101,23 @@ export const getGameByName = async (name: string): Promise<Game | null> => {
   return games[0] || null;
 };
 
-export const createGame = async (name: string): Promise<Game> => {
+export const createGame = async (
+  name: string,
+  pointsPerAward = 10,
+  maxPoints = 50
+): Promise<Game> => {
   const trimmedName = name.trim();
 
   const { data: inserted, error: insertError } = await supabase
     .from("games")
-    .insert({ name: trimmedName })
-    .select("name")
+    .insert({ name: trimmedName, points_per_award: pointsPerAward, max_points: maxPoints })
+    .select("id")
     .single();
 
   if (insertError) throw insertError;
 
-  const game = await getGameByName(inserted.name);
+  const allGames = await fetchGames();
+  const game = allGames.find((g) => g.id === inserted.id);
   if (!game) throw new Error("Failed to load created game");
 
   return game;
@@ -119,10 +136,21 @@ export const updateGameByName = async (
   if (existingError) throw existingError;
   if (!existing) throw new Error("Game not found");
 
+  const updates: { name?: string; points_per_award?: number; max_points?: number } = {};
   if (typeof input.name === "string" && input.name.trim()) {
+    updates.name = input.name.trim();
+  }
+  if (typeof input.pointsPerAward === "number") {
+    updates.points_per_award = input.pointsPerAward;
+  }
+  if (typeof input.maxPoints === "number") {
+    updates.max_points = input.maxPoints;
+  }
+
+  if (Object.keys(updates).length > 0) {
     const { error: updateError } = await supabase
       .from("games")
-      .update({ name: input.name.trim() })
+      .update(updates)
       .eq("id", existing.id);
 
     if (updateError) throw updateError;
@@ -146,9 +174,9 @@ export const updateGameByName = async (
     }
   }
 
-  const targetName = input.name?.trim() || oldName;
-  const game = await getGameByName(targetName);
-
+  const targetName = updates.name || oldName;
+  const allGames = await fetchGames();
+  const game = allGames.find((g) => g.name === targetName);
   if (!game) throw new Error("Failed to load updated game");
   return game;
 };
@@ -190,8 +218,8 @@ export const useGames = () => {
   }, [refresh]);
 
   const addGame = useCallback(
-    async (name: string) => {
-      const game = await createGame(name);
+    async (name: string, pointsPerAward?: number, maxPoints?: number) => {
+      const game = await createGame(name, pointsPerAward, maxPoints);
       await refresh();
       return game;
     },

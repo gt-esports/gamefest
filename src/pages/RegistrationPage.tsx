@@ -41,7 +41,13 @@ const RegistrationPage = () => {
     try {
       await register(form);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Registration failed. Please try again.");
+      const message =
+        (err instanceof Error && err.message) ||
+        (typeof err === "object" && err !== null && "message" in err && typeof (err as { message: unknown }).message === "string"
+          ? (err as { message: string }).message
+          : null) ||
+        "Registration failed. Please try again.";
+      setSubmitError(message);
     } finally {
       setSubmitting(false);
     }
@@ -58,12 +64,9 @@ const RegistrationPage = () => {
               <h1 className="mb-4 font-bayon text-3xl">Register for GameFest</h1>
               <p className="mb-6 text-gray-300">You must be signed in with Discord to register.</p>
               <SignInButton>
-                <button
-                  type="button"
-                  className="rounded bg-gradient-to-r from-[#004466] to-[#0099BB] px-6 py-2 font-bayon text-white hover:shadow-lg hover:shadow-[#0099BB]/50"
-                >
+                <span className="rounded bg-gradient-to-r from-[#004466] to-[#0099BB] px-6 py-2 font-bayon text-white hover:shadow-lg hover:shadow-[#0099BB]/50">
                   LOGIN WITH DISCORD
-                </button>
+                </span>
               </SignInButton>
             </div>
           ) : registration ? (

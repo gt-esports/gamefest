@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../utils/supabaseClient";
 
@@ -6,41 +6,65 @@ function AuthCallback() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [status, setStatus] = useState("Completing sign in...");
+  // Prevent double-redirect from StrictMode double-invoke or race conditions.
+  const redirected = useRef(false);
 
   useEffect(() => {
-    const run = async () => {
-      setStatus("Completing sign in...");
+    // Surface provider-side errors immediately (e.g. user denied consent).
+    const providerError = params.get("error_description") || params.get("error");
+    if (providerError) {
+      setStatus(`Sign in failed: ${providerError}`);
+      return;
+    }
 
-      // Prefer query param code (PKCE). Fallback to hash fragment if present.
-      const code =
-        params.get("code") ||
-        new URLSearchParams(window.location.hash.replace(/^#/, "")).get("code");
-
-      if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) {
-          setStatus("Sign in failed. Please try again.");
-          return;
-        }
-
-        setStatus("Signed in. Redirecting...");
-        navigate("/register", { replace: true });
-        return;
-      }
-
-      // If code already consumed by Supabase (detectSessionInUrl), session will exist.
-      const { data, error } = await supabase.auth.getSession();
-      if (!error && data.session) {
-        setStatus("Signed in. Redirecting...");
-        navigate("/register", { replace: true });
-        return;
-      }
-
-      setStatus("Missing authorization code. Please sign in again.");
+    const redirect = () => {
+      if (redirected.current) return;
+      redirected.current = true;
+      setStatus("Signed in. Redirecting...");
+      navigate("/profile", { replace: true });
     };
 
-    void run();
-  }, [navigate, params]);
+    // Subscribe FIRST so we never miss a SIGNED_IN event fired by Supabase's
+    // auto URL detection (detectSessionInUrl: true in supabaseClient).
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        subscription.unsubscribe();
+        redirect();
+      }
+    });
+
+    // Supabase (detectSessionInUrl: true) performs the PKCE exchange during
+    // client construction. We only need to wait for it to finish. Do NOT call
+    // exchangeCodeForSession here — that would consume the OAuth code a second
+    // time and fail with "Unable to exchange external code".
+    const fastPath = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        subscription.unsubscribe();
+        redirect();
+      }
+    };
+    void fastPath();
+
+    const timeoutId = setTimeout(() => {
+      void supabase.auth.getSession().then(({ data }) => {
+        if (data.session) {
+          subscription.unsubscribe();
+          redirect();
+          return;
+        }
+        subscription.unsubscribe();
+        setStatus("Sign in failed. Please try again.");
+      });
+    }, 15000);
+
+    return () => {
+      clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- run once on mount only
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-black text-white">

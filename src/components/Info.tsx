@@ -37,8 +37,8 @@ export default function Info() {
                             EVENT FORMAT
                     </h3>
                     <p className="pt-3 text-white font-quicksand text-lg text-left">
-                        Throughout the day, competitors will compete in different events in order to earn tokens.
-                        At the end of the day, the tokens will be added up and the top competitiors will win prizes.
+                        Throughout the day, competitors will compete in different events in order to earn points.
+                        At the end of the day, the points will be added up and the top competitiors will win prizes.
                     </p>
                 </div>
             </div>
