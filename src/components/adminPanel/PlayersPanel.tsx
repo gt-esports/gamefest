@@ -43,6 +43,10 @@ const PlayersPanel: React.FC = () => {
   const [query, setQuery] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("points");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  // When true, checkboxes reflect selection (user clicked a checkbox).
+  // Row clicks switch to single-select mode (batchMode=false) so checkboxes
+  // don't appear checked from a row click.
+  const [batchMode, setBatchMode] = useState(false);
   // Shared custom-award input state for staff/admin.
   const [pointsInput, setPointsInput] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -127,14 +131,27 @@ const PlayersPanel: React.FC = () => {
   /* ------------------------------ Actions ------------------------------ */
 
   const toggleSelect = (id: string) => {
+    // First checkbox click on an already row-selected player: enter batch mode
+    // without deselecting them — they should appear checked immediately.
+    if (!batchMode && selectedIds.has(id)) {
+      setBatchMode(true);
+      return;
+    }
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
+      setBatchMode(next.size > 0);
       return next;
     });
   };
-  const clearSelection = () => setSelectedIds(new Set());
+  const selectOnly = (id: string) => {
+    setBatchMode(false);
+    setSelectedIds((prev) =>
+      prev.size === 1 && prev.has(id) ? new Set() : new Set([id])
+    );
+  };
+  const clearSelection = () => { setSelectedIds(new Set()); setBatchMode(false); };
 
   /**
    * Staff path: custom award amount is recorded against the staff member's
@@ -575,7 +592,9 @@ const PlayersPanel: React.FC = () => {
         onQueryChange={setQuery}
         sortMode={sortMode}
         onSortChange={setSortMode}
+        batchMode={batchMode}
         onToggleSelect={toggleSelect}
+        onSelectOnly={selectOnly}
         onAddClick={() => setShowAddModal(true)}
       />
 

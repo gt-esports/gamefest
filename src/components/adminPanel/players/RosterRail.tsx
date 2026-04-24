@@ -10,12 +10,14 @@ type RosterRailProps = {
   checkedInCount: number;
   pendingCheckInCount: number;
   selectedIds: Set<string>;
+  batchMode: boolean;
   checkIns: Map<string, CheckInRecord>;
   query: string;
   onQueryChange: (q: string) => void;
   sortMode: SortMode;
   onSortChange: (m: SortMode) => void;
   onToggleSelect: (id: string) => void;
+  onSelectOnly: (id: string) => void;
   onAddClick: () => void;
 };
 
@@ -25,12 +27,14 @@ const RosterRail: React.FC<RosterRailProps> = ({
   checkedInCount,
   pendingCheckInCount,
   selectedIds,
+  batchMode,
   checkIns,
   query,
   onQueryChange,
   sortMode,
   onSortChange,
   onToggleSelect,
+  onSelectOnly,
   onAddClick,
 }) => (
   <aside className="flex flex-col border border-blue-accent/20 bg-navy-blue/40">
@@ -102,11 +106,12 @@ const RosterRail: React.FC<RosterRailProps> = ({
       )}
       {players.map((p, idx) => {
         const selected = selectedIds.has(p.id);
+        const checkboxChecked = batchMode && selected;
         const checkedIn = checkIns.get(p.userId)?.checkedIn ?? false;
         return (
           <div
             key={p.id}
-            className={`group flex w-full items-center gap-3 border-l-2 px-4 py-2.5 text-left transition-colors ${
+            className={`group flex w-full items-center border-l-2 text-left transition-colors ${
               selected
                 ? `border-blue-bright bg-blue-bright/10 ${
                     checkedIn ? "" : "ring-1 ring-inset ring-amber-300/45"
@@ -116,9 +121,31 @@ const RosterRail: React.FC<RosterRailProps> = ({
                 : "border-amber-300/70 bg-amber-300/[0.08] hover:border-amber-300 hover:bg-amber-300/[0.12]"
             }`}
           >
+            {/* Checkbox — multi-select only */}
             <button
-              onClick={() => onToggleSelect(p.id)}
-              className="flex min-w-0 flex-1 items-center gap-3 py-2.5 text-left"
+              onClick={(e) => { e.stopPropagation(); onToggleSelect(p.id); }}
+              className={`flex shrink-0 items-center justify-center px-3 self-stretch transition-opacity ${checkboxChecked ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+              aria-label={checkboxChecked ? "Deselect player" : "Add to selection"}
+            >
+              <span
+                className={`flex h-4 w-4 items-center justify-center border transition-colors ${
+                  checkboxChecked
+                    ? "border-blue-bright bg-blue-bright text-dark-bg"
+                    : "border-gray-500 bg-transparent"
+                }`}
+              >
+                {checkboxChecked && (
+                  <svg className="h-2.5 w-2.5" viewBox="0 0 10 10" fill="none">
+                    <path d="M1.5 5L4 7.5L8.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </span>
+            </button>
+
+            {/* Name row — single-select */}
+            <button
+              onClick={() => onSelectOnly(p.id)}
+              className="flex min-w-0 flex-1 items-center gap-3 py-2.5 pr-4 text-left"
             >
               <span
                 className={`w-6 font-bayon text-xs tabular-nums ${
