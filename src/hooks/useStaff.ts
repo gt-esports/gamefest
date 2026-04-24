@@ -1,151 +1,138 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
-import type {
-  CreateStaffMemberInput,
-  StaffMember,
-  UpdateStaffMemberInput,
-} from "../schemas/StaffSchema";
+import type { StaffAssignment, StaffMember } from "../schemas/StaffSchema";
 
-type AssignmentData = {
-  id: string;
-  name: string;
-  points_per_award: number;
-  max_points: number;
-};
-
-type StaffJoinRow = {
+type UserRoleRow = {
   user_id: string;
   role: string;
-  game_assignment_id: string | null;
-  challenge_assignment_id: string | null;
   users:
     | { username: string | null; fname: string | null; lname: string | null }
     | Array<{ username: string | null; fname: string | null; lname: string | null }>
     | null;
-  games: AssignmentData | AssignmentData[] | null;
-  challenges: AssignmentData | AssignmentData[] | null;
 };
 
-const unwrapRelation = <T>(value: T | T[] | null | undefined): T | null => {
-  if (!value) return null;
-  return Array.isArray(value) ? value[0] || null : value;
+type GameOrChallengeData = {
+  id: string;
+  name: string;
+  points_per_award: number;
+  max_points: number;
+} | null;
+
+type StaffAssignmentRow = {
+  id: string;
+  user_id: string;
+  game_id: string | null;
+  challenge_id: string | null;
+  games: GameOrChallengeData | GameOrChallengeData[];
+  challenges: GameOrChallengeData | GameOrChallengeData[];
 };
 
-const STAFF_SELECT =
-  "user_id, role, game_assignment_id, challenge_assignment_id, users(username, fname, lname), games(id, name, points_per_award, max_points), challenges(id, name, points_per_award, max_points)";
-
-const toStaff = (row: StaffJoinRow): StaffMember => {
-  const user = unwrapRelation(row.users);
-  const full = [user?.fname, user?.lname].filter(Boolean).join(" ");
-  const game = unwrapRelation(row.games);
-  const challenge = unwrapRelation(row.challenges);
-
-  return {
-    userId: row.user_id,
-    role: (row.role === "admin" ? "admin" : "staff") as "staff" | "admin",
-    name: full || user?.username || "Unknown",
-    assignmentType: game ? "game" : challenge ? "challenge" : null,
-    assignmentId: game?.id ?? challenge?.id ?? null,
-    assignmentName: game?.name ?? challenge?.name ?? null,
-    pointsPerAward: game?.points_per_award ?? challenge?.points_per_award ?? null,
-    maxPoints: game?.max_points ?? challenge?.max_points ?? null,
-  };
+const unwrap = <T>(v: T | T[] | null | undefined): T | null => {
+  if (!v) return null;
+  return Array.isArray(v) ? (v[0] ?? null) : v;
 };
 
 export const fetchStaff = async (): Promise<StaffMember[]> => {
-  const { data, error } = await supabase
+  const { data: rolesData, error: rolesError } = await supabase
     .from("user_roles")
-    .select(STAFF_SELECT)
+    .select("user_id, role, users(username, fname, lname)")
     .in("role", ["staff", "admin"]);
 
-  if (error) throw error;
+  if (rolesError) throw rolesError;
 
-  const rows = (data || []) as unknown as StaffJoinRow[];
-  const staff = rows.map(toStaff);
+  const roleRows = (rolesData || []) as unknown as UserRoleRow[];
+  if (roleRows.length === 0) return [];
+
+  const userIds = roleRows.map((r) => r.user_id);
+
+  const { data: assignData, error: assignError } = await supabase
+    .from("staff_assignments")
+    .select(
+      "id, user_id, game_id, challenge_id, games(id, name, points_per_award, max_points), challenges(id, name, points_per_award, max_points)"
+    )
+    .in("user_id", userIds);
+
+  if (assignError) throw assignError;
+
+  const assignRows = (assignData || []) as unknown as StaffAssignmentRow[];
+
+  const assignmentsByUser = new Map<string, StaffAssignment[]>();
+  for (const row of assignRows) {
+    const game = unwrap(row.games);
+    const challenge = unwrap(row.challenges);
+    const entity = game ?? challenge;
+    if (!entity) continue;
+
+    const assignment: StaffAssignment = {
+      id: row.id,
+      type: game ? "game" : "challenge",
+      assignmentId: entity.id,
+      assignmentName: entity.name,
+      pointsPerAward: entity.points_per_award,
+      maxPoints: entity.max_points,
+    };
+
+    const list = assignmentsByUser.get(row.user_id) ?? [];
+    list.push(assignment);
+    assignmentsByUser.set(row.user_id, list);
+  }
+
+  const staff: StaffMember[] = roleRows.map((row) => {
+    const user = unwrap(row.users);
+    const full = [user?.fname, user?.lname].filter(Boolean).join(" ");
+    return {
+      userId: row.user_id,
+      role: (row.role === "admin" ? "admin" : "staff") as "staff" | "admin",
+      name: full || user?.username || "Unknown",
+      assignments: assignmentsByUser.get(row.user_id) ?? [],
+    };
+  });
+
   staff.sort((a, b) => a.name.localeCompare(b.name));
   return staff;
 };
 
-export const createStaffMember = async (
-  input: CreateStaffMemberInput
-): Promise<StaffMember> => {
-  // Check whether this user already has a user_roles row (e.g. admin).
-  // If so, update their assignment in place rather than inserting a duplicate row.
-  const { data: existingRows } = await supabase
+export const createStaffMember = async (userId: string): Promise<StaffMember> => {
+  const { data: existing } = await supabase
     .from("user_roles")
     .select("user_id")
-    .eq("user_id", input.userId)
+    .eq("user_id", userId)
     .limit(1);
 
-  if (existingRows && existingRows.length > 0) {
+  if (!existing || existing.length === 0) {
     const { error } = await supabase
       .from("user_roles")
-      .update({
-        game_assignment_id: input.gameAssignmentId ?? null,
-        challenge_assignment_id: input.challengeAssignmentId ?? null,
-      })
-      .eq("user_id", input.userId);
-    if (error) throw error;
-  } else {
-    const { error } = await supabase.from("user_roles").insert({
-      user_id: input.userId,
-      role: "staff",
-      game_assignment_id: input.gameAssignmentId ?? null,
-      challenge_assignment_id: input.challengeAssignmentId ?? null,
-    });
+      .insert({ user_id: userId, role: "staff" });
     if (error) throw error;
   }
 
-  const { data, error: readError } = await supabase
-    .from("user_roles")
-    .select(STAFF_SELECT)
-    .eq("user_id", input.userId)
-    .maybeSingle();
-
-  if (readError) throw readError;
-  if (!data) throw new Error("Staff member not found after insert");
-
-  return toStaff(data as unknown as StaffJoinRow);
+  const all = await fetchStaff();
+  const member = all.find((m) => m.userId === userId);
+  if (!member) throw new Error("Staff member not found after insert");
+  return member;
 };
 
-export const updateStaffByUserId = async (
+export const addAssignmentToStaff = async (
   userId: string,
-  input: UpdateStaffMemberInput
-): Promise<StaffMember> => {
-  const updates: {
-    game_assignment_id?: string | null;
-    challenge_assignment_id?: string | null;
-  } = {};
+  input: { gameId: string } | { challengeId: string }
+): Promise<void> => {
+  const row =
+    "gameId" in input
+      ? { user_id: userId, game_id: input.gameId, challenge_id: null }
+      : { user_id: userId, game_id: null, challenge_id: input.challengeId };
 
-  if ("gameAssignmentId" in input) {
-    updates.game_assignment_id = input.gameAssignmentId ?? null;
-    // Clearing the other FK prevents the DB constraint violation.
-    if (input.gameAssignmentId) updates.challenge_assignment_id = null;
-  }
-  if ("challengeAssignmentId" in input) {
-    updates.challenge_assignment_id = input.challengeAssignmentId ?? null;
-    if (input.challengeAssignmentId) updates.game_assignment_id = null;
-  }
+  const { error } = await supabase.from("staff_assignments").insert(row);
+  if (error) throw error;
+};
 
-  if (Object.keys(updates).length > 0) {
-    const { error } = await supabase
-      .from("user_roles")
-      .update(updates)
-      .eq("user_id", userId);
-
-    if (error) throw error;
-  }
-
-  const { data, error: readError } = await supabase
-    .from("user_roles")
-    .select(STAFF_SELECT)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (readError) throw readError;
-  if (!data) throw new Error("Staff member not found");
-
-  return toStaff(data as unknown as StaffJoinRow);
+export const removeAssignmentFromStaff = async (
+  assignmentRowId: string
+): Promise<void> => {
+  const { error } = await supabase
+    .from("staff_assignments")
+    .delete()
+    .eq("id", assignmentRowId);
+  if (error) throw error;
 };
 
 export const deleteStaffByUserId = async (userId: string): Promise<void> => {
@@ -168,15 +155,12 @@ export const useStaff = () => {
 
   const refresh = useCallback(async () => {
     setLoading(true);
-
     try {
       setError(null);
       const rows = await fetchStaff();
       setStaff(rows);
     } catch (err) {
-      const nextError =
-        err instanceof Error ? err : new Error("Failed to load staff");
-      setError(nextError);
+      setError(err instanceof Error ? err : new Error("Failed to load staff"));
     } finally {
       setLoading(false);
     }
@@ -187,19 +171,26 @@ export const useStaff = () => {
   }, [refresh]);
 
   const addStaffMember = useCallback(
-    async (input: CreateStaffMemberInput) => {
-      const member = await createStaffMember(input);
+    async (userId: string) => {
+      const member = await createStaffMember(userId);
       await refresh();
       return member;
     },
     [refresh]
   );
 
-  const patchStaffByUserId = useCallback(
-    async (userId: string, input: UpdateStaffMemberInput) => {
-      const member = await updateStaffByUserId(userId, input);
+  const addAssignment = useCallback(
+    async (userId: string, input: { gameId: string } | { challengeId: string }) => {
+      await addAssignmentToStaff(userId, input);
       await refresh();
-      return member;
+    },
+    [refresh]
+  );
+
+  const removeAssignment = useCallback(
+    async (assignmentRowId: string) => {
+      await removeAssignmentFromStaff(assignmentRowId);
+      await refresh();
     },
     [refresh]
   );
@@ -218,7 +209,8 @@ export const useStaff = () => {
     error,
     refresh,
     addStaffMember,
-    patchStaffByUserId,
+    addAssignment,
+    removeAssignment,
     removeStaffByUserId,
   };
 };
