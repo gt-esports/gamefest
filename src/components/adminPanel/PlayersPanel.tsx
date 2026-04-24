@@ -611,7 +611,7 @@ const PlayersPanel: React.FC = () => {
               onUndoLast={() => void undoLastAward()}
               busyUndo={busyUndo}
               assignments={currentStaff?.assignments ?? []}
-              activeAssignmentId={activeAssignment?.id ?? null}
+              activeAssignmentId={activeAssignmentId}
               onSelectAssignment={setActiveAssignmentId}
               pointsInput={pointsInput}
               onPointsInputChange={setPointsInput}
