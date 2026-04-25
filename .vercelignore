@@ -1,17 +1,11 @@
 .env
 .env.local
 .git
-.gitignore
 docs/
 node_modules/
-src/
-public/
 .eslintrc.cjs
 .prettierrc.json
 eslint.config.js
-postcss.config.js
-tailwind.config.js
-vite.config.ts
 backend/dist/
 backend/.env
 backend/.env.local
