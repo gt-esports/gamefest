@@ -82,36 +82,66 @@ const client = axios.create({
   },
 });
 
+const CACHE_TTL_MS = 10_000;
+
+type CacheEntry = { expiresAt: number; value: unknown; inflight?: Promise<unknown> };
+const cache = new Map<string, CacheEntry>();
+
+async function cached<T>(key: string, fetcher: () => Promise<T>, ttlMs: number = CACHE_TTL_MS): Promise<T> {
+  const now = Date.now();
+  const entry = cache.get(key);
+  if (entry && entry.expiresAt > now) {
+    if (entry.inflight) return entry.inflight as Promise<T>;
+    return entry.value as T;
+  }
+
+  const inflight = (async () => {
+    try {
+      const value = await fetcher();
+      cache.set(key, { expiresAt: Date.now() + ttlMs, value });
+      return value;
+    } catch (err) {
+      cache.delete(key);
+      throw err;
+    }
+  })();
+
+  cache.set(key, { expiresAt: now + ttlMs, value: undefined, inflight });
+  return inflight as Promise<T>;
+}
+
 export async function fetchTournamentBySlug(slug: string): Promise<Tournament | null> {
   if (!env.startgg.apiToken) {
     // Without token, return null so caller can respond meaningfully.
     return null;
   }
 
-  const query = `
-    query TournamentBySlug($slug: String!) {
-      tournament(slug: $slug) {
-        id
-        name
-        startAt
-        endAt
-        city
-        countryCode
+  return cached(`tournament:${slug}`, async () => {
+    const query = `
+      query TournamentBySlug($slug: String!) {
+        tournament(slug: $slug) {
+          id
+          name
+          startAt
+          endAt
+          city
+          countryCode
+        }
       }
+    `;
+
+    const response = await client.post<StartggGraphQLResponse<{ tournament: Tournament | null }>>("", {
+      query,
+      variables: { slug },
+    });
+
+    if (response.data.errors && response.data.errors.length > 0) {
+      const errorMessages = response.data.errors.map((err) => err.message).join(", ");
+      throw new Error(`start.gg error: ${errorMessages}`);
     }
-  `;
 
-  const response = await client.post<StartggGraphQLResponse<{ tournament: Tournament | null }>>("", {
-    query,
-    variables: { slug },
+    return response.data.data?.tournament ?? null;
   });
-
-  if (response.data.errors && response.data.errors.length > 0) {
-    const errorMessages = response.data.errors.map((err) => err.message).join(", ");
-    throw new Error(`start.gg error: ${errorMessages}`);
-  }
-
-  return response.data.data?.tournament ?? null;
 }
 
 export async function fetchTournamentEventsBySlug(slug: string): Promise<{
@@ -121,39 +151,41 @@ export async function fetchTournamentEventsBySlug(slug: string): Promise<{
 } | null> {
   if (!env.startgg.apiToken) return null;
 
-  const query = `
-    query TournamentEvents($tourneySlug: String!) {
-      tournament(slug: $tourneySlug) {
-        id
-        name
-        events {
+  return cached(`tournamentEvents:${slug}`, async () => {
+    const query = `
+      query TournamentEvents($tourneySlug: String!) {
+        tournament(slug: $tourneySlug) {
           id
           name
+          events {
+            id
+            name
+          }
         }
       }
+    `;
+
+    const response = await client.post<
+      StartggGraphQLResponse<{ tournament: { id: string | number; name: string; events: TournamentEvent[] } | null }>
+    >("", {
+      query,
+      variables: { tourneySlug: slug },
+    });
+
+    if (response.data.errors && response.data.errors.length > 0) {
+      const errorMessages = response.data.errors.map((err) => err.message).join(", ");
+      throw new Error(`start.gg error: ${errorMessages}`);
     }
-  `;
 
-  const response = await client.post<
-    StartggGraphQLResponse<{ tournament: { id: string | number; name: string; events: TournamentEvent[] } | null }>
-  >("", {
-    query,
-    variables: { tourneySlug: slug },
+    const tournament = response.data.data?.tournament ?? null;
+    if (!tournament) return null;
+
+    return {
+      tournamentId: tournament.id,
+      tournamentName: tournament.name,
+      events: tournament.events ?? [],
+    };
   });
-
-  if (response.data.errors && response.data.errors.length > 0) {
-    const errorMessages = response.data.errors.map((err) => err.message).join(", ");
-    throw new Error(`start.gg error: ${errorMessages}`);
-  }
-
-  const tournament = response.data.data?.tournament ?? null;
-  if (!tournament) return null;
-
-  return {
-    tournamentId: tournament.id,
-    tournamentName: tournament.name,
-    events: tournament.events ?? [],
-  };
 }
 
 export async function fetchEventSets(params: {
@@ -170,7 +202,8 @@ export async function fetchEventSets(params: {
 > {
   if (!env.startgg.apiToken) return null;
 
-  const query = `
+  return cached(`eventSets:${params.eventId}:${params.page}:${params.perPage}`, async () => {
+    const query = `
     query EventSets($eventId: ID!, $page: Int!, $perPage: Int!) {
       event(id: $eventId) {
         id
@@ -212,14 +245,15 @@ export async function fetchEventSets(params: {
     throw new Error(`start.gg error: ${errorMessages}`);
   }
 
-  const event = response.data.data?.event ?? null;
-  if (!event) return null;
+    const event = response.data.data?.event ?? null;
+    if (!event) return null;
 
-  return {
-    eventId: event.id,
-    eventName: event.name,
-    nodes: event.sets?.nodes ?? [],
-  };
+    return {
+      eventId: event.id,
+      eventName: event.name,
+      nodes: event.sets?.nodes ?? [],
+    };
+  });
 }
 
 export async function fetchEventWithPhases(params: {
@@ -235,7 +269,8 @@ export async function fetchEventWithPhases(params: {
 > {
   if (!env.startgg.apiToken) return null;
 
-  const query = `
+  return cached(`eventPhases:${params.eventId}:${params.page}:${params.perPage}`, async () => {
+    const query = `
     query EventWithPhases($eventId: ID!, $page: Int!, $perPage: Int!) {
       event(id: $eventId) {
         phases {
@@ -269,17 +304,18 @@ export async function fetchEventWithPhases(params: {
     throw new Error(`start.gg error: ${errorMessages}`);
   }
 
-  const event = response.data.data?.event ?? null;
-  if (!event) return null;
+    const event = response.data.data?.event ?? null;
+    if (!event) return null;
 
-  return {
-    eventId: params.eventId,
-    phases: (event.phases ?? []).map((phase) => ({
-      id: phase.id,
-      name: phase.name,
-      phaseGroupIds: phase.phaseGroups?.nodes?.map((n) => n.id) ?? [],
-    })),
-  };
+    return {
+      eventId: params.eventId,
+      phases: (event.phases ?? []).map((phase) => ({
+        id: phase.id,
+        name: phase.name,
+        phaseGroupIds: phase.phaseGroups?.nodes?.map((n) => n.id) ?? [],
+      })),
+    };
+  });
 }
 
 export async function fetchPhaseSets(params: {
@@ -297,7 +333,8 @@ export async function fetchPhaseSets(params: {
 > {
   if (!env.startgg.apiToken) return null;
 
-  const query = `
+  return cached(`phaseSets:${params.phaseId}:${params.page}:${params.perPage}`, async () => {
+    const query = `
     query PhaseSets($phaseId: ID!, $page: Int!, $perPage: Int!) {
       phase(id: $phaseId) {
         id
@@ -341,15 +378,16 @@ export async function fetchPhaseSets(params: {
     throw new Error(`start.gg error: ${errorMessages}`);
   }
 
-  const phase = response.data.data?.phase ?? null;
-  if (!phase) return null;
+    const phase = response.data.data?.phase ?? null;
+    if (!phase) return null;
 
-  return {
-    phaseId: phase.id,
-    phaseName: phase.name,
-    total: phase.sets?.pageInfo?.total ?? 0,
-    nodes: phase.sets?.nodes ?? [],
-  };
+    return {
+      phaseId: phase.id,
+      phaseName: phase.name,
+      total: phase.sets?.pageInfo?.total ?? 0,
+      nodes: phase.sets?.nodes ?? [],
+    };
+  });
 }
 
 export async function fetchPhasePools(params: {
@@ -366,7 +404,8 @@ export async function fetchPhasePools(params: {
 > {
   if (!env.startgg.apiToken) return null;
 
-  const query = `
+  return cached(`phasePools:${params.phaseId}:${params.page}:${params.perPage}`, async () => {
+    const query = `
     query PhasePools($phaseId: ID!, $page: Int!, $perPage: Int!) {
       phase(id: $phaseId) {
         id
@@ -401,14 +440,15 @@ export async function fetchPhasePools(params: {
     throw new Error(`start.gg error: ${errorMessages}`);
   }
 
-  const phase = response.data.data?.phase ?? null;
-  if (!phase) return null;
+    const phase = response.data.data?.phase ?? null;
+    if (!phase) return null;
 
-  return {
-    phaseId: phase.id,
-    phaseName: phase.name,
-    phaseGroups: phase.phaseGroups?.nodes ?? [],
-  };
+    return {
+      phaseId: phase.id,
+      phaseName: phase.name,
+      phaseGroups: phase.phaseGroups?.nodes ?? [],
+    };
+  });
 }
 
 export async function fetchPhaseGroupSets(params: {
@@ -426,7 +466,8 @@ export async function fetchPhaseGroupSets(params: {
 > {
   if (!env.startgg.apiToken) return null;
 
-  const query = `
+  return cached(`phaseGroupSets:${params.phaseGroupId}:${params.page}:${params.perPage}`, async () => {
+    const query = `
     query PhaseGroupSets($phaseGroupId: ID!, $page: Int!, $perPage: Int!) {
       phaseGroup(id: $phaseGroupId) {
         id
@@ -470,15 +511,16 @@ export async function fetchPhaseGroupSets(params: {
     throw new Error(`start.gg error: ${errorMessages}`);
   }
 
-  const phaseGroup = response.data.data?.phaseGroup ?? null;
-  if (!phaseGroup) return null;
+    const phaseGroup = response.data.data?.phaseGroup ?? null;
+    if (!phaseGroup) return null;
 
-  return {
-    phaseGroupId: phaseGroup.id,
-    displayIdentifier: phaseGroup.displayIdentifier ?? null,
-    total: phaseGroup.sets?.pageInfo?.total ?? 0,
-    nodes: phaseGroup.sets?.nodes ?? [],
-  };
+    return {
+      phaseGroupId: phaseGroup.id,
+      displayIdentifier: phaseGroup.displayIdentifier ?? null,
+      total: phaseGroup.sets?.pageInfo?.total ?? 0,
+      nodes: phaseGroup.sets?.nodes ?? [],
+    };
+  });
 }
 
 export async function fetchEventStandings(params: {
@@ -495,7 +537,8 @@ export async function fetchEventStandings(params: {
 > {
   if (!env.startgg.apiToken) return null;
 
-  const query = `
+  return cached(`eventStandings:${params.eventId}:${params.page}:${params.perPage}`, async () => {
+    const query = `
     query EventStandings($eventId: ID!, $page: Int!, $perPage: Int!) {
       event(id: $eventId) {
         id
@@ -530,14 +573,15 @@ export async function fetchEventStandings(params: {
     throw new Error(`start.gg error: ${errorMessages}`);
   }
 
-  const event = response.data.data?.event ?? null;
-  if (!event) return null;
+    const event = response.data.data?.event ?? null;
+    if (!event) return null;
 
-  return {
-    eventId: event.id,
-    eventName: event.name,
-    nodes: event.standings?.nodes ?? [],
-  };
+    return {
+      eventId: event.id,
+      eventName: event.name,
+      nodes: event.standings?.nodes ?? [],
+    };
+  });
 }
 
 export async function fetchPhaseGroupResults(params: {
@@ -552,7 +596,8 @@ export async function fetchPhaseGroupResults(params: {
 > {
   if (!env.startgg.apiToken) return null;
 
-  const query = `
+  return cached(`phaseGroupResults:${params.phaseGroupId}:${params.perPage}`, async () => {
+    const query = `
     query Sets($phaseGroupId: ID!, $perPage: Int!) {
       phaseGroup(id: $phaseGroupId) {
         sets(perPage: $perPage) {
@@ -586,13 +631,14 @@ export async function fetchPhaseGroupResults(params: {
     throw new Error(`start.gg error: ${errorMessages}`);
   }
 
-  const phaseGroup = response.data.data?.phaseGroup ?? null;
-  if (!phaseGroup) return null;
+    const phaseGroup = response.data.data?.phaseGroup ?? null;
+    if (!phaseGroup) return null;
 
-  return {
-    phaseGroupId: params.phaseGroupId,
-    nodes: phaseGroup.sets?.nodes ?? [],
-  };
+    return {
+      phaseGroupId: params.phaseGroupId,
+      nodes: phaseGroup.sets?.nodes ?? [],
+    };
+  });
 }
 
 export async function fetchPhaseGroupSetRounds(params: {
@@ -609,7 +655,8 @@ export async function fetchPhaseGroupSetRounds(params: {
 
   const perPage = params.perPage ?? 100;
 
-  const query = `
+  return cached(`phaseGroupSetRounds:${params.phaseGroupId}:${perPage}`, async () => {
+    const query = `
     query Sets($phaseGroupId: ID!, $perPage: Int!) {
       phaseGroup(id: $phaseGroupId) {
         sets(perPage: $perPage) {
@@ -643,11 +690,12 @@ export async function fetchPhaseGroupSetRounds(params: {
     throw new Error(`start.gg error: ${errorMessages}`);
   }
 
-  const phaseGroup = response.data.data?.phaseGroup ?? null;
-  if (!phaseGroup) return null;
+    const phaseGroup = response.data.data?.phaseGroup ?? null;
+    if (!phaseGroup) return null;
 
-  return {
-    phaseGroupId: params.phaseGroupId,
-    nodes: phaseGroup.sets?.nodes ?? [],
-  };
+    return {
+      phaseGroupId: params.phaseGroupId,
+      nodes: phaseGroup.sets?.nodes ?? [],
+    };
+  });
 }
