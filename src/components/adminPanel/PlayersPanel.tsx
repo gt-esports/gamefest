@@ -7,14 +7,15 @@ import {
   usePlayers,
 } from "../../hooks/usePlayers";
 import {
+  AwardCapExceededError,
+  awardPointsAtomic,
   deleteActivitiesBy,
   deleteActivitiesByIds,
-  getActivityTotal,
-  recordActivity,
 } from "../../hooks/usePlayerActivity";
 import { useCheckInRoster } from "../../hooks/useCheckIn";
 import { useStaff } from "../../hooks/useStaff";
 import { useUserRoles } from "../../hooks/useUserRoles";
+import { stampLogEntry } from "../../utils/logEntryTimestamp";
 import { ToastStack } from "./shared/ui";
 import { useToasts } from "./shared/useToasts";
 import AddPlayerModal from "./players/AddPlayerModal";
@@ -199,44 +200,31 @@ const PlayersPanel: React.FC = () => {
 
         await Promise.all(
           selectedPlayers.map(async (player) => {
+            if (!checkIns.get(player.userId)?.checkedIn) {
+              notCheckedIn++;
+              return;
+            }
             try {
-              if (!checkIns.get(player.userId)?.checkedIn) {
-                notCheckedIn++;
-                return;
-              }
-              const currentTotal = await getActivityTotal(
-                player.id,
-                gameId,
-                challengeId
-              );
-              if (currentTotal + amount > maxPts) {
-                capped++;
-                return;
-              }
-              if (!user?.id) return;
-              const activityId = await recordActivity(
+              const activityId = await awardPointsAtomic(
                 player.id,
                 gameId,
                 challengeId,
                 amount,
-                user.id
+                stampLogEntry(
+                  `${staffName}[${tag}] gave ${player.name} ${amount} pts on ${timestamp}`
+                )
               );
-              const fresh = await getPlayerById(player.id);
-              if (!fresh) return;
-              await patchPlayerById(player.id, {
-                points: fresh.points + amount,
-                log: [
-                  ...fresh.log,
-                  `${staffName}[${tag}] gave ${fresh.name} ${amount} pts on ${timestamp}`,
-                ],
-              });
               batch.push({
                 activityId,
                 playerId: player.id,
-                playerName: fresh.name,
+                playerName: player.name,
                 points: amount,
               });
             } catch (err) {
+              if (err instanceof AwardCapExceededError) {
+                capped++;
+                return;
+              }
               push(
                 "error",
                 `Failed for ${player.name}: ${
@@ -322,7 +310,7 @@ const PlayersPanel: React.FC = () => {
 
               await patchPlayerById(player.id, {
                 points: fresh.points + amount,
-                log: [...fresh.log, logEntry],
+                log: [...fresh.log, stampLogEntry(logEntry)],
               });
               succeeded++;
             } catch (err) {
@@ -396,7 +384,9 @@ const PlayersPanel: React.FC = () => {
         points: Math.max(0, fresh.points - pointsToRevoke),
         log: [
           ...fresh.log,
-          `${staffName}[${activeAssignment.assignmentName}] revoked ${pointsToRevoke} pts from ${fresh.name} on ${timestamp}`,
+          stampLogEntry(
+            `${staffName}[${activeAssignment.assignmentName}] revoked ${pointsToRevoke} pts from ${fresh.name} on ${timestamp}`
+          ),
         ],
       });
       await refreshPlayers();
@@ -431,7 +421,9 @@ const PlayersPanel: React.FC = () => {
               points: Math.max(0, fresh.points - entry.points),
               log: [
                 ...fresh.log,
-                `${staffName}[${tagLabel}] undid ${entry.points} pts from ${fresh.name} on ${timestamp}`,
+                stampLogEntry(
+                  `${staffName}[${tagLabel}] undid ${entry.points} pts from ${fresh.name} on ${timestamp}`
+                ),
               ],
             });
             undone++;
@@ -490,7 +482,7 @@ const PlayersPanel: React.FC = () => {
     try {
       const updated = await patchPlayerById(singleSelected.id, {
         points: snapshot.points,
-        log: [...snapshot.log, auditEntry],
+        log: [...snapshot.log, stampLogEntry(auditEntry)],
         participation: snapshot.participation,
         teamAssignments: snapshot.teamAssignments,
       });
@@ -544,9 +536,8 @@ const PlayersPanel: React.FC = () => {
   };
 
   const handleCheckIn = async (player: Player) => {
-    if (!user?.id) return;
     try {
-      await checkIn(player.userId, user.id);
+      await checkIn(player.userId);
       push("success", `${player.name} checked in`);
     } catch (err) {
       push("error", err instanceof Error ? err.message : "Check-in failed");
@@ -554,9 +545,8 @@ const PlayersPanel: React.FC = () => {
   };
 
   const handleCheckOut = async (player: Player) => {
-    if (!user?.id) return;
     try {
-      await checkOut(player.userId, user.id);
+      await checkOut(player.userId);
       push("success", `${player.name} checked out`);
     } catch (err) {
       push("error", err instanceof Error ? err.message : "Check-out failed");

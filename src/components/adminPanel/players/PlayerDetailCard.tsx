@@ -5,6 +5,10 @@ import {
 } from "../../../hooks/useCheckIn";
 import type { Player } from "../../../hooks/usePlayers";
 import type { Game } from "../../../schemas/GamesSchema";
+import {
+  parseLogEntryTime,
+  stripLogEntryMarker,
+} from "../../../utils/logEntryTimestamp";
 import { dangerBtnClass, primaryBtnClass } from "../shared/styles";
 import Section from "./Section";
 
@@ -66,10 +70,11 @@ const PlayerDetailCard: React.FC<PlayerDetailCardProps> = ({
   const toggle = (s: Exclude<DetailSection, null>) =>
     onOpenSection(openSection === s ? null : s);
 
-  // Build a unified, chronologically-sorted (earliest first) timeline from the
-  // player's point/audit log strings and the check-in event log.
-  // Point log strings embed a locale-formatted timestamp after " on "; unparseable
-  // entries fall to the end so the absence of a timestamp doesn't misorder history.
+  // Build a unified, newest-first timeline from the player's point/audit log
+  // strings and the check-in event log. New log entries carry an ISO `[t:…]`
+  // marker; older entries fall back to parsing the trailing locale timestamp.
+  // Entries whose timestamp can't be parsed sink to the bottom rather than
+  // misordering history.
   type TimelineItem =
     | { kind: "log"; idx: number; text: string; time: number | null }
     | {
@@ -81,16 +86,12 @@ const PlayerDetailCard: React.FC<PlayerDetailCardProps> = ({
       };
 
   const timeline: TimelineItem[] = [
-    ...edited.log.map((entry, idx): TimelineItem => {
-      const match = entry.match(/ on (.+)$/);
-      const parsed = match ? Date.parse(match[1]) : NaN;
-      return {
-        kind: "log",
-        idx,
-        text: entry,
-        time: Number.isNaN(parsed) ? null : parsed,
-      };
-    }),
+    ...edited.log.map((entry, idx): TimelineItem => ({
+      kind: "log",
+      idx,
+      text: entry,
+      time: parseLogEntryTime(entry),
+    })),
     ...checkInEvents.map((ev): TimelineItem => ({
       kind: "checkin",
       id: ev.id,
@@ -224,7 +225,9 @@ const PlayerDetailCard: React.FC<PlayerDetailCardProps> = ({
                   key={`log-${item.idx}-${item.text}`}
                   className="flex items-start justify-between gap-3 border-l-2 border-blue-accent/40 bg-dark-bg/40 px-3 py-2 text-sm text-gray-100"
                 >
-                  <span className="leading-relaxed">{item.text}</span>
+                  <span className="leading-relaxed">
+                    {stripLogEntryMarker(item.text)}
+                  </span>
                   {isAdmin && (
                     <button
                       onClick={() =>

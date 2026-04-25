@@ -424,11 +424,37 @@ export interface Database {
         };
         Returns: undefined;
       };
+      award_points: {
+        Args: {
+          p_player_id: string;
+          p_game_id: string | null;
+          p_challenge_id: string | null;
+          p_amount: number;
+          p_log_entry: string;
+        };
+        Returns: string;
+      };
+      check_in_user: {
+        Args: {
+          p_user_id: string;
+        };
+        Returns: undefined;
+      };
+      check_out_user: {
+        Args: {
+          p_user_id: string;
+        };
+        Returns: undefined;
+      };
       has_app_role: {
         Args: {
           allowed_roles: string[];
         };
         Returns: boolean;
+      };
+      reset_all_check_ins: {
+        Args: Record<string, never>;
+        Returns: number;
       };
       revoke_app_role: {
         Args: {

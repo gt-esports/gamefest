@@ -1,29 +1,39 @@
 import { supabase } from "../utils/supabaseClient";
 
-/**
- * Insert one point-award record for a player for a specific game or challenge.
- * Exactly one of gameId / challengeId must be non-null.
- */
-export const recordActivity = async (
+export class AwardCapExceededError extends Error {
+  constructor() {
+    super("Award would exceed the per-game or per-challenge cap.");
+    this.name = "AwardCapExceededError";
+  }
+}
+
+// Atomic point award. Inserts the player_activity audit row, increments
+// players.points, and appends the log entry inside a single DB transaction.
+// The RPC also enforces the per-(player, game/challenge) cap and binds
+// awarded_by to auth.uid() server-side, so the client cannot forge an
+// awarder or race past the cap. Exactly one of gameId / challengeId must
+// be non-null. Returns the new player_activity.id.
+export const awardPointsAtomic = async (
   playerId: string,
   gameId: string | null,
   challengeId: string | null,
   pointsAwarded: number,
-  awardedByUserId: string
+  logEntry: string
 ): Promise<string> => {
-  const { data, error } = await supabase
-    .from("player_activity")
-    .insert({
-      player_id: playerId,
-      game_id: gameId,
-      challenge_id: challengeId,
-      points_awarded: pointsAwarded,
-      awarded_by: awardedByUserId,
-    })
-    .select("id")
-    .single();
-  if (error) throw error;
-  return data.id;
+  const { data, error } = await supabase.rpc("award_points", {
+    p_player_id: playerId,
+    p_game_id: gameId,
+    p_challenge_id: challengeId,
+    p_amount: pointsAwarded,
+    p_log_entry: logEntry,
+  });
+  if (error) {
+    if (error.message?.includes("CAP_EXCEEDED")) {
+      throw new AwardCapExceededError();
+    }
+    throw error;
+  }
+  return data as string;
 };
 
 /**

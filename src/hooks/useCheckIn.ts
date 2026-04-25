@@ -16,88 +16,24 @@ export type CheckInEvent = {
   performedByName: string | null;
 };
 
-export const checkInByUserId = async (
-  userId: string,
-  staffUserId: string
-): Promise<void> => {
-  const { data, error } = await supabase
-    .from("registrations")
-    .update({
-      checked_in: true,
-      checked_in_at: new Date().toISOString(),
-      checked_in_by: staffUserId,
-    })
-    .eq("user_id", userId)
-    .select("user_id");
+// Mutations go through SECURITY INVOKER plpgsql RPCs so the registration
+// update and the check_in_events audit insert commit atomically. The DB
+// binds performed_by to auth.uid(); the client cannot forge a performer.
 
+export const checkInByUserId = async (userId: string): Promise<void> => {
+  const { error } = await supabase.rpc("check_in_user", { p_user_id: userId });
   if (error) throw error;
-  if (!data || data.length === 0) {
-    throw new Error("This player hasn't completed event registration. Ask them to register before checking in.");
-  }
-
-  const { error: logError } = await supabase.from("check_in_events").insert({
-    user_id: userId,
-    event_type: "check_in",
-    performed_by: staffUserId,
-  });
-  if (logError) throw logError;
 };
 
-export const checkOutByUserId = async (
-  userId: string,
-  staffUserId: string
-): Promise<void> => {
-  const { data, error } = await supabase
-    .from("registrations")
-    .update({
-      checked_in: false,
-      checked_in_at: null,
-      checked_in_by: null,
-    })
-    .eq("user_id", userId)
-    .select("user_id");
-
+export const checkOutByUserId = async (userId: string): Promise<void> => {
+  const { error } = await supabase.rpc("check_out_user", { p_user_id: userId });
   if (error) throw error;
-  if (!data || data.length === 0) {
-    throw new Error("Check-out failed — player may not be registered.");
-  }
-
-  const { error: logError } = await supabase.from("check_in_events").insert({
-    user_id: userId,
-    event_type: "check_out",
-    performed_by: staffUserId,
-  });
-  if (logError) throw logError;
 };
 
-export const resetAllCheckInStatuses = async (
-  staffUserId: string
-): Promise<number> => {
-  const { data, error } = await supabase
-    .from("registrations")
-    .update({
-      checked_in: false,
-      checked_in_at: null,
-      checked_in_by: null,
-    })
-    .eq("checked_in", true)
-    .select("user_id");
-
+export const resetAllCheckInStatuses = async (): Promise<number> => {
+  const { data, error } = await supabase.rpc("reset_all_check_ins");
   if (error) throw error;
-
-  const rows = data ?? [];
-  if (rows.length > 0) {
-    const { error: logError } = await supabase.from("check_in_events").insert(
-      rows.map((r) => ({
-        user_id: r.user_id,
-        event_type: "check_out" as const,
-        performed_by: staffUserId,
-      }))
-    );
-    if (logError) throw logError;
-  }
-
-  return rows.length;
+  return data ?? 0;
 };
 
 // For staff/admin panels — fetches check-in status for all registered users.
@@ -163,16 +99,16 @@ export const useCheckInRoster = () => {
   }, [refresh]);
 
   const checkIn = useCallback(
-    async (userId: string, staffUserId: string) => {
-      await checkInByUserId(userId, staffUserId);
+    async (userId: string) => {
+      await checkInByUserId(userId);
       await refresh();
     },
     [refresh]
   );
 
   const checkOut = useCallback(
-    async (userId: string, staffUserId: string) => {
-      await checkOutByUserId(userId, staffUserId);
+    async (userId: string) => {
+      await checkOutByUserId(userId);
       await refresh();
     },
     [refresh]
