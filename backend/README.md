@@ -6,6 +6,21 @@
 - Health check: `GET /health`
 - API prefix: `/api`
 
+## Runtime modes
+- **Local Node server**: `src/index.ts` starts Express with `app.listen(...)` on port 3001.
+- **Vercel serverless**: Files in `api/` directory are deployed as functions; the Express app is instantiated from `src/app.ts`.
+
+### Important: Routing for serverless
+
+In a serverless environment, the `/api` prefix is stripped by the infrastructure before reaching the handler. So the Express app receives requests with the `/api` prefix already removed.
+
+To support both local and serverless:
+- The app mounts the API router at both `/api` and `/` 
+- **Local dev** (`npm run dev`): Requests to `/api/startgg/*` are proxied to localhost:3001, Express matches at `/api`
+- **Vercel serverless**: Requests to `/api/startgg/*` reach the handler with path `/startgg/*`, Express matches at `/`
+
+For Vercel deployments, set backend env vars in the Vercel project settings (not only local `.env`).
+
 ## start.gg worker
 - Env: set `STARTGG_API_TOKEN` (and optionally `STARTGG_API_ENDPOINT`).
 - Example endpoint: `GET /api/startgg/tournaments/:slug` (wired to a GraphQL call in `src/services/startggService.ts`).
