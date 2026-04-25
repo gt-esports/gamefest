@@ -315,3 +315,83 @@ body {
   background-size: cover;
   background-position: center;
 }
+
+.brac-event-select {
+  width: min(100%, 520px);
+  margin: 10px auto;
+  justify-content: center;
+}
+
+.brac-event-label {
+  width: 100%;
+  min-width: 280px;
+}
+
+.brac-button-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.brac-scroll-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.brac-card {
+  flex: 1 1 260px;
+  min-width: 220px;
+  max-width: 320px;
+  box-sizing: border-box;
+}
+
+.brac-details {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.brac-details-panel {
+  flex: 2 1 420px;
+  min-width: 0;
+}
+
+.brac-standings-panel {
+  flex: 1 1 240px;
+  min-width: 0;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 760px) {
+  .brac-button-row,
+  .brac-scroll-row,
+  .brac-details {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .brac-card {
+    flex: 0 0 220px;
+    min-width: 220px;
+  }
+
+  .brac-details-panel,
+  .brac-standings-panel {
+    flex: 0 0 90%;
+    min-width: 240px;
+  }
+}

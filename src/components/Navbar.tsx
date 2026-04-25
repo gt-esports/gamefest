@@ -72,7 +72,7 @@ function Navbar() {
   const links = [
     { name: "HOME", link: "/home" },
     //{ name: "INFORMATION", link: "/information" },
-    //{ name: "BRACKETS", link: "/brackets" },
+    { name: "BRACKETS", link: "/brackets" },
     // { name: "MATCHES", link: "/matches" },
     //{ name: "TEAMS", link: "/teams" },
     // { name: "SCHOOLS", link: "/schools" },
@@ -137,8 +137,8 @@ function Navbar() {
             <NavLink
               to={link.link}
               className={`${location.pathname === link.link
-                  ? "text-blue-bright underline"
-                  : "text-white"
+                ? "text-blue-bright underline"
+                : "text-white"
                 } underline-offset-4 duration-500 hover:text-blue-bright`}
               onClick={() => setOpen(false)}
             >
@@ -188,8 +188,8 @@ function Navbar() {
             <NavLink
               to={link.link}
               className={`${location.pathname === link.link
-                  ? "text-blue-bright underline"
-                  : "text-white"
+                ? "text-blue-bright underline"
+                : "text-white"
                 } underline-offset-4 duration-500 hover:text-blue-bright`}
               onClick={() => setOpen(false)}
             >
