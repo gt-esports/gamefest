@@ -15,7 +15,8 @@
       "Bash(echo \"tsc=$?\")",
       "Bash(git commit:*)",
       "Bash(npx eslint *)",
-      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(find /Users/kevinhu/Programming/GTEsports/gamefest -type f \\\\\\( -name \"*.sql\" -o -name \"*.ts\" \\\\\\) ! -path \"*/node_modules/*\" -exec grep -l \"CREATE.*FUNCTION.*award_points\\\\|CAP_EXCEEDED\" {} \\\\;)"
     ]
   }
 }
