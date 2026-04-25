@@ -12,7 +12,6 @@ eslint.config.js
 postcss.config.js
 tailwind.config.js
 vite.config.ts
-index.html
 backend/dist/
 backend/.env
 backend/.env.local
