@@ -22,17 +22,17 @@ export type CheckInEvent = {
 
 export const checkInByUserId = async (userId: string): Promise<void> => {
   const { error } = await supabase.rpc("check_in_user", { p_user_id: userId });
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 };
 
 export const checkOutByUserId = async (userId: string): Promise<void> => {
   const { error } = await supabase.rpc("check_out_user", { p_user_id: userId });
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 };
 
 export const resetAllCheckInStatuses = async (): Promise<number> => {
   const { data, error } = await supabase.rpc("reset_all_check_ins");
-  if (error) throw error;
+  if (error) throw new Error(error.message);
   return data ?? 0;
 };
 
