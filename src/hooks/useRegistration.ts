@@ -4,7 +4,6 @@ import type {
   CreateRegistrationInput,
   Registration,
 } from "../schemas/RegistrationSchema";
-import { createPlayer, getPlayerByUserId } from "./usePlayers";
 
 export const fetchMyRegistration = async (
   userId: string
@@ -38,13 +37,6 @@ export const createRegistration = async (
     .single();
 
   if (error) throw error;
-
-  // Auto-register as a player if not already one.
-  const existing = await getPlayerByUserId(userId);
-  if (!existing) {
-    await createPlayer({ userId });
-  }
-
   return data as Registration;
 };
 
