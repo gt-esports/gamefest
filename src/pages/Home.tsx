@@ -1,4 +1,5 @@
 import Footer from "../components/Footer";
+import HomeLeaderboard from "../components/HomeLeaderboard";
 import GameFestTitle from "../assets/GameFestTitle.png";
 import iconRL from "../assets/game-icons/rl.png";
 import iconRivals from "../assets/game-icons/rivals.png";
@@ -80,6 +81,7 @@ function Home() {
           </button>
         </div>
       </div>
+      <HomeLeaderboard />
       <div
         id="tournaments-section"
         className="mt-24 flex w-full flex-col items-center justify-center"

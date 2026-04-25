@@ -14,7 +14,8 @@
       "Bash(echo \"exit=$?\")",
       "Bash(echo \"tsc=$?\")",
       "Bash(git commit:*)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
     ]
   }
 }
