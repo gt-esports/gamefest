@@ -10,7 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "axios": "^1.13.6",
+    "dotenv": "^16.4.5",
     "@g-loot/react-tournament-brackets": "^1.0.31-rc",
+    "express": "^5.2.1",
     "@supabase/supabase-js": "^2.93.3",
     "framer-motion": "^12.7.4",
     "react": "^18.2.0",

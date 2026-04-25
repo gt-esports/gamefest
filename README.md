@@ -4,8 +4,15 @@ This is the repository for the Georgia Tech Esports Tournament Management App (f
 
 This app is developed using React, Tailwind, and Vite.
 
-This branch runs in a serverless mode: frontend routes `/api/*` calls directly to
-Supabase using a client-side API bridge.
+This project can run as a single Vercel project with:
+- Frontend (Vite static build)
+- Backend serverless API routes under `/api/*`
+
+The backend serverless entrypoints are:
+- `api/index.ts`
+- `api/[...path].ts`
+
+Both delegate to the Express app in `backend/src/app.ts`.
 ## Quick Setup for Developers
 
 Clone the repository and run the following command:
@@ -36,6 +43,22 @@ Then run SQL scripts in order from `supabase_scripts/`:
 `auth.jwt() -> app_metadata -> role`.
 
 Happy coding! 
+
+## Vercel (single project) setup
+
+1. Import this repo into Vercel as one project.
+2. Framework preset: `Vite`.
+3. Build command: `npm run build`.
+4. Output directory: `dist`.
+5. Add environment variables in Vercel Project Settings:
+	- `STARTGG_API_TOKEN`
+	- `STARTGG_API_ENDPOINT` (optional)
+	- any frontend `VITE_*` variables you need.
+6. Deploy.
+
+Notes:
+- `vercel.json` already preserves `/api/*` and rewrites non-API routes to `index.html` for SPA routing.
+- Frontend can call relative API paths (for example, `/api/startgg/...`) on the same domain.
 
 Please use the [Project Board](https://github.com/orgs/gt-esports/projects/3) to see what needs to be done and in general follow the Figma below. Anyone can assign/create any issues just make sure @longxiangchen reviews any pull request before merging.
 

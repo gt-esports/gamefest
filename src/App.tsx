@@ -10,6 +10,7 @@ import AdminPanel from "./pages/AdminPanel.tsx";
 import UserProfilePage from "./pages/UserProfilePage.tsx";
 import AuthCallback from "./pages/AuthCallback";
 import RegistrationPage from "./pages/RegistrationPage.tsx";
+import Brackets from "./pages/Brackets.tsx";
 import { useUser } from "./hooks/useAuth";
 import { useUserProfile } from "./hooks/useUserProfile";
 
@@ -68,13 +69,13 @@ function App() {
             <Route path="/" element={<Navigate to="/home" />} />
             <Route path="/about" element={<About />} />
             <Route path="/home" element={<Home />} />
-            {/* <Route path="/brackets" element={<Brackets />} />
-            <Route path="/match/:id" element={<Matches />} />
+            <Route path="/brackets" element={<Brackets />} />
+            {/* <Route path="/match/:id" element={<Matches />} />
             <Route path="/teams" element={<Teams />} />
             <Route path="/schools" element={<Schools />} />
             <Route path="/sponsor" element={<Sponsor />} />
             <Route path="/information" element={<Information />} />
-            <Route path="/leaderboard" element={<Leaderboard />} /> */}
+            <Route path="/leaderboard" element={<Leaderboard />} />  */}
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/register" element={<RegistrationPage />} />
             <Route path="*" element={<Navigate to="/home" />} />

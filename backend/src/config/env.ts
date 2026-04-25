@@ -8,11 +8,6 @@ type Env = {
     apiToken?: string;
     apiEndpoint: string;
   };
-  googleForm: {
-    spreadsheetId?: string;
-    apiKey?: string;
-    outputPath: string;
-  };
 };
 
 const toNumber = (value: string | undefined, fallback: number): number => {
@@ -25,11 +20,6 @@ export const env: Env = {
   startgg: {
     apiToken: process.env.STARTGG_API_TOKEN || process.env.VITE_STARTGG_TOKEN,
     apiEndpoint: process.env.STARTGG_API_ENDPOINT || "https://api.start.gg/gql/alpha",
-  },
-  googleForm: {
-    spreadsheetId: process.env.GOOGLE_FORM_SPREADSHEET_ID,
-    apiKey: process.env.GOOGLE_FORM_API_KEY,
-    outputPath: process.env.GOOGLE_FORM_OUTPUT_PATH || "data/google-form.json",
   },
 };
 
