@@ -5,7 +5,7 @@ import type { Challenge, CreateChallengeInput, UpdateChallengeInput } from "../s
 export const fetchChallenges = async (): Promise<Challenge[]> => {
   const { data, error } = await supabase
     .from("challenges")
-    .select("id, name, points_per_award, max_points")
+    .select("id, name, max_points")
     .order("name", { ascending: true });
 
   if (error) throw error;
@@ -13,7 +13,6 @@ export const fetchChallenges = async (): Promise<Challenge[]> => {
   return (data || []).map((row) => ({
     id: row.id,
     name: row.name,
-    pointsPerAward: row.points_per_award,
     maxPoints: row.max_points,
   }));
 };
@@ -23,10 +22,9 @@ export const createChallenge = async (input: CreateChallengeInput): Promise<Chal
     .from("challenges")
     .insert({
       name: input.name.trim(),
-      points_per_award: input.pointsPerAward ?? 10,
       max_points: input.maxPoints ?? 50,
     })
-    .select("id, name, points_per_award, max_points")
+    .select("id, name, max_points")
     .single();
 
   if (error) throw error;
@@ -34,7 +32,6 @@ export const createChallenge = async (input: CreateChallengeInput): Promise<Chal
   return {
     id: data.id,
     name: data.name,
-    pointsPerAward: data.points_per_award,
     maxPoints: data.max_points,
   };
 };
@@ -43,13 +40,10 @@ export const updateChallengeById = async (
   id: string,
   input: UpdateChallengeInput
 ): Promise<Challenge> => {
-  const updates: { name?: string; points_per_award?: number; max_points?: number } = {};
+  const updates: { name?: string; max_points?: number } = {};
 
   if (typeof input.name === "string" && input.name.trim()) {
     updates.name = input.name.trim();
-  }
-  if (typeof input.pointsPerAward === "number") {
-    updates.points_per_award = input.pointsPerAward;
   }
   if (typeof input.maxPoints === "number") {
     updates.max_points = input.maxPoints;
@@ -66,7 +60,7 @@ export const updateChallengeById = async (
 
   const { data, error: readError } = await supabase
     .from("challenges")
-    .select("id, name, points_per_award, max_points")
+    .select("id, name, max_points")
     .eq("id", id)
     .single();
 
@@ -75,7 +69,6 @@ export const updateChallengeById = async (
   return {
     id: data.id,
     name: data.name,
-    pointsPerAward: data.points_per_award,
     maxPoints: data.max_points,
   };
 };

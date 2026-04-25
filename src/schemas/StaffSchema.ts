@@ -3,7 +3,6 @@ export type StaffAssignment = {
   type: 'game' | 'challenge';
   assignmentId: string;
   assignmentName: string;
-  pointsPerAward: number;
   maxPoints: number;
 };
 

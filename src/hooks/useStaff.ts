@@ -14,7 +14,6 @@ type UserRoleRow = {
 type GameOrChallengeData = {
   id: string;
   name: string;
-  points_per_award: number;
   max_points: number;
 } | null;
 
@@ -48,7 +47,7 @@ export const fetchStaff = async (): Promise<StaffMember[]> => {
   const { data: assignData, error: assignError } = await supabase
     .from("staff_assignments")
     .select(
-      "id, user_id, game_id, challenge_id, games(id, name, points_per_award, max_points), challenges(id, name, points_per_award, max_points)"
+      "id, user_id, game_id, challenge_id, games(id, name, max_points), challenges(id, name, max_points)"
     )
     .in("user_id", userIds);
 
@@ -68,7 +67,6 @@ export const fetchStaff = async (): Promise<StaffMember[]> => {
       type: game ? "game" : "challenge",
       assignmentId: entity.id,
       assignmentName: entity.name,
-      pointsPerAward: entity.points_per_award,
       maxPoints: entity.max_points,
     };
 

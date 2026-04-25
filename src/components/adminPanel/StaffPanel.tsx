@@ -200,7 +200,7 @@ const StaffPanel: React.FC = () => {
           <optgroup label="Games">
             {availableGames.map((g) => (
               <option key={`game-${g.id}`} value={`game:${g.id}`}>
-                {g.name} ({g.pointsPerAward} pts, cap {g.maxPoints})
+                {g.name} (cap {g.maxPoints})
               </option>
             ))}
           </optgroup>
@@ -209,7 +209,7 @@ const StaffPanel: React.FC = () => {
           <optgroup label="Challenges">
             {availableChallenges.map((c) => (
               <option key={`challenge-${c.id}`} value={`challenge:${c.id}`}>
-                {c.name} ({c.pointsPerAward} pts, cap {c.maxPoints})
+                {c.name} (cap {c.maxPoints})
               </option>
             ))}
           </optgroup>

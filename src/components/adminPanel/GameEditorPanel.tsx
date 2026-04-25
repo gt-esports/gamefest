@@ -8,7 +8,6 @@ import { dangerBtnClass, inputClass, primaryBtnClass } from "./shared/styles";
 type EntityKind = "game" | "challenge";
 
 type PointConfigBuffer = {
-  pointsPerAward: string;
   maxPoints: string;
 };
 
@@ -25,7 +24,6 @@ const GameEditorPanel: React.FC = () => {
 
   const [activeKind, setActiveKind] = useState<EntityKind>("game");
   const [newName, setNewName] = useState("");
-  const [newPtsPerAward, setNewPtsPerAward] = useState("10");
   const [newMaxPts, setNewMaxPts] = useState("50");
   // Keyed by game/challenge id → pending edits
   const [editBuffer, setEditBuffer] = useState<Record<string, PointConfigBuffer>>({});
@@ -38,14 +36,12 @@ const GameEditorPanel: React.FC = () => {
   const handleAdd = async () => {
     const name = newName.trim();
     if (!name) return;
-    const pts = parseInt(newPtsPerAward, 10) || 10;
     const cap = parseInt(newMaxPts, 10) || 50;
     try {
-      if (isGame) await addGame(name, pts, cap);
-      else await addChallenge({ name, pointsPerAward: pts, maxPoints: cap });
+      if (isGame) await addGame(name, cap);
+      else await addChallenge({ name, maxPoints: cap });
       push("success", `Added ${kindLabel.toLowerCase()}: ${name}`);
       setNewName("");
-      setNewPtsPerAward("10");
       setNewMaxPts("50");
     } catch (err) {
       push(
@@ -69,17 +65,16 @@ const GameEditorPanel: React.FC = () => {
   const handleSavePointConfig = async (item: { id: string; name: string }) => {
     const buf = editBuffer[item.id];
     if (!buf) return;
-    const pts = parseInt(buf.pointsPerAward, 10);
     const cap = parseInt(buf.maxPoints, 10);
-    if (isNaN(pts) || isNaN(cap) || pts < 1 || cap < pts) {
-      push("error", "Invalid config — pts must be ≥ 1 and cap must be ≥ pts per award.");
+    if (isNaN(cap) || cap < 1) {
+      push("error", "Cap must be ≥ 1.");
       return;
     }
     try {
       if (isGame) {
-        await patchGameByName(item.name, { pointsPerAward: pts, maxPoints: cap });
+        await patchGameByName(item.name, { maxPoints: cap });
       } else {
-        await patchChallengeById(item.id, { pointsPerAward: pts, maxPoints: cap });
+        await patchChallengeById(item.id, { maxPoints: cap });
       }
       push("success", "Updated point config");
       setEditBuffer((prev) => {
@@ -134,16 +129,6 @@ const GameEditorPanel: React.FC = () => {
           className={`flex-1 min-w-[160px] ${inputClass}`}
         />
         <label className="flex items-center gap-1 text-xs text-gray-400">
-          Pts/award
-          <input
-            type="number"
-            min={1}
-            value={newPtsPerAward}
-            onChange={(e) => setNewPtsPerAward(e.target.value)}
-            className={`w-16 ${inputClass}`}
-          />
-        </label>
-        <label className="flex items-center gap-1 text-xs text-gray-400">
           Cap
           <input
             type="number"
@@ -164,10 +149,9 @@ const GameEditorPanel: React.FC = () => {
 
       {/* List */}
       <div className="border border-blue-accent/20 bg-navy-blue/40">
-        <div className="grid grid-cols-[auto,1fr,auto,auto,auto] items-center gap-3 border-b border-blue-accent/20 bg-dark-navy/40 px-5 py-3 font-bayon text-xs uppercase tracking-[0.25em] text-blue-bright/80">
+        <div className="grid grid-cols-[auto,1fr,auto,auto] items-center gap-3 border-b border-blue-accent/20 bg-dark-navy/40 px-5 py-3 font-bayon text-xs uppercase tracking-[0.25em] text-blue-bright/80">
           <span>#</span>
           <span>Name</span>
-          <span>Pts/Award</span>
           <span>Cap</span>
           <span>Actions</span>
         </div>
@@ -181,14 +165,13 @@ const GameEditorPanel: React.FC = () => {
         )}
         {list.map((item, idx) => {
           const buf = editBuffer[item.id];
-          const ptsValue = buf ? buf.pointsPerAward : String(item.pointsPerAward);
           const capValue = buf ? buf.maxPoints : String(item.maxPoints);
           const dirty = buf !== undefined;
 
           return (
             <div
               key={item.id}
-              className="grid grid-cols-[auto,1fr,auto,auto,auto] items-center gap-3 border-b border-blue-accent/10 px-5 py-3 last:border-b-0 hover:bg-white/[0.03]"
+              className="grid grid-cols-[auto,1fr,auto,auto] items-center gap-3 border-b border-blue-accent/10 px-5 py-3 last:border-b-0 hover:bg-white/[0.03]"
             >
               <span className="w-6 font-bayon text-sm tabular-nums text-gray-500">
                 {String(idx + 1).padStart(2, "0")}
@@ -199,29 +182,11 @@ const GameEditorPanel: React.FC = () => {
               <input
                 type="number"
                 min={1}
-                value={ptsValue}
-                onChange={(e) =>
-                  setEditBuffer((prev) => ({
-                    ...prev,
-                    [item.id]: {
-                      pointsPerAward: e.target.value,
-                      maxPoints: prev[item.id]?.maxPoints ?? capValue,
-                    },
-                  }))
-                }
-                className={`w-16 ${inputClass} ${dirty ? "border-amber-400/60" : ""}`}
-              />
-              <input
-                type="number"
-                min={1}
                 value={capValue}
                 onChange={(e) =>
                   setEditBuffer((prev) => ({
                     ...prev,
-                    [item.id]: {
-                      pointsPerAward: prev[item.id]?.pointsPerAward ?? ptsValue,
-                      maxPoints: e.target.value,
-                    },
+                    [item.id]: { maxPoints: e.target.value },
                   }))
                 }
                 className={`w-16 ${inputClass} ${dirty ? "border-amber-400/60" : ""}`}

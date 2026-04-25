@@ -20,7 +20,7 @@ const unwrapRelation = <T>(value: T | T[] | null | undefined): T | null => {
 };
 
 export const fetchGames = async (name?: string): Promise<Game[]> => {
-  let gameQuery = supabase.from("games").select("id, name, points_per_award, max_points").order("name");
+  let gameQuery = supabase.from("games").select("id, name, max_points").order("name");
 
   if (name) {
     gameQuery = gameQuery.eq("name", name);
@@ -73,7 +73,6 @@ export const fetchGames = async (name?: string): Promise<Game[]> => {
     {
       id: game.id,
       name: game.name,
-      pointsPerAward: game.points_per_award,
       maxPoints: game.max_points,
       teams: [] as GameTeam[],
     }
@@ -103,14 +102,13 @@ export const getGameByName = async (name: string): Promise<Game | null> => {
 
 export const createGame = async (
   name: string,
-  pointsPerAward = 10,
   maxPoints = 50
 ): Promise<Game> => {
   const trimmedName = name.trim();
 
   const { data: inserted, error: insertError } = await supabase
     .from("games")
-    .insert({ name: trimmedName, points_per_award: pointsPerAward, max_points: maxPoints })
+    .insert({ name: trimmedName, max_points: maxPoints })
     .select("id")
     .single();
 
@@ -136,12 +134,9 @@ export const updateGameByName = async (
   if (existingError) throw existingError;
   if (!existing) throw new Error("Game not found");
 
-  const updates: { name?: string; points_per_award?: number; max_points?: number } = {};
+  const updates: { name?: string; max_points?: number } = {};
   if (typeof input.name === "string" && input.name.trim()) {
     updates.name = input.name.trim();
-  }
-  if (typeof input.pointsPerAward === "number") {
-    updates.points_per_award = input.pointsPerAward;
   }
   if (typeof input.maxPoints === "number") {
     updates.max_points = input.maxPoints;
@@ -218,8 +213,8 @@ export const useGames = () => {
   }, [refresh]);
 
   const addGame = useCallback(
-    async (name: string, pointsPerAward?: number, maxPoints?: number) => {
-      const game = await createGame(name, pointsPerAward, maxPoints);
+    async (name: string, maxPoints?: number) => {
+      const game = await createGame(name, maxPoints);
       await refresh();
       return game;
     },

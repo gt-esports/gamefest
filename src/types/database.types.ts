@@ -13,19 +13,16 @@ export interface Database {
         Row: {
           id: string;
           name: string;
-          points_per_award: number;
           max_points: number;
         };
         Insert: {
           id?: string;
           name: string;
-          points_per_award?: number;
           max_points?: number;
         };
         Update: {
           id?: string;
           name?: string;
-          points_per_award?: number;
           max_points?: number;
         };
         Relationships: [];
@@ -34,19 +31,16 @@ export interface Database {
         Row: {
           id: string;
           name: string;
-          points_per_award: number;
           max_points: number;
         };
         Insert: {
           id?: string;
           name: string;
-          points_per_award?: number;
           max_points?: number;
         };
         Update: {
           id?: string;
           name?: string;
-          points_per_award?: number;
           max_points?: number;
         };
         Relationships: [];
