@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+// ── Types ─────────────────────────────────────────────────────────────────────
 type TournamentEvent = { id: string | number; name: string };
 type EventPhasesResult = {
   eventId: string | number;
@@ -36,47 +37,78 @@ type PhaseGroupResultsResult = {
   }>;
 };
 
+// ── Config ────────────────────────────────────────────────────────────────────
 const API_BASE = (import.meta.env.VITE_BACKEND_URL as string | undefined) ?? "";
 const TOURNAMENT_SLUG = "gamefest-2026";
-const SURFACE = "rgba(15, 31, 60, 0.9)";
-const SURFACE_SOFT = "rgba(0, 68, 102, 0.16)";
-const BORDER = "rgba(0, 153, 187, 0.35)";
-const BORDER_STRONG = "rgba(0, 212, 255, 0.7)";
-const TEXT = "#f8fbff";
-const MUTED = "rgba(219, 234, 254, 0.72)";
+
+// ── Design tokens ─────────────────────────────────────────────────────────────
+const SURFACE = "rgba(15, 31, 60, 0.88)";
+const SURFACE_CARD = "rgba(6, 15, 38, 0.92)";
+const SURFACE_SOFT = "rgba(0, 68, 102, 0.18)";
+const BORDER = "rgba(0, 153, 187, 0.2)";
+const BORDER_STRONG = "rgba(0, 212, 255, 0.55)";
+const TEXT = "#eef5ff";
+const MUTED = "rgba(160, 200, 230, 0.5)";
 const ACCENT = "#0099BB";
 const ACCENT_BRIGHT = "#00D4FF";
 const ERROR = "#f87171";
+const WIN_COLOR = "#4ade80";
+const WIN_BG = "rgba(74, 222, 128, 0.07)";
+const WINNERS_COLOR = "#f0b429";
+const LOSERS_COLOR = "#fb923c";
 
+// ── Utility helpers ───────────────────────────────────────────────────────────
 function hasOtherDQ(slots: PhaseGroupSetSlot[], currentSlot: PhaseGroupSetSlot): boolean {
-  return slots.some((otherSlot) => otherSlot !== currentSlot && otherSlot.standing?.stats?.score?.value === -1);
+  return slots.some((s) => s !== currentSlot && s.standing?.stats?.score?.value === -1);
 }
 
-function getScoreStyle(slots: PhaseGroupSetSlot[], currentSlot: PhaseGroupSetSlot): { color: string; fontWeight: 600 } | undefined {
+function getScoreStyle(slots: PhaseGroupSetSlot[], currentSlot: PhaseGroupSetSlot) {
   const score = currentSlot.standing?.stats?.score?.value ?? null;
-  if (score === -1) return { color: "#dc2626", fontWeight: 600 };
-  if (hasOtherDQ(slots, currentSlot)) return { color: "#16a34a", fontWeight: 600 };
+  if (score === -1) return { color: ERROR, fontWeight: 600 as const };
+  if (hasOtherDQ(slots, currentSlot)) return { color: WIN_COLOR, fontWeight: 600 as const };
   if (score == null) return undefined;
-
-  const otherScores = slots
-    .filter((otherSlot) => otherSlot !== currentSlot)
-    .map((otherSlot) => otherSlot.standing?.stats?.score?.value ?? null)
-    .filter((otherScore): otherScore is number => otherScore != null && otherScore !== -1);
-
-  if (otherScores.length === 0) return undefined;
-
-  const highestOtherScore = Math.max(...otherScores);
-  const lowestOtherScore = Math.min(...otherScores);
-
-  if (score > highestOtherScore) return { color: "#16a34a", fontWeight: 600 };
-  if (score < lowestOtherScore) return { color: "#dc2626", fontWeight: 600 };
+  const others = slots
+    .filter((s) => s !== currentSlot)
+    .map((s) => s.standing?.stats?.score?.value ?? null)
+    .filter((v): v is number => v != null && v !== -1);
+  if (others.length === 0) return undefined;
+  const hi = Math.max(...others);
+  const lo = Math.min(...others);
+  if (score > hi) return { color: WIN_COLOR, fontWeight: 600 as const };
+  if (score < lo) return { color: ERROR, fontWeight: 600 as const };
   return undefined;
 }
 
-function getOutcomeCharacterStyle(outcome: string): { color: string; fontWeight: 600 } | undefined {
-  if (outcome === "W") return { color: "#16a34a", fontWeight: 600 };
-  if (outcome === "L") return { color: "#dc2626", fontWeight: 600 };
+function getOutcomeCharacterStyle(outcome: string) {
+  if (outcome === "W") return { color: WIN_COLOR, fontWeight: 600 as const };
+  if (outcome === "L") return { color: ERROR, fontWeight: 600 as const };
   return undefined;
+}
+
+function computeSlotOutcome(
+  slot: PhaseGroupSetSlot,
+  slots: PhaseGroupSetSlot[],
+  results: PhaseGroupResultsResult | undefined,
+  setId: string | number
+) {
+  const score = slot.standing?.stats?.score?.value ?? null;
+  const matching = results?.nodes.find((r) => String(r.id) === String(setId));
+  const winnerId = matching?.winnerId ?? null;
+  const entrantId = slot.entrant?.id ?? null;
+  const otherDQ = hasOtherDQ(slots, slot);
+  const isDQ = score === -1;
+  const outcome =
+    isDQ ? "DQ"
+    : otherDQ ? "W"
+    : score != null ? String(score)
+    : winnerId == null || entrantId == null ? "-"
+    : String(winnerId) === String(entrantId) ? "W"
+    : "L";
+  const style = outcome === "W" || outcome === "L"
+    ? getOutcomeCharacterStyle(outcome)
+    : getScoreStyle(slots, slot);
+  const isWinner = outcome === "W" || style?.color === WIN_COLOR;
+  return { outcome, style, isWinner };
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -95,8 +127,7 @@ async function fetchJson<T>(path: string): Promise<T> {
   return (await response.json()) as T;
 }
 
-//
-
+// ── Component ─────────────────────────────────────────────────────────────────
 export default function Events() {
   const [events, setEvents] = useState<TournamentEvent[]>([]);
   const [eventPhasesResults, setEventPhasesResults] = useState<Record<string, EventPhasesResult>>({});
@@ -147,7 +178,6 @@ export default function Events() {
         setLoading(false);
       }
     }
-
     void load();
   }, []);
 
@@ -184,7 +214,6 @@ export default function Events() {
         setLoadingPhases(false);
       }
     }
-
     if (!selectedEventId) return;
     if (eventPhasesResults[selectedEventId]) return;
     void loadPhases(selectedEventId);
@@ -198,11 +227,7 @@ export default function Events() {
         const result = await fetchJson<PhasePoolsResult>(
           `/api/startgg/phases/${encodeURIComponent(phaseId)}/pools?page=1&perPage=50`
         );
-        await new Promise((resolve) => {
-          setTimeout(() => {
-            resolve(0)
-          }, 500)
-        })
+        await new Promise((resolve) => setTimeout(resolve, 500));
         setPhasePoolsResults((prev) => ({ ...prev, [phaseId]: result }));
       } catch (e) {
         setPhasePoolsError(e instanceof Error ? e.message : String(e));
@@ -210,7 +235,6 @@ export default function Events() {
         setLoadingPhasePools(false);
       }
     }
-
     if (!selectedPhaseId) return;
     if (phasePoolsResults[selectedPhaseId]) return;
     void loadPhasePools(selectedPhaseId);
@@ -224,11 +248,7 @@ export default function Events() {
         const result = await fetchJson<PhaseGroupSetsResult>(
           `/api/startgg/phase-groups/${encodeURIComponent(phaseGroupId)}/sets?page=1&perPage=50`
         );
-        await new Promise((resolve) => {
-          setTimeout(() => {
-            resolve(0)
-          }, 500)
-        })
+        await new Promise((resolve) => setTimeout(resolve, 500));
         setPhaseGroupSetsResults((prev) => ({ ...prev, [phaseGroupId]: result }));
         try {
           const grouped = await fetchJson<any>(
@@ -238,7 +258,6 @@ export default function Events() {
           // eslint-disable-next-line no-console
           console.log("phase-group grouped sets:", grouped);
         } catch (e) {
-          // ignore grouped route errors but log for debugging
           // eslint-disable-next-line no-console
           console.warn("failed to fetch grouped sets:", e);
         }
@@ -248,7 +267,6 @@ export default function Events() {
         setLoadingPhaseGroupSets(false);
       }
     }
-
     if (!selectedPhaseGroupId) return;
     if (phaseGroupSetsResults[selectedPhaseGroupId]) return;
     void loadPhaseGroupSets(selectedPhaseGroupId);
@@ -259,14 +277,11 @@ export default function Events() {
     const pools = phasePoolsResults[selectedPhaseId];
     if (!pools) return;
     if (pools.phaseGroups.length !== 1) return;
-
     const onlyId = String(pools.phaseGroups[0]?.id ?? "");
     if (!onlyId) return;
     if (selectedPhaseGroupId === onlyId) return;
     setSelectedPhaseGroupId(onlyId);
   }, [selectedPhaseId, phasePoolsResults, selectedPhaseGroupId]);
-
-
 
   useEffect(() => {
     async function loadPhaseGroupResults(phaseGroupId: string) {
@@ -283,13 +298,11 @@ export default function Events() {
         setLoadingPhaseGroupResults(false);
       }
     }
-
     if (!selectedPhaseGroupId) return;
     const phaseGroup = phaseGroupSetsResults[selectedPhaseGroupId];
     if (!phaseGroup) return;
-
-    const hasAnyScore = phaseGroup.nodes.some((setNode) =>
-      setNode.slots.some((slot) => slot.standing?.stats?.score?.value != null)
+    const hasAnyScore = phaseGroup.nodes.some((n) =>
+      n.slots.some((s) => s.standing?.stats?.score?.value != null)
     );
     if (hasAnyScore) return;
     if (phaseGroupResultsResults[selectedPhaseGroupId]) return;
@@ -311,45 +324,390 @@ export default function Events() {
         setLoadingStandings(false);
       }
     }
-
     if (!selectedEventId) return;
     if (!selectedPhaseGroupId) return;
     if (eventStandingsResults[selectedEventId]) return;
     void loadStandings(selectedEventId);
-  }, [
-    selectedEventId,
-    selectedPhaseGroupId,
-    eventStandingsResults,
-  ]);
+  }, [selectedEventId, selectedPhaseGroupId, eventStandingsResults]);
 
-  return (
-    <div className="">
-      <div style={{ width: "min(100%, 520px)", margin: "0 auto" }}>
-        <h1 className="m-auto w-fit text-lg">GameFest 2026</h1>
-        {loading && <p style={{ textAlign: "center", color: MUTED }}>Loading events + sets...</p>}
-        {error && (
-          <p style={{ color: ERROR, textAlign: "center" }}>
-            Error: {error} {API_BASE ? `(VITE_BACKEND_URL=${API_BASE})` : "(same-origin /api)"}
-          </p>
+  // ── Render helpers ─────────────────────────────────────────────────────────
+
+  const renderMatchCard = (s: any, key: string) => {
+    const slots: PhaseGroupSetSlot[] = s.slots ?? [];
+    const results = phaseGroupResultsResults[selectedPhaseGroupId];
+    return (
+      <div
+        key={key}
+        style={{
+          background: SURFACE_CARD,
+          border: `1px solid ${BORDER}`,
+          borderRadius: 8,
+          overflow: "hidden",
+          boxShadow: "0 2px 14px rgba(0,0,0,0.4)",
+        }}
+      >
+        {slots.map((slot, si) => {
+          const { outcome, style, isWinner } = computeSlotOutcome(slot, slots, results, s.id);
+          const isLoser = outcome === "L" || outcome === "DQ";
+          return (
+            <div
+              key={si}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "9px 12px",
+                background: isWinner ? WIN_BG : "transparent",
+                borderTop: si > 0 ? `1px solid ${BORDER}` : "none",
+              }}
+            >
+              <div
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: isWinner ? WIN_COLOR : "transparent",
+                  border: !isWinner ? `1px solid rgba(0,153,187,0.3)` : "none",
+                  marginRight: 10,
+                  flexShrink: 0,
+                }}
+              />
+              <div
+                style={{
+                  flex: 1,
+                  fontSize: 13,
+                  fontWeight: isWinner ? 600 : 400,
+                  opacity: isLoser ? 0.45 : 1,
+                  color: TEXT,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  minWidth: 0,
+                }}
+              >
+                {slot.entrant?.name ?? "TBD"}
+              </div>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: 0.5,
+                  marginLeft: 8,
+                  minWidth: 28,
+                  textAlign: "right",
+                  ...style,
+                }}
+              >
+                {outcome}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderResultsMatchCard = (
+    setNode: PhaseGroupResultsResult["nodes"][number],
+    idx: number
+  ) => {
+    return (
+      <div
+        key={String(setNode.id ?? idx)}
+        style={{
+          background: SURFACE_CARD,
+          border: `1px solid ${BORDER}`,
+          borderRadius: 8,
+          overflow: "hidden",
+          boxShadow: "0 2px 14px rgba(0,0,0,0.4)",
+          marginBottom: 8,
+        }}
+      >
+        {setNode.slots.map((slot, slotIdx) => {
+          const winnerId = setNode.winnerId;
+          const entrantId = slot.entrant?.id ?? null;
+          const outcome =
+            winnerId == null || entrantId == null ? "-"
+            : String(winnerId) === String(entrantId) ? "W"
+            : "L";
+          const outcomeStyle = getOutcomeCharacterStyle(outcome);
+          const isWinner = outcome === "W";
+          const isLoser = outcome === "L";
+          return (
+            <div
+              key={`${String(setNode.id)}-${slotIdx}`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "9px 12px",
+                background: isWinner ? WIN_BG : "transparent",
+                borderTop: slotIdx > 0 ? `1px solid ${BORDER}` : "none",
+              }}
+            >
+              <div
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: isWinner ? WIN_COLOR : "transparent",
+                  border: !isWinner ? `1px solid rgba(0,153,187,0.3)` : "none",
+                  marginRight: 10,
+                  flexShrink: 0,
+                }}
+              />
+              <div
+                style={{
+                  flex: 1,
+                  fontSize: 13,
+                  fontWeight: isWinner ? 600 : 400,
+                  opacity: isLoser ? 0.45 : 1,
+                  color: TEXT,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  minWidth: 0,
+                }}
+              >
+                {slot.entrant?.name ?? "TBD"}
+              </div>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: 0.5,
+                  marginLeft: 8,
+                  minWidth: 28,
+                  textAlign: "right",
+                  ...outcomeStyle,
+                }}
+              >
+                {outcome}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderStandings = (selectedEventId: string) => {
+    const standings = eventStandingsResults[selectedEventId];
+    if (!standings && !loadingStandings && !standingsError) return null;
+
+    const rankColor = (p: number) =>
+      p === 1 ? WINNERS_COLOR : p === 2 ? "#9ca3af" : p === 3 ? "#cd7c2f" : MUTED;
+    const rankBg = (p: number) =>
+      p === 1 ? "rgba(240,180,41,0.08)"
+      : p === 2 ? "rgba(156,163,175,0.08)"
+      : p === 3 ? "rgba(205,124,47,0.08)"
+      : SURFACE_SOFT;
+    const rankBorder = (p: number) =>
+      p === 1 ? "rgba(240,180,41,0.3)"
+      : p === 2 ? "rgba(156,163,175,0.25)"
+      : p === 3 ? "rgba(205,124,47,0.28)"
+      : BORDER;
+
+    return (
+      <div style={{ marginTop: 32, paddingTop: 24, borderTop: `1px solid ${BORDER}` }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+          <div
+            style={{
+              fontSize: 11,
+              fontFamily: "'Bayon', sans-serif",
+              letterSpacing: 2.5,
+              color: ACCENT_BRIGHT,
+              textTransform: "uppercase",
+            }}
+          >
+            Final Standings
+          </div>
+          <div style={{ flex: 1, height: 1, background: `linear-gradient(to right, ${ACCENT_BRIGHT}33, transparent)` }} />
+        </div>
+
+        {loadingStandings && !standings && (
+          <div style={{ color: MUTED, fontSize: 13 }}>Loading standings...</div>
         )}
+        {standingsError && (
+          <div style={{ color: ERROR, fontSize: 13 }}>Standings error: {standingsError}</div>
+        )}
+        {standings && standings.nodes.length === 0 && (
+          <div style={{ color: MUTED, fontSize: 13 }}>No standings available yet.</div>
+        )}
+        {standings && standings.nodes.length > 0 && (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+              gap: 8,
+            }}
+          >
+            {standings.nodes.map((n) => (
+              <div
+                key={`${n.placement}-${n.entrant?.id ?? "unknown"}`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "10px 14px",
+                  background: rankBg(n.placement),
+                  border: `1px solid ${rankBorder(n.placement)}`,
+                  borderRadius: 8,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: n.placement <= 3 ? 14 : 11,
+                    fontWeight: n.placement <= 3 ? 800 : 500,
+                    color: rankColor(n.placement),
+                    width: 32,
+                    textAlign: "center",
+                    fontFamily: "'Bayon', sans-serif",
+                    letterSpacing: 1,
+                    flexShrink: 0,
+                  }}
+                >
+                  #{n.placement}
+                </div>
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: n.placement <= 3 ? 600 : 400,
+                    color: n.placement <= 3 ? TEXT : MUTED,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {n.entrant?.name ?? "Unknown"}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
-        {!loading && events.length > 0 && (
-          <div style={{ display: "flex", justifyContent: "center", margin: "10px auto" }}>
-            <label style={{ display: "flex", flexDirection: "column", gap: 4, width: "100%", minWidth: 280 }}>
-              <span style={{ fontSize: 12, opacity: 0.8, textAlign: "center" }}></span>
+  const renderBracketRounds = (groups: any[], accentColor: string) => {
+    return (
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          overflowX: "auto",
+          paddingBottom: 12,
+          paddingTop: 4,
+        }}
+      >
+        {groups.map((g: any) => (
+          <div key={g.round} style={{ flex: "0 0 210px" }}>
+            <div
+              style={{
+                fontSize: 10,
+                fontFamily: "'Bayon', sans-serif",
+                letterSpacing: 2,
+                color: accentColor,
+                textTransform: "uppercase",
+                marginBottom: 10,
+                paddingBottom: 6,
+                borderBottom: `1px solid ${accentColor}33`,
+              }}
+            >
+              {g.round}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {g.sets.map((s: any, i: number) =>
+                renderMatchCard(s, `${String(s.id)}-${i}`)
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // ── Main render ────────────────────────────────────────────────────────────
+  return (
+    <div
+      style={{
+        width: "min(calc(100vw - 32px), 1200px)",
+        color: TEXT,
+        fontFamily: "'Quicksand', sans-serif",
+      }}
+    >
+      {/* Header */}
+      <h1
+        style={{
+          textAlign: "center",
+          fontFamily: "'Bayon', sans-serif",
+          fontSize: 42,
+          letterSpacing: 4,
+          color: ACCENT_BRIGHT,
+          textShadow: `0 0 40px ${ACCENT}66`,
+          margin: "0 0 32px",
+        }}
+      >
+        GAMEFEST 2026
+      </h1>
+
+      {/* Events loading / error */}
+      {loading && (
+        <div style={{ textAlign: "center", color: MUTED, padding: "20px 0", fontSize: 14 }}>
+          Loading events...
+        </div>
+      )}
+      {error && (
+        <div
+          style={{
+            color: ERROR,
+            background: "rgba(248,113,113,0.08)",
+            border: `1px solid rgba(248,113,113,0.2)`,
+            borderRadius: 8,
+            padding: "12px 16px",
+            marginBottom: 20,
+            fontSize: 13,
+          }}
+        >
+          Error: {error}
+          {API_BASE ? ` (VITE_BACKEND_URL=${API_BASE})` : " (same-origin /api)"}
+        </div>
+      )}
+
+      {/* Event selector */}
+      {!loading && events.length > 0 && (
+        <div style={{ marginBottom: 32 }}>
+          <div
+            style={{
+              fontSize: 10,
+              letterSpacing: 2.5,
+              fontFamily: "'Bayon', sans-serif",
+              color: MUTED,
+              textAlign: "center",
+              marginBottom: 10,
+              textTransform: "uppercase",
+            }}
+          >
+            Select Event
+          </div>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <div style={{ position: "relative", width: "min(100%, 420px)" }}>
               <select
                 value={selectedEventId}
-                onChange={(e) => {
-                  setSelectedEventId(e.target.value);
-                }}
+                onChange={(e) => setSelectedEventId(e.target.value)}
                 style={{
                   width: "100%",
-                  padding: 10,
-                  border: `1px solid ${BORDER}`,
+                  padding: "12px 40px 12px 16px",
+                  border: `1px solid ${BORDER_STRONG}`,
                   borderRadius: 10,
                   background: SURFACE,
                   color: TEXT,
-                  boxShadow: "0 10px 24px rgba(0, 0, 0, 0.22)",
+                  fontSize: 14,
+                  fontFamily: "'Quicksand', sans-serif",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  boxShadow: `0 0 28px rgba(0,153,187,0.12), 0 4px 20px rgba(0,0,0,0.35)`,
+                  outline: "none",
+                  appearance: "none",
+                  WebkitAppearance: "none",
                 }}
               >
                 <option value="" disabled>
@@ -361,483 +719,453 @@ export default function Events() {
                   </option>
                 ))}
               </select>
-            </label>
+              <div
+                style={{
+                  position: "absolute",
+                  right: 14,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  pointerEvents: "none",
+                  color: ACCENT_BRIGHT,
+                  fontSize: 10,
+                }}
+              >
+                ▼
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
+      {/* Selected event content */}
       {(() => {
         if (!selectedEventId) return null;
 
         const selectedEvent = events.find((e) => String(e.id) === selectedEventId);
         const phases = eventPhasesResults[selectedEventId];
         const phasePools = selectedPhaseId ? phasePoolsResults[selectedPhaseId] : undefined;
-        const selectedPhaseGroup = selectedPhaseGroupId ? phaseGroupSetsResults[selectedPhaseGroupId] : undefined;
-        const groupedForSelectedPhaseGroup = selectedPhaseGroupId ? phaseGroupGroupedResults[selectedPhaseGroupId] : undefined;
-        const shouldDisplayDivUnderGroupedLayout = groupedForSelectedPhaseGroup ? !groupedForSelectedPhaseGroup.containsWinnersOrLosers : false;
+        const selectedPhaseGroup = selectedPhaseGroupId
+          ? phaseGroupSetsResults[selectedPhaseGroupId]
+          : undefined;
+        const groupedForSelectedPhaseGroup = selectedPhaseGroupId
+          ? phaseGroupGroupedResults[selectedPhaseGroupId]
+          : undefined;
+        const shouldDisplayDivUnderGroupedLayout = groupedForSelectedPhaseGroup
+          ? !groupedForSelectedPhaseGroup.containsWinnersOrLosers
+          : false;
 
         return (
-          <div style={{ border: `1px solid ${BORDER}`, borderRadius: 16, padding: 14, margin: "10px 0" }}>
-            <h3 style={{ margin: 0, textAlign: "center", color: ACCENT_BRIGHT }}>
-              {selectedEvent?.name ?? "Event"} <span style={{ color: MUTED }}>({selectedEventId})</span>
-            </h3>
+          <div>
+            {/* Event name */}
+            <div
+              style={{
+                marginBottom: 20,
+                paddingBottom: 16,
+                borderBottom: `1px solid ${BORDER}`,
+              }}
+            >
+              <h2
+                style={{
+                  margin: 0,
+                  textAlign: "center",
+                  fontFamily: "'Bayon', sans-serif",
+                  fontSize: 26,
+                  letterSpacing: 1.5,
+                  color: TEXT,
+                }}
+              >
+                {selectedEvent?.name ?? "Event"}
+              </h2>
+            </div>
 
-            <div style={{ marginTop: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, position: "relative" }}>
-                <div style={{ fontSize: 12, color: MUTED, position: "absolute", left: "50%", transform: "translateX(-50%)" }}>Phases</div>
-                {phasesOpen ? (
-                  <button
-                    type="button"
-                    onClick={() => {
+            {/* Phase navigation */}
+            <div style={{ marginBottom: 20 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 10,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: 2.5,
+                    color: MUTED,
+                    textTransform: "uppercase",
+                    fontFamily: "'Bayon', sans-serif",
+                  }}
+                >
+                  Phase
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (phasesOpen) {
                       setPhasesOpen(false);
                       setSelectedPhaseId("");
                       setSelectedPhaseGroupId("");
-                    }}
-                    style={{
-                      padding: "6px 10px",
-                      borderRadius: 8,
-                      border: `1px solid ${BORDER}`,
-                      background: `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_BRIGHT} 100%)`,
-                      color: TEXT,
-                      cursor: "pointer",
-                      fontSize: 12,
-                      marginLeft: "auto",
-                      boxShadow: "0 10px 24px rgba(0, 153, 187, 0.28)",
-                    }}
-                  >
-                    Close
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setPhasesOpen(true)}
-                    style={{
-                      padding: "6px 10px",
-                      borderRadius: 8,
-                      border: `1px solid ${BORDER}`,
-                      background: `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_BRIGHT} 100%)`,
-                      color: TEXT,
-                      cursor: "pointer",
-                      fontSize: 12,
-                      marginLeft: "auto",
-                      boxShadow: "0 10px 24px rgba(0, 153, 187, 0.28)",
-                    }}
-                  >
-                    Open
-                  </button>
-                )}
+                    } else {
+                      setPhasesOpen(true);
+                    }
+                  }}
+                  style={{
+                    padding: "4px 12px",
+                    borderRadius: 6,
+                    border: `1px solid ${phasesOpen ? BORDER : BORDER_STRONG}`,
+                    background: phasesOpen ? "transparent" : SURFACE_SOFT,
+                    color: phasesOpen ? MUTED : ACCENT_BRIGHT,
+                    cursor: "pointer",
+                    fontSize: 10,
+                    letterSpacing: 1.5,
+                    fontFamily: "'Bayon', sans-serif",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {phasesOpen ? "Collapse" : "Expand"}
+                </button>
               </div>
 
               {phasesOpen && (
                 <>
-                  {loadingPhases && !phases && <p style={{ marginTop: 8, color: MUTED }}>Loading phases...</p>}
-                  {phasesError && <p style={{ marginTop: 8, color: ERROR }}>Phases error: {phasesError}</p>}
-                  {phases && phases.phases.length === 0 && <p style={{ marginTop: 8, color: MUTED }}>No phases.</p>}
+                  {loadingPhases && !phases && (
+                    <div style={{ color: MUTED, fontSize: 13, padding: "8px 0" }}>
+                      Loading phases...
+                    </div>
+                  )}
+                  {phasesError && (
+                    <div style={{ color: ERROR, fontSize: 13 }}>Phases error: {phasesError}</div>
+                  )}
+                  {phases && phases.phases.length === 0 && (
+                    <div style={{ color: MUTED, fontSize: 13 }}>No phases found.</div>
+                  )}
                   {phases && phases.phases.length > 0 && (
-                    <div style={{ marginTop: 6 }}>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6, justifyContent: "center" }}>
-                        {phases.phases.map((p) => {
-                          const id = String(p.id);
-                          const active = id === selectedPhaseId;
-                          return (
-                            <button
-                              key={id}
-                              type="button"
-                              onClick={() => setSelectedPhaseId(id)}
-                              style={{
-                                padding: "8px 10px",
-                                borderRadius: 8,
-                                border: active ? `2px solid ${BORDER_STRONG}` : `1px solid ${BORDER}`,
-                                background: active ? `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_BRIGHT} 100%)` : SURFACE_SOFT,
-                                color: TEXT,
-                                cursor: "pointer",
-                                boxShadow: active ? "0 10px 24px rgba(0, 153, 187, 0.28)" : "none",
-                              }}
-                            >
-                              {p.name}
-                            </button>
-                          );
-                        })}
-                      </div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {phases.phases.map((p) => {
+                        const id = String(p.id);
+                        const active = id === selectedPhaseId;
+                        return (
+                          <button
+                            key={id}
+                            type="button"
+                            onClick={() => setSelectedPhaseId(id)}
+                            style={{
+                              padding: "8px 20px",
+                              borderRadius: 20,
+                              border: active ? `1px solid ${ACCENT_BRIGHT}` : `1px solid ${BORDER}`,
+                              background: active
+                                ? `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_BRIGHT} 100%)`
+                                : SURFACE_SOFT,
+                              color: active ? "#06101f" : TEXT,
+                              cursor: "pointer",
+                              fontFamily: "'Quicksand', sans-serif",
+                              fontWeight: active ? 700 : 500,
+                              fontSize: 13,
+                              letterSpacing: 0.5,
+                              boxShadow: active ? `0 0 18px ${ACCENT}55` : "none",
+                            }}
+                          >
+                            {p.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
 
-                      <div style={{ marginTop: 10 }}>
-                        {!selectedPhaseId && <p style={{ marginTop: 8, color: MUTED, textAlign: "center" }}>Pick a phase to load pools.</p>}
-                        {loadingPhasePools && selectedPhaseId && !phasePools && (
-                          <p style={{ marginTop: 8, color: MUTED }}>Loading pools...</p>
-                        )}
-                        {phasePoolsError && (
-                          <p style={{ marginTop: 8, color: ERROR }}>Pools error: {phasePoolsError}</p>
-                        )}
-
-                        {phasePools && (
-                          <div style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: 10, marginTop: 8 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
-                              <div>
-                                <strong>{phasePools.phaseName}</strong>{" "}
-                                <span style={{ color: MUTED }}>({String(phasePools.phaseId)})</span>
-                              </div>
-                              <div style={{ fontSize: 12, color: MUTED }}>
-                                pools: {phasePools.phaseGroups.length}
-                              </div>
-                            </div>
-
-                            {phasePools.phaseGroups.length === 0 ? (
-                              <p style={{ marginTop: 8, color: MUTED }}>No pools found for this phase.</p>
-                            ) : phasePools.phaseGroups.length === 1 ? null : (
-                              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
-                                {phasePools.phaseGroups.map((g) => {
-                                  const id = String(g.id);
-                                  const active = id === selectedPhaseGroupId;
-                                  const label = g.displayIdentifier ? `Pool ${g.displayIdentifier}` : `Pool ${id}`;
-                                  return (
-                                    <button
-                                      key={id}
-                                      type="button"
-                                      onClick={() => setSelectedPhaseGroupId(id)}
-                                      style={{
-                                        padding: "8px 10px",
-                                        borderRadius: 8,
-                                        border: active ? `2px solid ${BORDER_STRONG}` : `1px solid ${BORDER}`,
-                                        background: active ? `linear-gradient(135deg, ${ACCENT} 0%, ${ACCENT_BRIGHT} 100%)` : SURFACE_SOFT,
-                                        color: TEXT,
-                                        cursor: "pointer",
-                                        boxShadow: active ? "0 10px 24px rgba(0, 153, 187, 0.28)" : "none",
-                                      }}
-                                    >
-                                      {label}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            )}
-
-                            <div style={{ marginTop: 10 }}>
-                              {phasePools.phaseGroups.length > 1 && !selectedPhaseGroupId && (
-                                <p style={{ marginTop: 8, color: MUTED }}>Pick a pool to load matches.</p>
-                              )}
-                              {loadingPhaseGroupSets && selectedPhaseGroupId && !selectedPhaseGroup && (
-                                <p style={{ marginTop: 8, color: MUTED }}>Loading pool sets...</p>
-                              )}
-                              {phaseGroupSetsError && (
-                                <p style={{ marginTop: 8, color: ERROR }}>
-                                  Pool sets error: {phaseGroupSetsError}
-                                </p>
-                              )}
-
-                              {selectedPhaseGroup && (
-                                <div style={{ borderTop: `1px solid ${BORDER}`, marginTop: 10, paddingTop: 10 }}>
-                                  {/* grouped winners/losers layout */}
-                                  {(() => {
-                                    const grouped = groupedForSelectedPhaseGroup;
-                                    if (grouped && grouped.groups && grouped.containsWinnersOrLosers) {
-                                      const winners = grouped.groups.filter((g: any) => /Winners/i.test(g.round));
-                                      const losers = grouped.groups.filter((g: any) => /Losers/i.test(g.round));
-                                      const roundKey = (name: string) => {
-                                        if (!name) return 1e6;
-                                        const m = String(name).match(/Round\s*(\d+)/i);
-                                        if (m) return Number(m[1]);
-                                        if (/Quarter/i.test(name)) return 1000;
-                                        if (/Semi/i.test(name)) return 2000;
-                                        if (/Final/i.test(name)) return 3000;
-                                        return 1e6;
-                                      };
-                                      winners.sort((a: any, b: any) => roundKey(a.round) - roundKey(b.round));
-                                      losers.sort((a: any, b: any) => roundKey(a.round) - roundKey(b.round));
-                                      return (
-                                        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 12 }}>
-                                          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                                            {winners.map((g: any) => (
-                                              <div key={g.round} style={{ flex: "1 1 15vw", minWidth: 200, border: `1px solid ${BORDER}`, padding: 8, borderRadius: 10 }}>
-                                                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>{g.round}</div>
-                                                {g.sets.map((s: any, i: number) => (
-                                                  <div key={`${String(s.id)}-${i}`} style={{ padding: "6px 0", borderTop: i === 0 ? "none" : `1px solid ${BORDER}` }}>
-                                                    <div style={{ fontSize: 12, color: MUTED }}>Set {i + 1}</div>
-                                                    <div style={{ marginTop: 6 }}>
-                                                      {(s.slots ?? []).map((slot: any, si: number) => {
-                                                        const score = slot.standing?.stats?.score?.value ?? null;
-
-                                                        const results = phaseGroupResultsResults[selectedPhaseGroupId];
-                                                        const matching = results?.nodes.find((r) => String(r.id) === String(s.id));
-                                                        const winnerId = matching?.winnerId ?? null;
-                                                        const entrantId = slot.entrant?.id ?? null;
-                                                        const otherDQ = hasOtherDQ(s.slots ?? [], slot);
-                                                        const isDQ = score === -1;
-                                                        const outcome =
-                                                          isDQ
-                                                            ? "DQ"
-                                                            : otherDQ
-                                                              ? "W"
-                                                              : score != null
-                                                                ? String(score)
-                                                                : winnerId == null || entrantId == null
-                                                                  ? "-"
-                                                                  : String(winnerId) === String(entrantId)
-                                                                    ? "W"
-                                                                    : "L";
-                                                        const outcomeStyle = outcome === "W" || outcome === "L"
-                                                          ? getOutcomeCharacterStyle(outcome)
-                                                          : getScoreStyle(s.slots ?? [], slot);
-                                                        return (
-                                                          <div key={si} style={{ display: "flex", gap: 8 }}>
-                                                            <div style={{ minWidth: 18, opacity: 0.7 }}>#{si + 1}</div>
-                                                            <div style={{ flex: 1 }}>{slot.entrant?.name ?? "TBD"}</div>
-                                                            <div style={{ width: 40, textAlign: "right", ...outcomeStyle }}>{outcome}</div>
-                                                          </div>
-                                                        );
-                                                      })}
-                                                    </div>
-                                                  </div>
-                                                ))}
-                                              </div>
-                                            ))}
-                                          </div>
-
-                                          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                                            {losers.map((g: any) => (
-                                              <div key={g.round} style={{ flex: "1 1 15vw", minWidth: 260, border: `1px solid ${BORDER}`, padding: 8, borderRadius: 10 }}>
-                                                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>{g.round}</div>
-                                                {g.sets.map((s: any, i: number) => (
-                                                  <div key={`${String(s.id)}-${i}`} style={{ padding: "6px 0", borderTop: i === 0 ? "none" : `1px solid ${BORDER}` }}>
-                                                    <div style={{ fontSize: 12, color: MUTED }}>Set {i + 1}</div>
-                                                    <div style={{ marginTop: 6 }}>
-                                                      {(s.slots ?? []).map((slot: any, si: number) => {
-                                                        const score = slot.standing?.stats?.score?.value ?? null;
-                                                        const results = phaseGroupResultsResults[selectedPhaseGroupId];
-                                                        const matching = results?.nodes.find((r) => String(r.id) === String(s.id));
-                                                        const winnerId = matching?.winnerId ?? null;
-                                                        const entrantId = slot.entrant?.id ?? null;
-                                                        const otherDQ = hasOtherDQ(s.slots ?? [], slot);
-                                                        const isDQ = score === -1;
-                                                        const outcome =
-                                                          isDQ
-                                                            ? "DQ"
-                                                            : otherDQ
-                                                              ? "W"
-                                                              : score != null
-                                                                ? String(score)
-                                                                : winnerId == null || entrantId == null
-                                                                  ? "-"
-                                                                  : String(winnerId) === String(entrantId)
-                                                                    ? "W"
-                                                                    : "L";
-                                                        const outcomeStyle = outcome === "W" || outcome === "L"
-                                                          ? getOutcomeCharacterStyle(outcome)
-                                                          : getScoreStyle(s.slots ?? [], slot);
-                                                        return (
-                                                          <div key={si} style={{ display: "flex", gap: 8 }}>
-                                                            <div style={{ minWidth: 18, opacity: 0.7 }}>#{si + 1}</div>
-                                                            <div style={{ flex: 1 }}>{slot.entrant?.name ?? "TBD"}</div>
-                                                            <div style={{ width: 40, textAlign: "right", ...outcomeStyle }}>{outcome}</div>
-                                                          </div>
-                                                        );
-                                                      })}
-                                                    </div>
-                                                  </div>
-                                                ))}
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      );
-                                    }
-                                    return null;
-                                  })()}
-
-                                  {shouldDisplayDivUnderGroupedLayout && <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                                    <div style={{ flex: "2 1 420px", minWidth: 0 }}>
-                                      <div
-                                        style={{
-                                          display: "flex",
-                                          justifyContent: "space-between",
-                                          gap: 8,
-                                          marginBottom: 6,
-                                        }}
-                                      >
-                                        <div>
-                                          <strong>
-                                            {selectedPhaseGroup.displayIdentifier
-                                              ? `Pool ${selectedPhaseGroup.displayIdentifier}`
-                                              : "Pool"}
-                                          </strong>{" "}
-                                          <span style={{ opacity: 0.7 }}>
-                                            ({String(selectedPhaseGroup.phaseGroupId)})
-                                          </span>
-                                        </div>
-                                        <div style={{ fontSize: 12, opacity: 0.7 }}>
-                                          sets total: {selectedPhaseGroup.total}
-                                        </div>
-                                      </div>
-
-                                      {(() => {
-                                        const hasAnyScore = selectedPhaseGroup.nodes.some((setNode) =>
-                                          setNode.slots.some((slot) => slot.standing?.stats?.score?.value != null)
-                                        );
-
-                                        if (hasAnyScore) {
-                                          if (selectedPhaseGroup.nodes.length === 0) {
-                                            return (
-                                              <p style={{ marginTop: 8, opacity: 0.8 }}>
-                                                No sets found for this pool.
-                                              </p>
-                                            );
-                                          }
-
-                                          return (
-                                            <div style={{ marginTop: 10 }}>
-                                              {selectedPhaseGroup.nodes.map((setNode, idx) => (
-                                                <div
-                                                  key={String(setNode.id ?? idx)}
-                                                  style={{ padding: "6px 0", borderTop: `1px solid ${BORDER}` }}
-                                                >
-                                                  <div style={{ fontSize: 12, color: MUTED }}>Set {idx + 1}</div>
-                                                  {setNode.slots.map((slot, slotIdx) => {
-                                                    const name = slot.entrant?.name ?? "TBD";
-                                                    const score = slot.standing?.stats?.score?.value;
-                                                    const isDQ = score === -1;
-                                                    const otherDQ = hasOtherDQ(setNode.slots, slot);
-                                                    const displayScore = isDQ ? "DQ" : otherDQ ? "W" : score ?? "-";
-                                                    const scoreStyle = getOutcomeCharacterStyle(String(displayScore))
-                                                      ?? getScoreStyle(setNode.slots, slot);
-                                                    return (
-                                                      <div
-                                                        key={String(slot.id ?? slotIdx)}
-                                                        style={{ display: "flex", gap: 8 }}
-                                                      >
-                                                        <div style={{ minWidth: 18, opacity: 0.7 }}>#{slotIdx + 1}</div>
-                                                        <div style={{ flex: 1 }}>{name}</div>
-                                                        <div style={{ width: 40, textAlign: "right", ...scoreStyle }}>
-                                                          {displayScore}
-                                                        </div>
-                                                      </div>
-                                                    );
-                                                  })}
-                                                </div>
-                                              ))}
-                                            </div>
-                                          );
-                                        }
-
-                                        const results = phaseGroupResultsResults[selectedPhaseGroupId];
-
-                                        return (
-                                          <div style={{ marginTop: 10 }}>
-                                            <div style={{ fontSize: 12, color: MUTED }}>
-                                              No matches found yet. Scores unavailable.`.
-                                            </div>
-                                            {loadingPhaseGroupResults && !results && (
-                                              <p style={{ marginTop: 8, color: MUTED }}>Loading match results...</p>
-                                            )}
-                                            {phaseGroupResultsError && (
-                                              <p style={{ marginTop: 8, color: ERROR }}>
-                                                Results error: {phaseGroupResultsError}
-                                              </p>
-                                            )}
-                                            {results && (
-                                              <div style={{ marginTop: 10 }}>
-                                                {results.nodes.length === 0 ? (
-                                                  <p style={{ marginTop: 8, color: MUTED }}>No matches in phase found.</p>
-                                                ) : (
-                                                  <div>
-                                                    {results.nodes.map((setNode, idx) => (
-                                                      <div
-                                                        key={String(setNode.id ?? idx)}
-                                                        style={{ padding: "6px 0", borderTop: `1px solid ${BORDER}` }}
-                                                      >
-                                                        <div style={{ fontSize: 12, color: MUTED }}>
-                                                          Set {idx + 1}
-                                                        </div>
-                                                        {setNode.slots.map((slot, slotIdx) => {
-                                                          const name = slot.entrant?.name ?? "TBD";
-                                                          const winnerId = setNode.winnerId;
-                                                          const entrantId = slot.entrant?.id ?? null;
-                                                          const outcome =
-                                                            winnerId == null || entrantId == null
-                                                              ? "-"
-                                                              : String(winnerId) === String(entrantId)
-                                                                ? "W"
-                                                                : "L";
-                                                          const outcomeStyle = getOutcomeCharacterStyle(outcome);
-                                                          return (
-                                                            <div
-                                                              key={`${String(setNode.id)}-${slotIdx}`}
-                                                              style={{ display: "flex", gap: 8 }}
-                                                            >
-                                                              <div style={{ minWidth: 18, opacity: 0.7 }}>
-                                                                #{slotIdx + 1}
-                                                              </div>
-                                                              <div style={{ flex: 1 }}>{name}</div>
-                                                              <div style={{ width: 24, textAlign: "right", ...outcomeStyle }}>
-                                                                {outcome}
-                                                              </div>
-                                                            </div>
-                                                          );
-                                                        })}
-                                                      </div>
-                                                    ))}
-                                                  </div>
-                                                )}
-                                              </div>
-                                            )}
-                                          </div>
-                                        );
-                                      })()}
-                                    </div>
-
-                                    <div style={{ flex: "1 1 240px", minWidth: 0, border: `1px solid ${BORDER}`, borderRadius: 10, padding: 10 }}>
-                                      <div style={{ fontSize: 12, color: MUTED }}>Standings</div>
-                                      {(() => {
-                                        const standings = eventStandingsResults[selectedEventId];
-
-                                        if (loadingStandings && !standings) {
-                                          return <p style={{ marginTop: 8, color: MUTED }}>Loading standings...</p>;
-                                        }
-                                        if (standingsError) {
-                                          return (
-                                            <p style={{ marginTop: 8, color: ERROR }}>
-                                              Standings error: {standingsError}
-                                            </p>
-                                          );
-                                        }
-                                        if (!standings) {
-                                          return <p style={{ marginTop: 8, color: MUTED }}>No standings loaded.</p>;
-                                        }
-
-                                        if (standings.nodes.length === 0) {
-                                          return <p style={{ marginTop: 8, color: MUTED }}>No standings found.</p>;
-                                        }
-
-                                        return (
-                                          <div style={{ marginTop: 8 }}>
-                                            {standings.nodes.map((n) => (
-                                              <div
-                                                key={`${n.placement}-${n.entrant?.id ?? "unknown"}`}
-                                                style={{
-                                                  display: "flex",
-                                                  gap: 10,
-                                                  borderTop: `1px solid ${BORDER}`,
-                                                  padding: "6px 0",
-                                                }}
-                                              >
-                                                <div style={{ width: 40, opacity: 0.7 }}>#{n.placement}</div>
-                                                <div style={{ flex: 1 }}>{n.entrant?.name ?? "Unknown"}</div>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        );
-                                      })()}
-                                    </div>
-                                  </div>}
-                                </div>
-                              )}
-                            </div>
+                  {/* Pool selector */}
+                  {selectedPhaseId && (
+                    <div style={{ marginTop: 14 }}>
+                      {loadingPhasePools && !phasePools && (
+                        <div style={{ color: MUTED, fontSize: 13 }}>Loading pools...</div>
+                      )}
+                      {phasePoolsError && (
+                        <div style={{ color: ERROR, fontSize: 13 }}>
+                          Pools error: {phasePoolsError}
+                        </div>
+                      )}
+                      {phasePools && phasePools.phaseGroups.length > 1 && (
+                        <>
+                          <div
+                            style={{
+                              fontSize: 10,
+                              letterSpacing: 2,
+                              color: MUTED,
+                              fontFamily: "'Bayon', sans-serif",
+                              textTransform: "uppercase",
+                              marginBottom: 8,
+                            }}
+                          >
+                            Pool
                           </div>
-                        )}
-                      </div>
+                          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                            {phasePools.phaseGroups.map((g) => {
+                              const id = String(g.id);
+                              const active = id === selectedPhaseGroupId;
+                              const label = g.displayIdentifier
+                                ? `Pool ${g.displayIdentifier}`
+                                : `Pool ${id}`;
+                              return (
+                                <button
+                                  key={id}
+                                  type="button"
+                                  onClick={() => setSelectedPhaseGroupId(id)}
+                                  style={{
+                                    padding: "6px 16px",
+                                    borderRadius: 16,
+                                    border: active
+                                      ? `1px solid ${ACCENT_BRIGHT}`
+                                      : `1px solid ${BORDER}`,
+                                    background: active ? SURFACE_SOFT : "transparent",
+                                    color: active ? ACCENT_BRIGHT : MUTED,
+                                    cursor: "pointer",
+                                    fontFamily: "'Quicksand', sans-serif",
+                                    fontWeight: active ? 700 : 500,
+                                    fontSize: 12,
+                                    letterSpacing: 0.5,
+                                    boxShadow: active ? `0 0 12px ${ACCENT}33` : "none",
+                                  }}
+                                >
+                                  {label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {!selectedPhaseGroupId && (
+                            <div style={{ color: MUTED, fontSize: 13, marginTop: 10 }}>
+                              Select a pool to view matches.
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   )}
                 </>
               )}
             </div>
+
+            {/* Phase group loading states */}
+            {loadingPhaseGroupSets && selectedPhaseGroupId && !selectedPhaseGroup && (
+              <div style={{ color: MUTED, fontSize: 13, padding: "8px 0" }}>
+                Loading bracket data...
+              </div>
+            )}
+            {phaseGroupSetsError && (
+              <div style={{ color: ERROR, fontSize: 13 }}>
+                Error loading bracket: {phaseGroupSetsError}
+              </div>
+            )}
+
+            {/* Bracket content */}
+            {selectedPhaseGroup && (
+              <div style={{ paddingTop: 8 }}>
+                {/* ── Winners / Losers bracket layout ── */}
+                {(() => {
+                  const grouped = groupedForSelectedPhaseGroup;
+                  if (!grouped || !grouped.groups || !grouped.containsWinnersOrLosers) return null;
+
+                  const roundKey = (name: string) => {
+                    if (!name) return 1e6;
+                    const m = String(name).match(/Round\s*(\d+)/i);
+                    if (m) return Number(m[1]);
+                    if (/Quarter/i.test(name)) return 1000;
+                    if (/Semi/i.test(name)) return 2000;
+                    if (/Final/i.test(name)) return 3000;
+                    return 1e6;
+                  };
+
+                  const winners = grouped.groups
+                    .filter((g: any) => /Winners/i.test(g.round))
+                    .sort((a: any, b: any) => roundKey(a.round) - roundKey(b.round));
+                  const losers = grouped.groups
+                    .filter((g: any) => /Losers/i.test(g.round))
+                    .sort((a: any, b: any) => roundKey(a.round) - roundKey(b.round));
+
+                  return (
+                    <div style={{ marginBottom: 8 }}>
+                      {winners.length > 0 && (
+                        <div style={{ marginBottom: 32 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 12,
+                              marginBottom: 16,
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: 11,
+                                fontFamily: "'Bayon', sans-serif",
+                                letterSpacing: 2.5,
+                                color: WINNERS_COLOR,
+                                textTransform: "uppercase",
+                              }}
+                            >
+                              Winners Bracket
+                            </div>
+                            <div
+                              style={{
+                                flex: 1,
+                                height: 1,
+                                background: `linear-gradient(to right, ${WINNERS_COLOR}44, transparent)`,
+                              }}
+                            />
+                          </div>
+                          {renderBracketRounds(winners, WINNERS_COLOR)}
+                        </div>
+                      )}
+
+                      {losers.length > 0 && (
+                        <div style={{ marginBottom: 24 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 12,
+                              marginBottom: 16,
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: 11,
+                                fontFamily: "'Bayon', sans-serif",
+                                letterSpacing: 2.5,
+                                color: LOSERS_COLOR,
+                                textTransform: "uppercase",
+                              }}
+                            >
+                              Losers Bracket
+                            </div>
+                            <div
+                              style={{
+                                flex: 1,
+                                height: 1,
+                                background: `linear-gradient(to right, ${LOSERS_COLOR}44, transparent)`,
+                              }}
+                            />
+                          </div>
+                          {renderBracketRounds(losers, LOSERS_COLOR)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* ── Pool matches layout ── */}
+                {shouldDisplayDivUnderGroupedLayout && (() => {
+                  const hasAnyScore = selectedPhaseGroup.nodes.some((n) =>
+                    n.slots.some((s) => s.standing?.stats?.score?.value != null)
+                  );
+                  const results = phaseGroupResultsResults[selectedPhaseGroupId];
+
+                  return (
+                    <div>
+                      {/* Pool label */}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 12,
+                          marginBottom: 16,
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 11,
+                            fontFamily: "'Bayon', sans-serif",
+                            letterSpacing: 2.5,
+                            color: ACCENT_BRIGHT,
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {selectedPhaseGroup.displayIdentifier
+                            ? `Pool ${selectedPhaseGroup.displayIdentifier}`
+                            : "Pool"}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: MUTED,
+                            letterSpacing: 0.5,
+                          }}
+                        >
+                          {selectedPhaseGroup.total} sets
+                        </div>
+                        <div
+                          style={{
+                            flex: 1,
+                            height: 1,
+                            background: `linear-gradient(to right, ${ACCENT_BRIGHT}33, transparent)`,
+                          }}
+                        />
+                      </div>
+
+                      {hasAnyScore ? (
+                        selectedPhaseGroup.nodes.length === 0 ? (
+                          <div style={{ color: MUTED, fontSize: 13 }}>
+                            No sets found for this pool.
+                          </div>
+                        ) : (
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns:
+                                "repeat(auto-fill, minmax(280px, 1fr))",
+                              gap: 8,
+                            }}
+                          >
+                            {selectedPhaseGroup.nodes.map((setNode, idx) =>
+                              renderMatchCard(setNode, String(setNode.id ?? idx))
+                            )}
+                          </div>
+                        )
+                      ) : (
+                        <div>
+                          {loadingPhaseGroupResults && !results && (
+                            <div style={{ color: MUTED, fontSize: 13, marginBottom: 10 }}>
+                              Loading match results...
+                            </div>
+                          )}
+                          {phaseGroupResultsError && (
+                            <div style={{ color: ERROR, fontSize: 13, marginBottom: 10 }}>
+                              Results error: {phaseGroupResultsError}
+                            </div>
+                          )}
+                          {results && results.nodes.length === 0 && (
+                            <div style={{ color: MUTED, fontSize: 13 }}>
+                              No matches recorded yet.
+                            </div>
+                          )}
+                          {results && results.nodes.length > 0 && (
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns:
+                                  "repeat(auto-fill, minmax(280px, 1fr))",
+                                gap: 8,
+                              }}
+                            >
+                              {results.nodes.map((setNode, idx) =>
+                                renderResultsMatchCard(setNode, idx)
+                              )}
+                            </div>
+                          )}
+                          {!results && !loadingPhaseGroupResults && (
+                            <div style={{ color: MUTED, fontSize: 13 }}>
+                              No matches recorded yet.
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Standings */}
+                {renderStandings(selectedEventId)}
+              </div>
+            )}
           </div>
         );
       })()}
