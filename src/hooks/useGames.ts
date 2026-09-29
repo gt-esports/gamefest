@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
+import { getActiveSeasonId } from "../utils/activeSeason";
 import type { Game, GameTeam, UpdateGameInput } from "../schemas/GamesSchema";
 
 type PlayerUserJoin = {
@@ -20,7 +21,8 @@ const unwrapRelation = <T>(value: T | T[] | null | undefined): T | null => {
 };
 
 export const fetchGames = async (name?: string): Promise<Game[]> => {
-  let gameQuery = supabase.from("games").select("id, name, max_points").order("name");
+  const seasonId = await getActiveSeasonId();
+  let gameQuery = supabase.from("games").select("id, name, max_points").eq("season_id", seasonId).order("name");
 
   if (name) {
     gameQuery = gameQuery.eq("name", name);
@@ -105,10 +107,11 @@ export const createGame = async (
   maxPoints = 50
 ): Promise<Game> => {
   const trimmedName = name.trim();
+  const seasonId = await getActiveSeasonId();
 
   const { data: inserted, error: insertError } = await supabase
     .from("games")
-    .insert({ name: trimmedName, max_points: maxPoints })
+    .insert({ name: trimmedName, max_points: maxPoints, season_id: seasonId })
     .select("id")
     .single();
 
@@ -125,10 +128,12 @@ export const updateGameByName = async (
   oldName: string,
   input: UpdateGameInput
 ): Promise<Game> => {
+  const seasonId = await getActiveSeasonId();
   const { data: existing, error: existingError } = await supabase
     .from("games")
     .select("id")
     .eq("name", oldName)
+    .eq("season_id", seasonId)
     .maybeSingle();
 
   if (existingError) throw existingError;
@@ -177,10 +182,12 @@ export const updateGameByName = async (
 };
 
 export const deleteGameByName = async (name: string): Promise<void> => {
+  const seasonId = await getActiveSeasonId();
   const { data, error } = await supabase
     .from("games")
     .delete()
     .eq("name", name)
+    .eq("season_id", seasonId)
     .select("id")
     .maybeSingle();
 

@@ -34,13 +34,18 @@ VITE_SUPABASE_URL=...
 VITE_SUPABASE_ANON_KEY=...
 ```
 
-Then run SQL scripts in order from `supabase_scripts/`:
+Then run SQL scripts in numerical order from `supabase_scripts/`. Existing
+deployments should apply each script they have not yet run. In particular,
+`21_seasons.sql` archives existing event records as GameFest 2026 and creates
+GameFest 2027 as the active season; review those labels before applying it.
+Apply `22_season_admin.sql` next. Admin Settings can edit the active season's
+name, dates, and start.gg tournament slug or start a new season. Older seasons
+remain visible but read-only. New seasons start with empty registrations,
+players, games, challenges, and winners; configure those in the admin panel.
+The bracket page loads live start.gg data for the active season's tournament
+slug. Leave it blank until that tournament exists.
 
-1. `00_initial_schema.sql`
-2. `01_serverless_rls.sql`
-
-`staff` / `admin` access is enforced via RLS using
-`auth.jwt() -> app_metadata -> role`.
+`staff` / `admin` access is enforced through `public.user_roles` and RLS.
 
 Happy coding! 
 

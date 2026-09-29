@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
+import { getActiveSeasonId } from "../utils/activeSeason";
 import type {
   CreateRegistrationInput,
   Registration,
@@ -8,10 +9,12 @@ import type {
 export const fetchMyRegistration = async (
   userId: string
 ): Promise<Registration | null> => {
+  const seasonId = await getActiveSeasonId();
   const { data, error } = await supabase
     .from("registrations")
     .select("*")
     .eq("user_id", userId)
+    .eq("season_id", seasonId)
     .maybeSingle();
 
   if (error) throw error;
@@ -22,10 +25,12 @@ export const createRegistration = async (
   userId: string,
   input: CreateRegistrationInput
 ): Promise<Registration> => {
+  const seasonId = await getActiveSeasonId();
   const { data, error } = await supabase
     .from("registrations")
     .insert({
       user_id: userId,
+      season_id: seasonId,
       first_name: input.first_name.trim(),
       last_name: input.last_name.trim(),
       email: input.email.trim(),

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../utils/supabaseClient";
+import { getActiveSeasonId } from "../../../utils/activeSeason";
 import { Field } from "../shared/ui";
 import { ghostBtnClass, inputClass, primaryBtnClass } from "../shared/styles";
 
@@ -35,13 +36,14 @@ const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ games, onClose, onSubmi
     setSearching(true);
     const handle = setTimeout(async () => {
       try {
+        const seasonId = await getActiveSeasonId();
         const [{ data: userRows }, { data: playerRows }] = await Promise.all([
           supabase
             .from("users")
             .select("id, username, fname, lname")
             .or(`username.ilike.%${q}%,fname.ilike.%${q}%,lname.ilike.%${q}%`)
             .limit(20),
-          supabase.from("players").select("user_id"),
+          supabase.from("players").select("user_id").eq("season_id", seasonId),
         ]);
         if (cancelled) return;
         const claimed = new Set((playerRows || []).map((r) => r.user_id));

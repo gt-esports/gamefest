@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
+import { getActiveSeasonId } from "../utils/activeSeason";
 import type { SaveWinnerInput, WinnerRecord } from "../schemas/WinnerSchema";
 
 export const fetchWinners = async (game?: string): Promise<WinnerRecord[]> => {
+  const seasonId = await getActiveSeasonId();
   let query = supabase
     .from("winners")
     .select("id, game, match_id, winner_name")
+    .eq("season_id", seasonId)
     .order(game ? "match_id" : "game", { ascending: true });
 
   if (game) {
@@ -25,11 +28,13 @@ export const fetchWinners = async (game?: string): Promise<WinnerRecord[]> => {
 };
 
 export const saveWinner = async (input: SaveWinnerInput): Promise<WinnerRecord> => {
+  const seasonId = await getActiveSeasonId();
   const { data: existing, error: existingError } = await supabase
     .from("winners")
     .select("id")
     .eq("game", input.game)
     .eq("match_id", input.matchId)
+    .eq("season_id", seasonId)
     .maybeSingle();
 
   if (existingError) throw existingError;
@@ -58,6 +63,7 @@ export const saveWinner = async (input: SaveWinnerInput): Promise<WinnerRecord> 
       game: input.game,
       match_id: input.matchId,
       winner_name: input.winner,
+      season_id: seasonId,
     })
     .select("id, game, match_id, winner_name")
     .single();
@@ -73,11 +79,13 @@ export const saveWinner = async (input: SaveWinnerInput): Promise<WinnerRecord> 
 };
 
 export const deleteWinner = async (game: string, matchId: string): Promise<void> => {
+  const seasonId = await getActiveSeasonId();
   const { data, error } = await supabase
     .from("winners")
     .delete()
     .eq("game", game)
     .eq("match_id", matchId)
+    .eq("season_id", seasonId)
     .select("id")
     .maybeSingle();
 

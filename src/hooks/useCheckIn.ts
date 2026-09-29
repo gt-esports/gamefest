@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
+import { getActiveSeasonId } from "../utils/activeSeason";
 
 export type CheckInRecord = {
   userId: string;
@@ -49,12 +50,13 @@ export const useCheckInRoster = () => {
     setLoading(true);
     try {
       setError(null);
+      const seasonId = await getActiveSeasonId();
 
       // Fetch all player user_ids so we can include players without registrations
       const [{ data: playerRows, error: playerError }, { data: regRows, error: regError }] =
         await Promise.all([
-          supabase.from("players").select("user_id"),
-          supabase.from("registrations").select("user_id, checked_in, checked_in_at, checked_in_by"),
+          supabase.from("players").select("user_id").eq("season_id", seasonId),
+          supabase.from("registrations").select("user_id, checked_in, checked_in_at, checked_in_by").eq("season_id", seasonId),
         ]);
 
       if (playerError) throw playerError;
@@ -132,12 +134,14 @@ export const useCheckInEvents = (userId: string | null) => {
     setLoading(true);
     try {
       setError(null);
+      const seasonId = await getActiveSeasonId();
       const { data, error: fetchError } = await supabase
         .from("check_in_events")
         .select(
           "id, event_type, occurred_at, performed_by, performer:users!check_in_events_performed_by_fkey(fname, lname, username)"
         )
         .eq("user_id", userId)
+        .eq("season_id", seasonId)
         .order("occurred_at", { ascending: false });
 
       if (fetchError) throw fetchError;

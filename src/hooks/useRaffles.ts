@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
+import { getActiveSeasonId } from "../utils/activeSeason";
 import { updateAllPlayersRaffleState } from "./usePlayers";
 import type { PickRaffleWinnersInput, RaffleParticipant, RaffleWinner } from "../schemas/RafflesSchema";
 
@@ -61,10 +62,12 @@ const displayName = (row: PlayerWithUserRow): string => {
 };
 
 export const fetchRaffleWinners = async (): Promise<RaffleWinner[]> => {
+  const seasonId = await getActiveSeasonId();
   const { data, error } = await supabase
     .from("players")
     .select("id, points, raffle_placing, users ( username, fname, lname )")
     .eq("raffle_winner", true)
+    .eq("season_id", seasonId)
     .order("raffle_placing", { ascending: true });
 
   if (error) throw error;
@@ -89,9 +92,11 @@ export const pickRaffleWinners = async (
     throw new Error("Count must be at least 1");
   }
 
+  const seasonId = await getActiveSeasonId();
   const { data: players, error: playersError } = await supabase
     .from("players")
     .select("id, points, users ( username, fname, lname )")
+    .eq("season_id", seasonId)
     .order("points", { ascending: false });
 
   if (playersError) throw playersError;

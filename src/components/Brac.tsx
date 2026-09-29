@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSeasons } from "../hooks/useSeasons";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type TournamentEvent = { id: string | number; name: string };
@@ -39,7 +40,6 @@ type PhaseGroupResultsResult = {
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const API_BASE = (import.meta.env.VITE_BACKEND_URL as string | undefined) ?? "";
-const TOURNAMENT_SLUG = "gamefest-2026";
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const SURFACE = "rgba(15, 31, 60, 0.88)";
@@ -129,6 +129,9 @@ async function fetchJson<T>(path: string): Promise<T> {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function Events() {
+  const { seasons, loading: seasonsLoading, error: seasonsError } = useSeasons();
+  const activeSeason = seasons.find((season) => season.is_active);
+  const tournamentSlug = activeSeason?.tournament_slug;
   const [events, setEvents] = useState<TournamentEvent[]>([]);
   const [eventPhasesResults, setEventPhasesResults] = useState<Record<string, EventPhasesResult>>({});
   const [phasePoolsResults, setPhasePoolsResults] = useState<Record<string, PhasePoolsResult>>({});
@@ -154,12 +157,19 @@ export default function Events() {
   const [phasesOpen, setPhasesOpen] = useState(true);
 
   useEffect(() => {
-    async function load() {
+    if (seasonsLoading) return;
+    const slug = tournamentSlug;
+    if (!slug) {
+      setEvents([]);
+      setError(seasonsError ?? "The active season has no start.gg tournament configured yet.");
+      return;
+    }
+    async function load(slugToLoad: string) {
       setLoading(true);
       setError(null);
       try {
         const result = await fetchJson<{ events: TournamentEvent[] }>(
-          `/api/startgg/tournaments/${encodeURIComponent(TOURNAMENT_SLUG)}/events`
+          `/api/startgg/tournaments/${encodeURIComponent(slugToLoad)}/events`
         );
         setEvents(result.events ?? []);
         setEventPhasesResults({});
@@ -178,8 +188,8 @@ export default function Events() {
         setLoading(false);
       }
     }
-    void load();
-  }, []);
+    void load(slug);
+  }, [tournamentSlug, seasonsLoading, seasonsError]);
 
   useEffect(() => {
     setSelectedPhaseId("");
@@ -646,11 +656,11 @@ export default function Events() {
           margin: "0 0 32px",
         }}
       >
-        GAMEFEST 2026
+        {activeSeason?.name ?? "GAMEFEST"}
       </h1>
 
       {/* Events loading / error */}
-      {loading && (
+      {(loading || seasonsLoading) && (
         <div style={{ textAlign: "center", color: MUTED, padding: "20px 0", fontSize: 14 }}>
           Loading events...
         </div>

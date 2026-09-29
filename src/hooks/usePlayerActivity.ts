@@ -1,4 +1,5 @@
 import { supabase } from "../utils/supabaseClient";
+import { getActiveSeasonId } from "../utils/activeSeason";
 
 export class AwardCapExceededError extends Error {
   constructor() {
@@ -60,10 +61,12 @@ export const getActivityTotal = async (
   gameId: string | null,
   challengeId: string | null
 ): Promise<number> => {
+  const seasonId = await getActiveSeasonId();
   let query = supabase
     .from("player_activity")
     .select("points_awarded")
-    .eq("player_id", playerId);
+    .eq("player_id", playerId)
+    .eq("season_id", seasonId);
 
   if (gameId) {
     query = query.eq("game_id", gameId);
@@ -87,30 +90,14 @@ export const deleteActivitiesBy = async (
   gameId: string | null,
   challengeId: string | null
 ): Promise<number> => {
-  // First fetch the rows to compute the sum before deleting.
-  let selectQuery = supabase
-    .from("player_activity")
-    .select("points_awarded")
-    .eq("player_id", playerId)
-    .eq("awarded_by", awardedByUserId);
-
-  if (gameId) {
-    selectQuery = selectQuery.eq("game_id", gameId);
-  } else if (challengeId) {
-    selectQuery = selectQuery.eq("challenge_id", challengeId);
-  }
-
-  const { data: toDelete, error: selectError } = await selectQuery;
-  if (selectError) throw selectError;
-
-  const total = (toDelete || []).reduce((sum, row) => sum + row.points_awarded, 0);
-  if (total === 0) return 0;
-
+  const seasonId = await getActiveSeasonId();
+  // Return the rows actually deleted so the total matches the mutation.
   let deleteQuery = supabase
     .from("player_activity")
     .delete()
     .eq("player_id", playerId)
-    .eq("awarded_by", awardedByUserId);
+    .eq("awarded_by", awardedByUserId)
+    .eq("season_id", seasonId);
 
   if (gameId) {
     deleteQuery = deleteQuery.eq("game_id", gameId);
@@ -118,8 +105,8 @@ export const deleteActivitiesBy = async (
     deleteQuery = deleteQuery.eq("challenge_id", challengeId);
   }
 
-  const { error: deleteError } = await deleteQuery;
+  const { data: deleted, error: deleteError } = await deleteQuery.select("points_awarded");
   if (deleteError) throw deleteError;
 
-  return total;
+  return (deleted || []).reduce((sum, row) => sum + row.points_awarded, 0);
 };

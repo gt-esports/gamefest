@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
+import { getActiveSeasonId } from "../utils/activeSeason";
 import type {
   TableInsert,
   TableUpdate,
@@ -117,7 +118,8 @@ export const fetchPlayers = async ({
   id?: string;
   userId?: string;
 } = {}): Promise<Player[]> => {
-  let playerQuery = supabase.from("players").select(PLAYER_SELECT);
+  const seasonId = await getActiveSeasonId();
+  let playerQuery = supabase.from("players").select(PLAYER_SELECT).eq("season_id", seasonId);
 
   if (id) {
     playerQuery = playerQuery.eq("id", id);
@@ -166,11 +168,13 @@ export const getPlayerByUserId = async (
 
 const ensureGameId = async (gameName: string): Promise<string> => {
   const trimmed = gameName.trim();
+  const seasonId = await getActiveSeasonId();
 
   const { data: existing, error: existingError } = await supabase
     .from("games")
     .select("id")
     .eq("name", trimmed)
+    .eq("season_id", seasonId)
     .maybeSingle();
 
   if (existingError) throw existingError;
@@ -178,7 +182,7 @@ const ensureGameId = async (gameName: string): Promise<string> => {
 
   const { data: inserted, error: insertError } = await supabase
     .from("games")
-    .insert({ name: trimmed })
+    .insert({ name: trimmed, season_id: seasonId })
     .select("id")
     .single();
 
@@ -250,8 +254,10 @@ const replacePlayerAssignments = async (
 export const createPlayer = async (
   input: CreatePlayerInput
 ): Promise<Player> => {
+  const seasonId = await getActiveSeasonId();
   const payload: TableInsert<"players"> = {
     user_id: input.userId,
+    season_id: seasonId,
     points: typeof input.points === "number" ? input.points : 0,
     participation: Array.isArray(input.participation)
       ? input.participation
@@ -334,9 +340,11 @@ export const updateAllPlayersRaffleState = async (
   raffleWinner: boolean,
   rafflePlacing: number
 ): Promise<void> => {
+  const seasonId = await getActiveSeasonId();
   const { error } = await supabase
     .from("players")
     .update({ raffle_winner: raffleWinner, raffle_placing: rafflePlacing })
+    .eq("season_id", seasonId)
     .not("id", "is", null);
 
   if (error) throw error;

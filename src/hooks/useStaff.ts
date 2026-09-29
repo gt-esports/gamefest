@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
+import { getActiveSeasonId } from "../utils/activeSeason";
 import type { StaffAssignment, StaffMember } from "../schemas/StaffSchema";
 
 type UserRoleRow = {
@@ -32,6 +33,7 @@ const unwrap = <T>(v: T | T[] | null | undefined): T | null => {
 };
 
 export const fetchStaff = async (): Promise<StaffMember[]> => {
+  const seasonId = await getActiveSeasonId();
   const { data: rolesData, error: rolesError } = await supabase
     .from("user_roles")
     .select("user_id, role, users(username, fname, lname)")
@@ -49,6 +51,7 @@ export const fetchStaff = async (): Promise<StaffMember[]> => {
     .select(
       "id, user_id, game_id, challenge_id, games(id, name, max_points), challenges(id, name, max_points)"
     )
+    .eq("season_id", seasonId)
     .in("user_id", userIds);
 
   if (assignError) throw assignError;
@@ -115,10 +118,11 @@ export const addAssignmentToStaff = async (
   userId: string,
   input: { gameId: string } | { challengeId: string }
 ): Promise<void> => {
+  const seasonId = await getActiveSeasonId();
   const row =
     "gameId" in input
-      ? { user_id: userId, game_id: input.gameId, challenge_id: null }
-      : { user_id: userId, game_id: null, challenge_id: input.challengeId };
+      ? { user_id: userId, game_id: input.gameId, challenge_id: null, season_id: seasonId }
+      : { user_id: userId, game_id: null, challenge_id: input.challengeId, season_id: seasonId };
 
   const { error } = await supabase.from("staff_assignments").insert(row);
   if (error) throw error;

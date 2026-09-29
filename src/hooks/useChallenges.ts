@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
+import { getActiveSeasonId } from "../utils/activeSeason";
 import type { Challenge, CreateChallengeInput, UpdateChallengeInput } from "../schemas/ChallengesSchema";
 
 export const fetchChallenges = async (): Promise<Challenge[]> => {
+  const seasonId = await getActiveSeasonId();
   const { data, error } = await supabase
     .from("challenges")
     .select("id, name, max_points")
+    .eq("season_id", seasonId)
     .order("name", { ascending: true });
 
   if (error) throw error;
@@ -18,10 +21,12 @@ export const fetchChallenges = async (): Promise<Challenge[]> => {
 };
 
 export const createChallenge = async (input: CreateChallengeInput): Promise<Challenge> => {
+  const seasonId = await getActiveSeasonId();
   const { data, error } = await supabase
     .from("challenges")
     .insert({
       name: input.name.trim(),
+      season_id: seasonId,
       max_points: input.maxPoints ?? 50,
     })
     .select("id, name, max_points")
@@ -74,10 +79,12 @@ export const updateChallengeById = async (
 };
 
 export const deleteChallengeByName = async (name: string): Promise<void> => {
+  const seasonId = await getActiveSeasonId();
   const { data, error } = await supabase
     .from("challenges")
     .delete()
     .eq("name", name)
+    .eq("season_id", seasonId)
     .select("id")
     .maybeSingle();
 

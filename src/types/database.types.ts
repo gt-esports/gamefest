@@ -9,19 +9,28 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      seasons: {
+        Row: { id: string; slug: string; name: string; starts_on: string | null; ends_on: string | null; tournament_slug: string | null; is_active: boolean; archived_at: string | null; created_at: string };
+        Insert: { id?: string; slug: string; name: string; starts_on?: string | null; ends_on?: string | null; tournament_slug?: string | null; is_active?: boolean; archived_at?: string | null; created_at?: string };
+        Update: { id?: string; slug?: string; name?: string; starts_on?: string | null; ends_on?: string | null; tournament_slug?: string | null; is_active?: boolean; archived_at?: string | null; created_at?: string };
+        Relationships: [];
+      };
       challenges: {
         Row: {
           id: string;
+          season_id: string;
           name: string;
           max_points: number;
         };
         Insert: {
           id?: string;
+          season_id?: string;
           name: string;
           max_points?: number;
         };
         Update: {
           id?: string;
+          season_id?: string;
           name?: string;
           max_points?: number;
         };
@@ -30,16 +39,19 @@ export interface Database {
       games: {
         Row: {
           id: string;
+          season_id: string;
           name: string;
           max_points: number;
         };
         Insert: {
           id?: string;
+          season_id?: string;
           name: string;
           max_points?: number;
         };
         Update: {
           id?: string;
+          season_id?: string;
           name?: string;
           max_points?: number;
         };
@@ -48,6 +60,8 @@ export interface Database {
       check_in_events: {
         Row: {
           id: string;
+          season_id: string;
+          player_id: string | null;
           user_id: string;
           event_type: "check_in" | "check_out";
           performed_by: string | null;
@@ -55,6 +69,8 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          season_id?: string;
+          player_id?: string | null;
           user_id: string;
           event_type: "check_in" | "check_out";
           performed_by?: string | null;
@@ -62,6 +78,8 @@ export interface Database {
         };
         Update: {
           id?: string;
+          season_id?: string;
+          player_id?: string | null;
           user_id?: string;
           event_type?: "check_in" | "check_out";
           performed_by?: string | null;
@@ -87,6 +105,7 @@ export interface Database {
       player_activity: {
         Row: {
           id: string;
+          season_id: string;
           player_id: string;
           game_id: string | null;
           challenge_id: string | null;
@@ -96,6 +115,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          season_id?: string;
           player_id: string;
           game_id?: string | null;
           challenge_id?: string | null;
@@ -105,6 +125,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          season_id?: string;
           player_id?: string;
           game_id?: string | null;
           challenge_id?: string | null;
@@ -169,6 +190,7 @@ export interface Database {
       players: {
         Row: {
           id: string;
+          season_id: string;
           log: string[] | null;
           participation: string[] | null;
           points: number | null;
@@ -178,6 +200,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          season_id?: string;
           log?: string[] | null;
           participation?: string[] | null;
           points?: number | null;
@@ -187,6 +210,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          season_id?: string;
           log?: string[];
           participation?: string[];
           points?: number | null;
@@ -207,6 +231,7 @@ export interface Database {
       registrations: {
         Row: {
           id: string;
+          season_id: string;
           user_id: string;
           first_name: string;
           last_name: string;
@@ -221,6 +246,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          season_id?: string;
           user_id: string;
           first_name: string;
           last_name: string;
@@ -235,6 +261,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          season_id?: string;
           user_id?: string;
           first_name?: string;
           last_name?: string;
@@ -260,18 +287,21 @@ export interface Database {
       staff_assignments: {
         Row: {
           id: string;
+          season_id: string;
           user_id: string;
           game_id: string | null;
           challenge_id: string | null;
         };
         Insert: {
           id?: string;
+          season_id?: string;
           user_id: string;
           game_id?: string | null;
           challenge_id?: string | null;
         };
         Update: {
           id?: string;
+          season_id?: string;
           user_id?: string;
           game_id?: string | null;
           challenge_id?: string | null;
@@ -389,18 +419,21 @@ export interface Database {
         Row: {
           game: string;
           id: string;
+          season_id: string;
           match_id: string;
           winner_name: string;
         };
         Insert: {
           game: string;
           id?: string;
+          season_id?: string;
           match_id: string;
           winner_name: string;
         };
         Update: {
           game?: string;
           id?: string;
+          season_id?: string;
           match_id?: string;
           winner_name?: string;
         };
@@ -411,6 +444,18 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
+      update_active_season: {
+        Args: { p_season_id: string; p_name: string; p_starts_on: string | null; p_ends_on: string | null; p_tournament_slug: string };
+        Returns: undefined;
+      };
+      start_new_season: {
+        Args: { p_slug: string; p_name: string; p_starts_on: string | null; p_ends_on: string | null; p_tournament_slug: string };
+        Returns: string;
+      };
+      get_active_season_id: {
+        Args: Record<string, never>;
+        Returns: string | null;
+      };
       assign_app_role: {
         Args: {
           target_role: string;
