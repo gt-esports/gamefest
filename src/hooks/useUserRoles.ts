@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
 import { useUser } from "./useAuth";
 import type { AppRole } from "../schemas/UserRoles";
+import { getActiveSeasonId } from "../utils/activeSeason";
 
 export const fetchRolesForUser = async (userId: string): Promise<AppRole[]> => {
   const { data, error } = await supabase
@@ -11,9 +12,22 @@ export const fetchRolesForUser = async (userId: string): Promise<AppRole[]> => {
 
   if (error) throw error;
 
-  return (data || [])
+  const roles = (data || [])
     .map((row) => row.role)
     .filter((role): role is AppRole => role === "staff" || role === "admin");
+
+  if (roles.includes("admin") || !roles.includes("staff")) return roles;
+
+  const seasonId = await getActiveSeasonId();
+  const { data: membership, error: membershipError } = await supabase
+    .from("season_staff")
+    .select("user_id")
+    .eq("season_id", seasonId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (membershipError) throw membershipError;
+  return membership ? roles : roles.filter((role) => role !== "staff");
 };
 
 export const useUserRoles = () => {

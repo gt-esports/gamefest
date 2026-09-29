@@ -9,29 +9,20 @@ function AboutInformation() {
         {/* Text Section */}
         <div className="ml-20 flex flex-1 flex-col items-start">
           <h3 className="mb-4 font-bayon text-3xl tracking-wide text-blue-bright">
-            WHAT IS GAMEFEST 2026?
+            WHAT IS GAMEFEST 2027?
           </h3>
           <p className="max-w-2xl pt-3 font-quicksand text-lg text-white">
-            <strong>GameFest returns April 25th and 26th at the Campus Recreation Center!</strong>{" "}
-            Georgia Tech's biggest in-person gaming event is almost here—two full days of
-            brackets, LAN play, and competition. Don't forget to register for individual
-            events on our{" "}
-            <a
-              href="https://www.start.gg/tournament/gamefest-2026/details"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#0099BB] underline hover:text-white"
-            >
-              start.gg page
-            </a>
-            .
+            <strong>GameFest 2027 is returning—dates TBA!</strong>{" "}
+            Georgia Tech's biggest in-person gaming event brings together brackets,
+            LAN play, and competition. Event and tournament registration details will
+            be announced soon.
           </p>
           <ul className="mt-4 space-y-3 font-quicksand text-white">
             <li>
-              🗓️ <strong>Saturday 4/25:</strong> Rocket League, Marvel Rivals, League of Legends, and more
+              🗓️ <strong>Event dates:</strong> TBA
             </li>
             <li>
-              🗓️ <strong>Sunday 4/26:</strong> Rainbow Six Siege, Apex Legends, Overwatch, Valorant, and more
+              🎮 <strong>Tournament schedule:</strong> TBA
             </li>
             <li>
               🏆 <strong>Grand prizing</strong> reveal coming soon—stay tuned to find out how <strong>you</strong> can win big!
@@ -47,7 +38,7 @@ function AboutInformation() {
             OUR MISSION
           </h3>
           <p className="max-w-2xl pt-3 font-quicksand text-lg text-white">
-            At GameFest 2026, we're all about community, competition, and
+            At GameFest, we're all about community, competition, and
             celebration. We believe in:
           </p>
           <ul className="mt-4 list-inside list-disc space-y-2 font-quicksand text-white">

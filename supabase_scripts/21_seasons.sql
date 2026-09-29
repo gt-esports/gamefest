@@ -51,7 +51,7 @@ declare
 begin
   select id into old_season from public.seasons where slug = 'gamefest-2026';
   foreach event_table in array array[
-    'games', 'challenges', 'players', 'registrations', 'winners',
+    'games', 'challenges', 'players', 'registrations',
     'player_activity', 'check_in_events', 'staff_assignments'
   ] loop
     execute format(
@@ -72,14 +72,12 @@ end $$;
 alter table public.games drop constraint if exists games_name_key;
 alter table public.challenges drop constraint if exists challenges_name_key;
 alter table public.registrations drop constraint if exists registrations_user_id_key;
-alter table public.winners drop constraint if exists winners_game_match_id_key;
 drop index if exists public.players_user_id_key;
 
 create unique index if not exists games_season_name_key on public.games(season_id, name);
 create unique index if not exists challenges_season_name_key on public.challenges(season_id, name);
 create unique index if not exists registrations_season_user_key on public.registrations(season_id, user_id);
 create unique index if not exists players_season_user_key on public.players(season_id, user_id);
-create unique index if not exists winners_season_game_match_key on public.winners(season_id, game, match_id);
 create index if not exists player_activity_season_idx on public.player_activity(season_id);
 create index if not exists check_in_events_season_idx on public.check_in_events(season_id);
 

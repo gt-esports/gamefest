@@ -25,6 +25,13 @@ export const createRegistration = async (
   userId: string,
   input: CreateRegistrationInput
 ): Promise<Registration> => {
+  const school = input.school.trim();
+  const heardFrom = input.heard_from.trim();
+
+  if (!school || !heardFrom) {
+    throw new Error("School and how you heard about us are required");
+  }
+
   const seasonId = await getActiveSeasonId();
   const { data, error } = await supabase
     .from("registrations")
@@ -35,8 +42,8 @@ export const createRegistration = async (
       last_name: input.last_name.trim(),
       email: input.email.trim(),
       admission_type: input.admission_type,
-      school: input.school?.trim() || null,
-      heard_from: input.heard_from?.trim() || null,
+      school,
+      heard_from: heardFrom,
     })
     .select("*")
     .single();

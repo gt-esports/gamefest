@@ -21,6 +21,6 @@ export type CreateRegistrationInput = {
   last_name: string;
   email: string;
   admission_type: AdmissionType;
-  school?: string | null;
-  heard_from?: string | null;
+  school: string;
+  heard_from: string;
 };

@@ -38,12 +38,24 @@ Then run SQL scripts in numerical order from `supabase_scripts/`. Existing
 deployments should apply each script they have not yet run. In particular,
 `21_seasons.sql` archives existing event records as GameFest 2026 and creates
 GameFest 2027 as the active season; review those labels before applying it.
-Apply `22_season_admin.sql` next. Admin Settings can edit the active season's
-name, dates, and start.gg tournament slug or start a new season. Older seasons
-remain visible but read-only. New seasons start with empty registrations,
-players, games, challenges, and winners; configure those in the admin panel.
+Apply `22_season_admin.sql` next. If an earlier draft of script 22 was applied,
+rerun the current version to remove its admin season-creation and name-editing
+functions. Admin Settings can edit the active season's start.gg tournament
+slug. Admins can view past seasons and their
+archived totals and top players, with a link to tournament results on start.gg,
+but cannot edit archived
+data, change a season's name, or create a season. A maintainer must create and
+activate future seasons through a reviewed database migration. New seasons
+start with empty registrations, players, games, and challenges;
+configure those in the admin panel.
 The bracket page loads live start.gg data for the active season's tournament
 slug. Leave it blank until that tournament exists.
+Apply `23_drop_winners.sql` after script 22 to remove the redundant match
+`winners` table. Tournament outcomes come from start.gg; raffle results stay
+on `players`.
+Apply `24_remove_season_dates.sql` after script 23 to remove the unused season
+date columns and replace the admin update function. The older scripts retain
+their original definitions for deployments that have already run them.
 
 `staff` / `admin` access is enforced through `public.user_roles` and RLS.
 

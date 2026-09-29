@@ -9,9 +9,9 @@ const FAQ = () => {
 
   const faqs: Array<{ question: string; answer: ReactNode }> = [
     {
-      question: "When and where is GameFest 2026?",
+      question: "When and where is GameFest 2027?",
       answer:
-        "GameFest 2026 takes place on April 25 and 26 at the Campus Recreation Center. The About section above highlights the featured games for each day, so check that schedule before you register for brackets.",
+        "GameFest 2027 dates and venue details are TBA. Follow the GameFest Discord for the announcement.",
     },
     {
       question: "How do I register for GameFest?",
@@ -21,16 +21,7 @@ const FAQ = () => {
           <Link to="/register" className={linkClass}>
             registration page
           </Link>
-          . After that, sign up for the specific tournaments you want to play on the{" "}
-          <a
-            href="https://www.start.gg/tournament/gamefest-2026/details"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={linkClass}
-          >
-            official start.gg page
-          </a>
-          .
+          . Tournament registration details will be shared when the schedule is announced.
         </>
       ),
     },
@@ -38,16 +29,7 @@ const FAQ = () => {
       question: "Do I need to register separately for tournaments?",
       answer: (
         <>
-          Yes. The event registration form secures your GameFest attendance, but each tournament bracket is managed separately on{" "}
-          <a
-            href="https://www.start.gg/tournament/gamefest-2026/details"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={linkClass}
-          >
-            start.gg
-          </a>
-          . You should complete both steps if you plan to compete.
+          Yes. Event attendance and individual tournament brackets are separate registrations. The 2027 tournament links are TBA and will be announced with the schedule.
         </>
       ),
     },
@@ -74,35 +56,14 @@ const FAQ = () => {
           >
             GameFest Discord
           </a>{" "}
-          for live updates, and use the{" "}
-          <a
-            href="https://www.start.gg/tournament/gamefest-2026/details"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={linkClass}
-          >
-            start.gg page
-          </a>{" "}
-          for tournament registration and bracket information.
+          for live updates. The 2027 bracket links will be posted there once they are ready.
         </>
       ),
     },
     {
       question: "Has prizing been announced yet?",
-      answer: (
-        <>
-          Yes. Prizing has been released, and you can view the latest details in the{" "}
-          <a
-            href="https://discord.gg/P5hPgkca5N"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={linkClass}
-          >
-            GameFest Discord
-          </a>
-          .
-        </>
-      ),
+      answer:
+        "Not yet. GameFest 2027 prizing has not been announced. Follow the GameFest Discord for updates when details are ready.",
     },
   ];
 

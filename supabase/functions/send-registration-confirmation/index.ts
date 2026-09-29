@@ -49,13 +49,13 @@ serve(async (req) => {
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; border-radius: 10px; text-align: center;">
             <h1 style="color: #00d4ff; margin: 0 0 10px 0;">You're Registered!</h1>
-            <p style="color: #fff; margin: 0;">GT Esports GameFest 2026</p>
+            <p style="color: #fff; margin: 0;">GT Esports GameFest 2027</p>
           </div>
           
           <div style="padding: 20px 0;">
             <p>Hi ${payload.first_name},</p>
             
-            <p>Thank you for registering for GT Esports GameFest 2026! We're excited to have you join us.</p>
+            <p>Thank you for registering for GT Esports GameFest 2027! We're excited to have you join us.</p>
             
             <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <h3 style="margin-top: 0; color: #1a1a2e;">Registration Details</h3>
@@ -95,7 +95,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: FROM_EMAIL,
         to: payload.email,
-        subject: "You're Registered! - GT Esports GameFest 2026",
+        subject: "You're Registered! - GT Esports GameFest 2027",
         html: htmlContent,
       }),
     });

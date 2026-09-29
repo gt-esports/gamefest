@@ -10,9 +10,9 @@ export interface Database {
   public: {
     Tables: {
       seasons: {
-        Row: { id: string; slug: string; name: string; starts_on: string | null; ends_on: string | null; tournament_slug: string | null; is_active: boolean; archived_at: string | null; created_at: string };
-        Insert: { id?: string; slug: string; name: string; starts_on?: string | null; ends_on?: string | null; tournament_slug?: string | null; is_active?: boolean; archived_at?: string | null; created_at?: string };
-        Update: { id?: string; slug?: string; name?: string; starts_on?: string | null; ends_on?: string | null; tournament_slug?: string | null; is_active?: boolean; archived_at?: string | null; created_at?: string };
+        Row: { id: string; slug: string; name: string; tournament_slug: string | null; is_active: boolean; archived_at: string | null; created_at: string };
+        Insert: { id?: string; slug: string; name: string; tournament_slug?: string | null; is_active?: boolean; archived_at?: string | null; created_at?: string };
+        Update: { id?: string; slug?: string; name?: string; tournament_slug?: string | null; is_active?: boolean; archived_at?: string | null; created_at?: string };
         Relationships: [];
       };
       challenges: {
@@ -284,6 +284,39 @@ export interface Database {
           }
         ];
       };
+      season_staff: {
+        Row: {
+          season_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          season_id: string;
+          user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          season_id?: string;
+          user_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "season_staff_season_id_fkey";
+            columns: ["season_id"];
+            isOneToOne: false;
+            referencedRelation: "seasons";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "season_staff_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       staff_assignments: {
         Row: {
           id: string;
@@ -415,37 +448,13 @@ export interface Database {
           }
         ];
       };
-      winners: {
-        Row: {
-          game: string;
-          id: string;
-          season_id: string;
-          match_id: string;
-          winner_name: string;
-        };
-        Insert: {
-          game: string;
-          id?: string;
-          season_id?: string;
-          match_id: string;
-          winner_name: string;
-        };
-        Update: {
-          game?: string;
-          id?: string;
-          season_id?: string;
-          match_id?: string;
-          winner_name?: string;
-        };
-        Relationships: [];
-      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
       update_active_season: {
-        Args: { p_season_id: string; p_starts_on: string | null; p_ends_on: string | null; p_tournament_slug: string };
+        Args: { p_season_id: string; p_tournament_slug: string };
         Returns: undefined;
       };
       get_active_season_id: {

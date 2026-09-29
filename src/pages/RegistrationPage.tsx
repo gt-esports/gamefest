@@ -97,16 +97,7 @@ const RegistrationPage = () => {
             <div className="rounded-2xl border border-white/15 bg-gradient-to-br from-[#0F1F3C]/90 to-[#101c3b]/90 p-8 text-white shadow-xl">
               <h1 className="mb-2 font-bayon text-3xl">Register for GameFest</h1>
               <div className="mb-6 rounded-lg border border-[#0099BB]/40 bg-[#0099BB]/10 px-4 py-3 text-sm text-[#7dd3f0]">
-                <span className="font-semibold text-white">Heads up:</span> This form registers you for the event itself. You also need to sign up for individual tournaments on our{" "}
-                <a
-                  href="https://www.start.gg/tournament/gamefest-2026/details"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline hover:text-white"
-                >
-                  start.gg page
-                </a>
-                .
+                <span className="font-semibold text-white">Heads up:</span> This form registers you for the event itself. Individual GameFest 2027 tournament links are TBA and will be announced with the schedule.
               </div>
               <p className="mb-8 text-gray-400">Fields marked with * are required.</p>
 
@@ -192,12 +183,13 @@ const RegistrationPage = () => {
 
                 <div>
                   <label className={labelClass} htmlFor="school">
-                    School <span className="text-gray-500">(optional)</span>
+                    School *
                   </label>
                   <input
                     id="school"
                     name="school"
                     type="text"
+                    required
                     value={form.school ?? ""}
                     onChange={handleChange}
                     className={inputClass}
@@ -207,12 +199,13 @@ const RegistrationPage = () => {
 
                 <div>
                   <label className={labelClass} htmlFor="heard_from">
-                    How did you hear about us? <span className="text-gray-500">(optional)</span>
+                    How did you hear about us? *
                   </label>
                   <input
                     id="heard_from"
                     name="heard_from"
                     type="text"
+                    required
                     value={form.heard_from ?? ""}
                     onChange={handleChange}
                     className={inputClass}

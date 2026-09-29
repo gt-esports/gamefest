@@ -140,6 +140,43 @@ body {
   animation: scroll-sponsors 60s linear infinite;
 }
 
+.animate-scroll-games {
+  display: flex;
+  animation: scroll-sponsors 32s linear infinite;
+}
+
+.game-carousel-container {
+  position: relative;
+  overflow: hidden;
+  padding-block: 0.5rem;
+}
+
+.game-carousel-container::before,
+.game-carousel-container::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  z-index: 2;
+  width: 12%;
+  pointer-events: none;
+}
+
+.game-carousel-container::before {
+  left: 0;
+  background: linear-gradient(to right, #07101d, transparent);
+}
+
+.game-carousel-container::after {
+  right: 0;
+  background: linear-gradient(to left, #07101d, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-scroll-games {
+    animation: none;
+  }
+}
+
 .sponsor-carousel-container {
   position: relative;
   width: 100%;

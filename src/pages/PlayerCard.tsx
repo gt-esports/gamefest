@@ -137,7 +137,7 @@ const PlayerCard = () => {
                     You're not registered yet
                   </p>
                   <p className="mt-1 font-quicksand text-xs text-gray-400">
-                    Secure your spot at GameFest 2026 by completing your registration.
+                    Secure your spot at GameFest 2027 by completing your registration.
                   </p>
                   <button
                     type="button"

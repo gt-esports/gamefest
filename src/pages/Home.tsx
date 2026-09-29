@@ -1,5 +1,5 @@
 import Footer from "../components/Footer";
-import HomeLeaderboard from "../components/HomeLeaderboard";
+import PastWinners from "../components/PastWinners";
 import GameFestTitle from "../assets/GameFestTitle.png";
 import iconRL from "../assets/game-icons/rl.png";
 import iconRivals from "../assets/game-icons/rivals.png";
@@ -14,37 +14,37 @@ import { useAuth } from "../hooks/useAuth";
 
 type GameEntry = { icon: string; name: string };
 
-const SAT_GAMES: GameEntry[] = [
+const PAST_GAMES: GameEntry[] = [
   { icon: iconRL,     name: "Rocket League" },
   { icon: iconRivals, name: "Marvel Rivals" },
   { icon: iconLoL,    name: "League of Legends" },
   { icon: iconCS,    name: "Counter-Strike 2" },
-];
-
-const SUN_GAMES: GameEntry[] = [
   { icon: iconR6,   name: "Rainbow Six Siege" },
   { icon: iconApex, name: "Apex Legends" },
   { icon: iconOW2,  name: "Overwatch 2" },
   { icon: iconVal,  name: "Valorant" },
 ];
 
-function DayCard({ day, date, games }: { day: string; date: string; games: GameEntry[] }) {
+function PastGamesCarousel() {
+  const carouselGames = [...PAST_GAMES, ...PAST_GAMES];
+
   return (
-    <div className="flex flex-1 flex-col rounded-2xl border border-white/10 bg-white/5 p-6">
-      <div className="mb-5 border-b border-white/10 pb-4">
-        <p className="font-bayon text-3xl text-[#00D4FF]">{day}</p>
-        <p className="font-bayon text-lg text-gray-400">{date}</p>
-      </div>
-      <div className="flex flex-col gap-3">
-        {games.map((g) => (
-          <div key={g.name} className="flex items-center gap-3">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white/10">
-              <img src={g.icon} alt={g.name} className="h-7 w-7 object-contain" />
+    <div className="game-carousel-container w-full" aria-label="Past games featured at GameFest">
+      <div className="animate-scroll-games w-max">
+        {carouselGames.map((game, index) => (
+          <div
+            key={`${game.name}-${index}`}
+            className="mx-3 flex w-40 flex-shrink-0 flex-col items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-5 sm:w-48"
+            aria-hidden={index >= PAST_GAMES.length}
+          >
+            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-black/30 ring-1 ring-[#00D4FF]/20">
+              <img src={game.icon} alt={index < PAST_GAMES.length ? game.name : ""} className="h-14 w-14 object-contain" />
             </div>
-            <span className="font-quicksand text-white">{g.name}</span>
+            <span className="text-center font-quicksand text-sm font-semibold text-white">
+              {game.name}
+            </span>
           </div>
         ))}
-        <p className="mt-1 font-quicksand text-sm text-gray-500">+ more</p>
       </div>
     </div>
   );
@@ -70,7 +70,7 @@ function Home() {
         <div className="relative flex flex-col items-center gap-4">
           <img
             src={GameFestTitle}
-            alt="GameFest 2026"
+            alt="GameFest 2027"
             className="w-[90vw] max-w-5xl drop-shadow-2xl"
           />
           <button
@@ -81,7 +81,6 @@ function Home() {
           </button>
         </div>
       </div>
-      <HomeLeaderboard />
       <div
         id="tournaments-section"
         className="mt-24 flex w-full flex-col items-center justify-center"
@@ -91,28 +90,34 @@ function Home() {
             TOURNAMENT SCHEDULE
           </h2>
         </div>
-        <div className="flex w-11/12 max-w-5xl flex-col gap-6 pb-4 sm:flex-row">
-          <DayCard day="SATURDAY" date="APR 25" games={SAT_GAMES} />
-          <DayCard day="SUNDAY"   date="APR 26" games={SUN_GAMES} />
+        <div className="mb-10 w-11/12 max-w-3xl overflow-hidden rounded-2xl border border-[#00D4FF]/30 bg-gradient-to-br from-[#004466]/40 to-black/30 px-8 py-10 text-center shadow-lg shadow-[#0099BB]/10">
+          <p className="font-quicksand text-xs uppercase tracking-[0.35em] text-[#7dd3f0]">GameFest 2027</p>
+          <p className="mt-3 font-bayon text-6xl tracking-wider text-white sm:text-8xl">TBA</p>
+          <p className="mt-2 font-quicksand text-sm text-gray-300">Dates, games, and bracket times are still loading.</p>
         </div>
-        <p className="pb-2 font-quicksand text-sm text-gray-500">Specific timings will be updated here soon.</p>
+
+        <div className="mt-10 flex w-full flex-col items-center">
+          <h3 className="font-bayon text-3xl tracking-wide text-white">PAST GAMES FEATURED</h3>
+          <p className="mb-6 mt-1 px-6 text-center font-quicksand text-sm text-gray-400">
+            A look at games from previous GameFest lineups—not the confirmed 2027 roster.
+          </p>
+          <PastGamesCarousel />
+        </div>
         <div className="mt-6 flex w-11/12 max-w-5xl items-center justify-between gap-6 rounded-2xl border border-[#0099BB]/30 bg-[#0099BB]/10 px-8 py-6">
           <div>
-            <p className="font-bayon text-2xl text-white">Ready to compete?</p>
+            <p className="font-bayon text-2xl text-white">Brackets are powering up</p>
             <p className="mt-1 font-quicksand text-gray-300">
-              Sign up for individual tournaments on our start.gg page to secure your spot in the brackets.
+              Tournament registration details will be announced with the full schedule.
             </p>
           </div>
-          <a
-            href="https://www.start.gg/tournament/gamefest-2026/details"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-shrink-0 rounded-lg bg-gradient-to-r from-[#004466] to-[#0099BB] px-6 py-3 font-bayon text-xl text-white hover:shadow-lg hover:shadow-[#0099BB]/50"
+          <span
+            className="flex-shrink-0 rounded-lg border border-[#00D4FF]/30 bg-black/20 px-6 py-3 font-bayon text-xl tracking-wider text-[#7dd3f0]"
           >
-            SIGN UP ON START.GG
-          </a>
+            DETAILS TBA
+          </span>
         </div>
       </div>
+      <PastWinners />
       {/* <div id="sponsors-section">
         <div className="flex flex-col items-center justify-center p-16">
           <h2 className="text-center font-bayon text-5xl font-normal text-white">

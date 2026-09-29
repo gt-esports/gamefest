@@ -4,12 +4,6 @@ import type { Database } from "../types/database.types";
 
 export type Season = Database["public"]["Tables"]["seasons"]["Row"];
 
-export type SeasonDetails = {
-  startsOn: string | null;
-  endsOn: string | null;
-  tournamentSlug: string | null;
-};
-
 export const fetchSeasons = async (): Promise<Season[]> => {
   const { data, error } = await supabase
     .from("seasons")
@@ -38,12 +32,10 @@ export const useSeasons = () => {
 
   useEffect(() => { void refresh(); }, [refresh]);
 
-  const saveActive = async (seasonId: string, details: SeasonDetails) => {
+  const saveActive = async (seasonId: string, tournamentSlug: string) => {
     const { error: saveError } = await supabase.rpc("update_active_season", {
       p_season_id: seasonId,
-      p_starts_on: details.startsOn,
-      p_ends_on: details.endsOn,
-      p_tournament_slug: details.tournamentSlug ?? "",
+      p_tournament_slug: tournamentSlug,
     });
     if (saveError) throw saveError;
     await refresh();

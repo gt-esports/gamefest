@@ -135,7 +135,7 @@ declare
   event_table text;
 begin
   foreach event_table in array array[
-    'games', 'challenges', 'players', 'registrations', 'winners',
+    'games', 'challenges', 'players', 'registrations',
     'player_activity', 'check_in_events', 'staff_assignments',
     'teams', 'team_assignments'
   ] loop

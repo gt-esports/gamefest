@@ -157,7 +157,7 @@ const StaffPanel: React.FC = () => {
 
   const handleRemoveStaff = async (userId: string, name: string) => {
     if (!isAdmin) return;
-    if (!window.confirm(`Remove ${name} from staff?`)) return;
+    if (!window.confirm(`Remove ${name} from this season's staff roster?`)) return;
     try {
       await removeStaffByUserId(userId);
       push("success", `Removed ${name}`);

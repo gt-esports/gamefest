@@ -71,10 +71,6 @@ const Form: React.FC = () => {
               <span>801 Atlantic Dr NW, Atlanta, GA 30332</span>
             </p>
             <p className="flex items-center space-x-2">
-              <span className="material-icons">phone</span>
-              <span>888-8888-8888</span>
-            </p>
-            <p className="flex items-center space-x-2">
               <span className="material-icons">email</span>
               <span>georgiatechesports@gmail.com</span>
             </p>

@@ -34,17 +34,34 @@ const unwrap = <T>(v: T | T[] | null | undefined): T | null => {
 
 export const fetchStaff = async (): Promise<StaffMember[]> => {
   const seasonId = await getActiveSeasonId();
+  const { data: rosterData, error: rosterError } = await supabase
+    .from("season_staff")
+    .select("user_id, users(username, fname, lname)")
+    .eq("season_id", seasonId);
+
+  if (rosterError) throw rosterError;
+
+  const rosterRows = (rosterData || []) as unknown as Array<{
+    user_id: string;
+    users: UserRoleRow["users"];
+  }>;
+  if (rosterRows.length === 0) return [];
+
+  const userIds = rosterRows.map((row) => row.user_id);
   const { data: rolesData, error: rolesError } = await supabase
     .from("user_roles")
-    .select("user_id, role, users(username, fname, lname)")
-    .in("role", ["staff", "admin"]);
+    .select("user_id, role")
+    .in("role", ["staff", "admin"])
+    .in("user_id", userIds);
 
   if (rolesError) throw rolesError;
 
-  const roleRows = (rolesData || []) as unknown as UserRoleRow[];
-  if (roleRows.length === 0) return [];
-
-  const userIds = roleRows.map((r) => r.user_id);
+  const rolesByUser = new Map<string, "staff" | "admin">();
+  for (const row of rolesData || []) {
+    if (row.role === "admin" || !rolesByUser.has(row.user_id)) {
+      rolesByUser.set(row.user_id, row.role === "admin" ? "admin" : "staff");
+    }
+  }
 
   const { data: assignData, error: assignError } = await supabase
     .from("staff_assignments")
@@ -78,12 +95,12 @@ export const fetchStaff = async (): Promise<StaffMember[]> => {
     assignmentsByUser.set(row.user_id, list);
   }
 
-  const staff: StaffMember[] = roleRows.map((row) => {
+  const staff: StaffMember[] = rosterRows.map((row) => {
     const user = unwrap(row.users);
     const full = [user?.fname, user?.lname].filter(Boolean).join(" ");
     return {
       userId: row.user_id,
-      role: (row.role === "admin" ? "admin" : "staff") as "staff" | "admin",
+      role: rolesByUser.get(row.user_id) ?? "staff",
       name: full || user?.username || "Unknown",
       username: user?.username ?? null,
       assignments: assignmentsByUser.get(row.user_id) ?? [],
@@ -95,6 +112,7 @@ export const fetchStaff = async (): Promise<StaffMember[]> => {
 };
 
 export const createStaffMember = async (userId: string): Promise<StaffMember> => {
+  const seasonId = await getActiveSeasonId();
   const { data: existing } = await supabase
     .from("user_roles")
     .select("user_id")
@@ -107,6 +125,11 @@ export const createStaffMember = async (userId: string): Promise<StaffMember> =>
       .insert({ user_id: userId, role: "staff" });
     if (error) throw error;
   }
+
+  const { error: rosterError } = await supabase
+    .from("season_staff")
+    .insert({ user_id: userId, season_id: seasonId });
+  if (rosterError) throw rosterError;
 
   const all = await fetchStaff();
   const member = all.find((m) => m.userId === userId);
@@ -139,11 +162,12 @@ export const removeAssignmentFromStaff = async (
 };
 
 export const deleteStaffByUserId = async (userId: string): Promise<void> => {
+  const seasonId = await getActiveSeasonId();
   const { data, error } = await supabase
-    .from("user_roles")
+    .from("season_staff")
     .delete()
     .eq("user_id", userId)
-    .eq("role", "staff")
+    .eq("season_id", seasonId)
     .select("user_id")
     .maybeSingle();
 
