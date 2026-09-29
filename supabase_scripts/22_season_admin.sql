@@ -1,5 +1,6 @@
--- Run after 21_seasons.sql. Season changes are admin-only and archived
--- event records cannot be changed through the client or its RPCs.
+-- Run after 21_seasons.sql. Admins can update active-season dates and the
+-- tournament link. Season names and creation are reserved for maintainers.
+-- Archived event records cannot be changed through the client or its RPCs.
 begin;
 
 alter table public.seasons
@@ -13,9 +14,12 @@ grant select on public.seasons to anon, authenticated;
 revoke all on public.seasons from public;
 revoke insert, update, delete on public.seasons from anon, authenticated;
 
+-- Remove earlier admin RPC signatures if a prior draft was applied.
+drop function if exists public.update_active_season(uuid, text, date, date, text);
+drop function if exists public.start_new_season(text, text, date, date, text);
+
 create or replace function public.update_active_season(
   p_season_id uuid,
-  p_name text,
   p_starts_on date,
   p_ends_on date,
   p_tournament_slug text
@@ -27,9 +31,6 @@ begin
   if not public.has_app_role(array['admin']) then
     raise exception 'Only admins can edit the active season';
   end if;
-  if nullif(btrim(p_name), '') is null then
-    raise exception 'Season name is required';
-  end if;
   if p_starts_on is not null and p_ends_on is not null and p_ends_on < p_starts_on then
     raise exception 'End date must be on or after start date';
   end if;
@@ -39,8 +40,7 @@ begin
   end if;
 
   update public.seasons
-  set name = btrim(p_name),
-      starts_on = p_starts_on,
+  set starts_on = p_starts_on,
       ends_on = p_ends_on,
       tournament_slug = nullif(btrim(p_tournament_slug), '')
   where id = p_season_id and is_active;
@@ -51,54 +51,8 @@ begin
 end;
 $$;
 
--- A new season is created and activated atomically. Previous seasons remain
--- in place as read-only records and can never be edited through this API.
-create or replace function public.start_new_season(
-  p_slug text,
-  p_name text,
-  p_starts_on date,
-  p_ends_on date,
-  p_tournament_slug text
-)
-returns uuid
-language plpgsql security definer set search_path = public
-as $$
-declare
-  v_id uuid;
-begin
-  if not public.has_app_role(array['admin']) then
-    raise exception 'Only admins can start a season';
-  end if;
-  if nullif(btrim(p_slug), '') is null or p_slug !~ '^[a-z0-9]+(-[a-z0-9]+)*$' then
-    raise exception 'Slug must use lowercase letters, numbers, and hyphens';
-  end if;
-  if nullif(btrim(p_name), '') is null then
-    raise exception 'Season name is required';
-  end if;
-  if p_starts_on is not null and p_ends_on is not null and p_ends_on < p_starts_on then
-    raise exception 'End date must be on or after start date';
-  end if;
-  if nullif(btrim(p_tournament_slug), '') is not null
-     and p_tournament_slug !~ '^[a-z0-9]+(-[a-z0-9]+)*$' then
-    raise exception 'Tournament slug must use lowercase letters, numbers, and hyphens';
-  end if;
-
-  perform pg_advisory_xact_lock(hashtext('gamefest-season-transition'));
-  update public.seasons set is_active = false, archived_at = now()
-  where is_active;
-
-  insert into public.seasons (slug, name, starts_on, ends_on, tournament_slug, is_active)
-  values (p_slug, btrim(p_name), p_starts_on, p_ends_on,
-          nullif(btrim(p_tournament_slug), ''), true)
-  returning id into v_id;
-  return v_id;
-end;
-$$;
-
-revoke all on function public.update_active_season(uuid, text, date, date, text) from public;
-revoke all on function public.start_new_season(text, text, date, date, text) from public;
-grant execute on function public.update_active_season(uuid, text, date, date, text) to authenticated;
-grant execute on function public.start_new_season(text, text, date, date, text) to authenticated;
+revoke all on function public.update_active_season(uuid, date, date, text) from public;
+grant execute on function public.update_active_season(uuid, date, date, text) to authenticated;
 
 create or replace function public.guard_active_season_write()
 returns trigger

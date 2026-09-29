@@ -5,7 +5,6 @@ import type { Database } from "../types/database.types";
 export type Season = Database["public"]["Tables"]["seasons"]["Row"];
 
 export type SeasonDetails = {
-  name: string;
   startsOn: string | null;
   endsOn: string | null;
   tournamentSlug: string | null;
@@ -42,7 +41,6 @@ export const useSeasons = () => {
   const saveActive = async (seasonId: string, details: SeasonDetails) => {
     const { error: saveError } = await supabase.rpc("update_active_season", {
       p_season_id: seasonId,
-      p_name: details.name,
       p_starts_on: details.startsOn,
       p_ends_on: details.endsOn,
       p_tournament_slug: details.tournamentSlug ?? "",
@@ -51,17 +49,5 @@ export const useSeasons = () => {
     await refresh();
   };
 
-  const startNew = async (slug: string, details: SeasonDetails) => {
-    const { error: startError } = await supabase.rpc("start_new_season", {
-      p_slug: slug,
-      p_name: details.name,
-      p_starts_on: details.startsOn,
-      p_ends_on: details.endsOn,
-      p_tournament_slug: details.tournamentSlug ?? "",
-    });
-    if (startError) throw startError;
-    await refresh();
-  };
-
-  return { seasons, loading, error, refresh, saveActive, startNew };
+  return { seasons, loading, error, refresh, saveActive };
 };

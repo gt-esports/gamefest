@@ -445,12 +445,8 @@ export interface Database {
     };
     Functions: {
       update_active_season: {
-        Args: { p_season_id: string; p_name: string; p_starts_on: string | null; p_ends_on: string | null; p_tournament_slug: string };
+        Args: { p_season_id: string; p_starts_on: string | null; p_ends_on: string | null; p_tournament_slug: string };
         Returns: undefined;
-      };
-      start_new_season: {
-        Args: { p_slug: string; p_name: string; p_starts_on: string | null; p_ends_on: string | null; p_tournament_slug: string };
-        Returns: string;
       };
       get_active_season_id: {
         Args: Record<string, never>;
