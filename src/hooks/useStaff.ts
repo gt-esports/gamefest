@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
 import { getActiveSeasonId } from "../utils/activeSeason";
 import type { StaffAssignment, StaffMember } from "../schemas/StaffSchema";
+import type { TableInsert } from "../types/database.types";
 
 type UserRoleRow = {
   user_id: string;
@@ -142,7 +143,7 @@ export const addAssignmentToStaff = async (
   input: { gameId: string } | { challengeId: string }
 ): Promise<void> => {
   const seasonId = await getActiveSeasonId();
-  const row =
+  const row: TableInsert<"staff_assignments"> =
     "gameId" in input
       ? { user_id: userId, game_id: input.gameId, challenge_id: null, season_id: seasonId }
       : { user_id: userId, game_id: null, challenge_id: input.challengeId, season_id: seasonId };
