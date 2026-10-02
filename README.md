@@ -32,6 +32,7 @@ For Supabase-backed auth/data, set these env vars in `.env.local`:
 ```bash
 VITE_SUPABASE_URL=...
 VITE_SUPABASE_ANON_KEY=...
+VITE_ESPORTS_API_URL=http://localhost:8000
 ```
 
 Then run SQL scripts in numerical order from `supabase_scripts/`. Existing
@@ -58,6 +59,56 @@ date columns and replace the admin update function. The older scripts retain
 their original definitions for deployments that have already run them.
 
 `staff` / `admin` access is enforced through `public.user_roles` and RLS.
+
+### Hall of Fame API integration
+
+The previous winners section calls the separately hosted
+[APIservice](https://github.com/gt-esports/APIservice) endpoint
+`GET /v1/gamefest/past-winners`. It no longer queries Supabase directly.
+Other pages and authentication still use the existing Supabase configuration.
+
+Set `VITE_ESPORTS_API_URL` to the APIservice origin, or to its base URL when
+mounted under a path. Use an absolute HTTP(S) URL without credentials, a query,
+or a fragment; the client appends `/v1/gamefest/past-winners`. For example,
+`http://localhost:8000` is suitable for local development. Vite reads this value
+at startup/build time, so restart Vite or rebuild after changing it. No secret
+belongs in a `VITE_*` variable.
+
+Start APIservice separately using its README. Configure its
+`GAMEFEST_SUPABASE_URL` and `GAMEFEST_SUPABASE_ANON_KEY` with the existing
+GameFest project's public URL and anon/publishable key, and set
+`CORS_ALLOWED_ORIGINS=http://localhost:3000` for local Vite access. The existing
+Express `/api/*` server still handles start.gg and is unrelated to this request.
+To run only the frontend while checking this integration, use `npx vite`.
+
+The response is `{ "seasons": [...] }`, with at most the latest 20 inactive
+seasons. Each season has `id`, `name`, `slug`, and up to three `winners`; each
+winner has `rank`, `display_name`, and `points`. No user IDs or emails are
+needed. The page preserves loading, empty archive, and season-without-results
+states. HTTP/network errors, malformed responses, or a ten-second timeout show
+a retry button. Missing or invalid configuration shows an unavailable message.
+There is no automatic fallback to direct Supabase queries.
+
+Install dependencies with `npm install --legacy-peer-deps` (the existing React
+Vite plugin has an older Vite peer range), then verify with:
+
+```bash
+npm test
+npm run build
+npx eslint src/components/PastWinners.tsx src/components/PastWinners.test.tsx src/utils/gamefestApi.ts src/utils/gamefestApi.test.ts --max-warnings 0
+```
+
+The repository intentionally ignores `package-lock.json`; the added test
+dependencies are pinned in `package.json`.
+
+For release, review and merge the paired APIservice PR first, configure its
+Supabase access and allowed frontend origins, deploy it, and verify the public
+endpoint. Then configure this project's `VITE_ESPORTS_API_URL` for the target
+Vercel environment and test a frontend preview before merging this frontend
+PR. Allow the exact preview origin as well as the production origin in the
+API's CORS configuration. All PRs still require `@longxiangchen` review before
+merging. Reverting this frontend PR restores the previous data path if a
+rollback is needed.
 
 Happy coding! 
 
